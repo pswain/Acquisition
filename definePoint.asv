@@ -1,0 +1,14 @@
+%A point consists of row of a cell array with the following columns:
+%1. point name (string)
+%2. x stage position
+%3. y stage position
+%4. Z drive position
+%5. PFS offset position (also a z control)
+%6. An exposure time (optional) in case of exposure by point.
+function [point]=definePoint(name,expos)
+%get position data from the microscope
+x=mmc.getXPosition('XYStage');
+y=mmc.getYPosition('XYStage');
+zDrive=mmc.getProperty('ZDrive',');
+%set up the 1D cell array
+point={

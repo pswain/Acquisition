@@ -1,0 +1,61 @@
+function tiles = makeTiles (nRows,nColumns, rowSpacing, colSpacing, handles)
+
+Points=nRows*nColumns;%number of points
+
+%define a default group (the group of the previous point +1 if there is one,
+%otherwise 1)
+group=1;
+headings={'Name','x (microns)','y (microns)','z (microns)', 'PFS offset', 'Group'};
+numChannels=size(handles.acquisition.channels,1);
+editable=[true true true true true true];
+for ch=1:numChannels
+    headings(6+ch)=strcat(handles.acquisition.channels(ch,1),'(ms)');
+    editable(6+ch)=true;
+end
+set(handles.pointsTable,'ColumnName',headings);
+set(handles.pointsTable,'ColumnEditable',editable);
+number=0;
+global mmc;
+startX=mmc.getXPosition('XYStage');
+startY=mmc.getYPosition('XYStage');
+
+for row=1:nRows
+    for col=1:nColumns
+        %Generate a default name and make sure this name hasn't already been taken
+        number=number+1;
+        defName=strcat('pos',num2str(number));%generate default point name
+        nameOK=0;
+        while nameOK==0
+            usename=1;
+            for n=1:nPoints
+                name=char(handles.acquisition.points(n));
+                if strcmp(name,defName)==1
+                    usename=0;
+                end
+            end
+            if usename==1
+                nameOK=1;
+            else
+                number=number+1;
+                defName=strcat('pos',num2str(number));%generate default point name
+            end
+        end
+
+        tiles{number,1}=defName;
+        tiles{number,2}=(col-1)*colSpacing+startX;
+        tiles{number,3}=(row-1)*rowSpacing+startY;
+        tiles{number,4}=mmc.getPosition('TIZDrive');
+        tiles{number,5}=mmc.getPosition('TIPFSOffset');
+        tiles{number,6}=number;
+        
+        %The first 6 columns of the points table have been defined. The remaining
+        %columns are exposure times, one for each channel. Need the channels
+        %selected and default exposure times.
+        numChannels=size(handles.acquisition.channels,1);
+        for ch=1:numChannels
+        tiles(number,6+ch)={num2str(cell2mat(handles.acquisition.channels(ch,2)))};%this has to be a string - will allow entries other than numbers - eg 'double' for a double exposure to test bleaching
+        end
+    end
+end
+
+end

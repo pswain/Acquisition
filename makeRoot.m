@@ -1,0 +1,45 @@
+%Decides root folder to save files in based on name of user
+function [root name]=makeRoot(name)
+today=date;
+if isempty(name)
+    name='Ivan';
+end
+
+switch name
+    case 'v1iclar2'
+        name='Ivan';
+    case 'mcrane2'
+        name='Matt';
+    case 's0880566'
+        name='Bruno';
+            case 's1135844'
+        name='Elco';
+    case 's1259407'
+        name='Luis';
+    case 'v1agrana'
+        name='Alejandro';
+        
+end
+[swain tyers millar]=getUsers;
+testSwain=strcmp(name,swain);
+testTyers=strcmp(name,tyers);
+testMillar=strcmp(name,millar);
+isSwain=any(testSwain);
+isTyers=any(testTyers);
+isMillar=any(testMillar);
+if isSwain==1
+lab='C:/AcquisitionData/Swain Lab/';
+stringtoadd='/RAW DATA/';
+end
+
+if isMillar==1
+lab='C:/AcquisitionData/Millar Lab/';
+stringtoadd='/RAW DATA/';
+end
+
+if isTyers==1
+lab='C:/AcquisitionData/Tyers Lab/';
+stringtoadd='/RAW DATA/';
+end
+
+root=strcat(lab,name,stringtoadd,today(8:11),'/',today(4:6),'/', date);

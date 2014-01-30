@@ -1,0 +1,9 @@
+function shiftLeft(distance)
+    %Moves the stage left by the input distance in microns
+    global mmc
+    xposition=mmc.getXPosition('XYStage');
+    xposition=mmc.getXPosition('XYStage');
+
+    newPosition=position-distance;
+    mmc.setPosition('XYStage',newPosition);    
+end

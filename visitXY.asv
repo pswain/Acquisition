@@ -1,0 +1,40 @@
+%function to get the scope to visit a defined point in xy
+%input 1 is the log file identifier for the experiment
+%input 2 is a 1d cell array with the following fields:
+%1 - name
+%2 - x stage position (microns)
+%3 - y stage position (microns) 
+%4 - microscope z drive position (not used)
+%5 - PFS offset position (not used)
+%6 - Exposure time for exposure by point (not used)
+%input 3 is a 1 if the PFS is to be used in this experiment and a 0 if it
+%isn't
+
+
+function[]=visitXY(logfile,point,pfsOn)
+
+global mmc;
+
+%Make sure the PFS is off - can lose it's lock when moving - esp under
+%channels in microfluidic devices.
+% if strcmp(mmc.getProperty('PFSStatus','State'),'Locked')==1
+%     fprintf(logfile,'%s','PFS switched off for XY stage movement');
+%     fprintf(logfile,'\r\n');
+%     mmc.setProperty('PFSStatus','State','Off');
+%     pause (0.4);
+% end
+
+%move to XY position defined in point input.
+x=cell2mat(point(2));
+y=cell2mat(point(3));
+mmc.setXYPosition('XYStage',x,y);
+mmc.waitForDevice('XYStage');
+fprintf(logfile,'%s',strcat('Moved to X:',num2str(x),', Y:',num2str(y)));
+fprintf(logfile,'\r\n');
+
+%     if pfsOn==1
+%         mmc.setProperty('PFSStatus','State','On');
+%         mmc.waitForDevice('PFSStatus');
+%         fprintf(logfile,'%s',strcat('PFS switched on after XY stage movement. Status:',char(mmc.getProperty('PFSStatus','State'))));
+%         fprintf(logfile,'\r\n');
+%     end
