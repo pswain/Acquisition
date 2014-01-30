@@ -250,7 +250,11 @@ handles.stop=0;
 handles.distance=10;%Default is 10 microns.
 
 %Set some properties in the GUI before user input
-set(hObject, 'Name', 'Swain Lab Microscope: Multi Dimensional Acquisition');
+a=fopen('version.txt');
+b=textscan(a,'%s');
+b=b{:};
+b=b{end};
+set(hObject, 'Name', ['Swain Lab Microscope: Multi Dimensional Acquisition ' b]);
 set(handles.rootName,'String',handles.acquisition.info(3));
 set(handles.pointsTable,'Data',handles.acquisition.points);
 

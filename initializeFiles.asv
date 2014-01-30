@@ -31,6 +31,12 @@ logname=char(strcat(exptFolder,'/',acqName,'log.txt'));
 logFile=fopen(logname,'w');%Then can write to logfile later using fprintf(logfile,'string goes here');
 fprintf(logFile,'%s','Swain Lab microscope experiment log file');
 fprintf(logFile,'\r\n');
+a=fopen('version.txt');
+v=textscan(a,'%s');
+v=v{:};
+v=v{end};
+set(hObject, 'Name', ['Swain Lab Microscope: Multi Dimensional Acquisition ' b]);
+
 today=date;
 fprintf(logFile,'%s',today);
 fprintf(logFile,'\r\n');
