@@ -23,7 +23,7 @@ function varargout = multiDGUI(varargin)
 
 % Edit the above text to modify the response to help multiDGUI
 
-% Last Modified by GUIDE v2.5 29-Jan-2014 12:06:43
+% Last Modified by GUIDE v2.5 30-Jan-2014 16:14:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -160,7 +160,7 @@ p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RA
 handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
 %info entry is already initialised above
 end
-
+set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
 updateFlowDisplay(handles);%makes the graph from the flow settings
 
 %Initialise the list of points. This is not retrieved from the last saved
@@ -5213,13 +5213,32 @@ global gui;
 if gui.isLiveModeOn
 gui.enableLiveMode(0);
 set(handles.live,'String','Live');
-set(handles.live,'BackgroundColor',[0 .498 0]);
+set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
 else
 gui.enableLiveMode(1);
 set(handles.live,'String','Stop Live');
+set(handles.live,'BackgroundColor',[.9 0.2 0.2]);
 end
 
 
 
     
     
+
+
+% --- Executes on button press in pushbutton31.
+function pushbutton31_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton31 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global gui;
+if gui.isLiveModeOn
+gui.enableLiveMode(0);
+set(handles.live,'String','Live');
+set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
+else
+gui.enableLiveMode(1);
+set(handles.live,'String','Stop Live');
+set(handles.live,'BackgroundColor',[.15 0.23 0.37]);
+end
+

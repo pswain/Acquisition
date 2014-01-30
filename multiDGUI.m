@@ -23,7 +23,7 @@ function varargout = multiDGUI(varargin)
 
 % Edit the above text to modify the response to help multiDGUI
 
-% Last Modified by GUIDE v2.5 29-Jan-2014 12:06:43
+% Last Modified by GUIDE v2.5 30-Jan-2014 16:17:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -5224,3 +5224,23 @@ end
 
     
     
+
+
+% --- Executes on button press in liveDIC.
+function liveDIC_Callback(hObject, eventdata, handles)
+% hObject    handle to liveDIC (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global gui;
+global mmc;
+if gui.isLiveModeOn
+gui.enableLiveMode(0);
+set(handles.liveDIC,'String','Live');
+set(handles.live,'BackgroundColor',[.15 0.23 0.37]);
+else
+mmc.setConfig('Channel', 'DIC');
+mmc.waitForConfig('Channel', 'DIC');
+gui.enableLiveMode(1);
+set(handles.live,'String','Stop Live');
+set(handles.liveDIC,'BackgroundColor',[0.2 .9 0.2]);
+end
