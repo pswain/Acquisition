@@ -1913,11 +1913,16 @@ function start_Callback(hObject, eventdata, handles)
 %Before running acquisisition - simple checks - eg are there any channels,
 %approx time for capturing stack will fit into time interval.
 %have experiment details been entered?
-sizeChannels=size(handles.acquisition.channels(:,1));
-nChannels=(sizeChannels(1));
-if nChannels==0
-    warndlg('No channels are selected - try again','No channels','modal');
-    return;
+if ~isempty(handles.acquisition.channels)
+    sizeChannels=size(handles.acquisition.channels(:,1));
+    nChannels=(sizeChannels(1));
+    if nChannels==0
+        warndlg('No channels are selected - try again','No channels','modal');
+        return;
+    end
+else
+     warndlg('No channels are selected - try again','No channels','modal');
+        return;
 end
 
 %Then - display a modal dialog box showing the experimental settings with a
@@ -2685,26 +2690,50 @@ updateFlowDisplay(handles);
 
 % --- Executes on selection change in switchMethod.
 function switchMethod_Callback(hObject, eventdata, handles)
+
 contents=get(hObject,'String');
 choice=contents{get(hObject,'Value')};
 switch choice
     case 'Enter switch times'
-        if handles.acquisition.flow{5}.times==0
-            defaults={'0', '4', '.4'};
-        else
-            defaults={'0', '4', '.4'};
-        end
-        answers=inputdlg({'Enter switching times in min after start of timelapse (separated by commas): ','Enter flow rates (after switching) of pump to switch to (in ul/min, separated by commas)','Enter flow rates (after switching) of pump to switch from (in ul/min, separated by commas)'},'Switching parameters',1,defaults);
+        %Define a variable to check if inputs are OK
+        problem=false;
+        %Define default values (based on contents of the switching object)
+        %Times (as comma, separated string)       
+        defaults{1}=commaString(handles.acquisition.flow{5}.times);
+        %Initially-dominant pump
+        defaults{2}=num2str(handles.acquisition.flow{5}.initialPump);
+        %Post-switch flow rates
+        %Pump to switch to is the highest flow rate between the first two
+        %entries in switches.flowPostSwitch
+        defaults{3}=num2str(max(handles.acquisition.flow{5}.flowPostSwitch(:,1)));
+        defaults{4}=num2str(min(handles.acquisition.flow{5}.flowPostSwitch(:,1)));
+        %Get user input
+        answers=inputdlg({'Enter switching times in min after start of timelapse (separated by commas): ','Which pump has the higher flow rate initially?','Enter flow rates (after switching) of pump to switch to (in ul/min, separated by commas)','Enter flow rates (after switching) of pump to switch from (in ul/min, separated by commas)'},'Switching parameters',1,defaults);
+        %Process switching times
         times=answers{1};
         %CONVERT TO VECTOR OF DOUBLES
         txtTimes=textscan(times,'%f','Delimiter',',');
         txtTimes=cell2mat(txtTimes);
         regTimes=regexp(times,[','],'Split');
+        %Initial pump
+        initialPump=answers{2};
+        initialPump=str2num(initialPump);
+        if isempty(initialPump)
+           problem=true;
+           errorMessage='Initial pump must be either 1 or 2';
+        else
+            if ~(initialPump==2||initialPump==1)
+               problem=true;
+               errorMessage='Initial pump must be either 1 or 2';
+            end
+        end
+        
+        
         %Flow rates
-        hFlw=answers{2};
+        hFlw=answers{3};
         highFlow=textscan(hFlw,'%f','Delimiter',',');
         highFlow=cell2mat(highFlow)';
-        lFlw=answers{3};
+        lFlw=answers{4};
         lowFlow=textscan(lFlw,'%f','Delimiter',',');
         lowFlow=cell2mat(lowFlow)';
         if ~any(isnan([highFlow lowFlow]))
@@ -2721,15 +2750,21 @@ switch choice
                     flowRates(1,ind)=oldFlow(2);
                     flowRates(2,ind)=oldFlow(1);
                 end
-                handles.acquisition.flow{5}=handles.acquisition.flow{5}.setTimes(txtTimes,flowRates);
-            else
-                errordlg('Answer contains invalid times');
+                if ~problem
+                    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setSwitchTimes(txtTimes,flowRates,initialPump);
+                end
+                else
+                problem=true;
+                errorMessage='Answer contains invalid times';
             end
         else
-            errordlg('Answer contains invalid times');
-
+            problem=true;
+            errorMessage='Answer contains invalid times';
         end
-
+    if problem
+        errordlg(errorMessage);
+    end
+    handles.acquisition.flow{5}.displayFlowChanges;
     case 'Periodic'
         defaults={'30','0',num2str(handles.acquisition.time(4)/60),'4','.4'};
         input = inputdlg({'Switch the flow every....min','Start switching at ... min','Stop switching at ... min','Flow rate of dominant pump (ul/min)','Flow rate of non-dominant pump (ul/min)'},'Periodic switching',1,defaults);
@@ -2757,7 +2792,7 @@ switch choice
         endPump=str2double(input{6});
         handles.acquisition.flow{5}=handles.acquisition.flow{5}.makeLinearRamp(rampStart,rampStop,highFlow,lowFlow,startPump,endPump);
 end
-        
+     
 
 guidata(hObject, handles);
 updateFlowDisplay(handles);
@@ -4980,7 +5015,7 @@ starttpTag=[channelName 'starttp'];
 snapTag=['snap' channelName];
 cammodeTag=['cammode' channelName];
 startgainTag=['startgain' channelName];
-epgTag=['epg' channelName];
+voltTag=['volt' channelName];
 expTag=[channelName 'exp'];
 
 if get(hObject,'Value')==1 
@@ -4998,7 +5033,7 @@ if get(hObject,'Value')==1
     set(handles.(cammodeTag),'Enable','on');
     if get(handles.(cammodeTag),'Value')==1%channel set to camera EM mode
         set (handles.(startgainTag),'Enable','on');
-        set (handles.(epgTag),'Enable','on');
+        set (handles.(voltTag),'Enable','on');
     end 
     set(handles.(expTag),'Enable','on');
     handles.acquisition.channels{nChannels+1,1}=channelName;
@@ -5012,7 +5047,7 @@ if get(hObject,'Value')==1
    if isempty(handles.acquisition.channels(nChannels+1,7));
        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
    end%
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.(epgTag),'String')));
+      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.(voltTag),'String')));
    %update the points list (if there is one) - add a column for exposure times for this channel
    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
@@ -5026,7 +5061,7 @@ else
     set(handles.(snapTag),'Enable','off');
     set(handles.(cammodeTag),'Enable','off');
     set(handles.(startgainTag),'Enable','off');
-    set(handles.(epgTag),'Enable','off');
+    set(handles.(voltTag),'Enable','off');
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         anyZ=0;

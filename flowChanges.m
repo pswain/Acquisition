@@ -1,6 +1,7 @@
 classdef flowChanges
     properties
         times%double vector, times at which changes should occur
+        initialPump%integer, The number of the dominant pump at the start of the experiment - used for switching experiments only
         switched%logical vector, indicates if each switch has occurred
         pumps%cell array of pump objects
         switchedTo%double vector, number (index in obj.pumps) of the pump that has the faster pumping rate after each switch - zero for events that don't require fast infuse/withdraw step
@@ -15,6 +16,7 @@ classdef flowChanges
         function obj=flowChanges(pumps)
             
             %Default parameters
+            obj.initialPump=1;
             obj.times=0;
             obj.switched=true;
             obj.switchedTo=0;
@@ -25,13 +27,18 @@ classdef flowChanges
             obj.pumps=pumps;
             %Define default switching parameters
             obj.switchParams.withdrawVol=50;%vol in microlitres
-            obj.switchParams.rate=10;%rate of pumping during switching in microlitres/min
+            obj.switchParams.rate=100;%rate of pumping during switching in microlitres/min
         end
         
-        function obj=setTimes(obj, times, flowRate)
+        function obj=setSwitchTimes(obj, times, flowRate, initialPump)
             %Generates switching parameters from input times and flow rates
+            %for switching experiments.
+            
             %times = double vector (times in min of changes)
             %flowRate = m*n double matrix, where m=number of pumps and n = number of changes
+            %initialPump = integer, the number of the initially dominant pump - flowing at the higher rate at the start of the acquisition
+            
+            obj.initialPump=initialPump;
             obj.numChanges=length(times);
             obj.times=times;
             obj.switched=false(1,obj.numChanges);
@@ -39,11 +46,12 @@ classdef flowChanges
             obj.timesSwitched=zeros(1,obj.numChanges);
 %             [maxFlow obj.switchedTo]=max(obj.flowPostSwitch);
 %             [minFlow obj.switchedFrom]=min(obj.flowPostSwitch);
-            obj.switchedTo=ones(1,length(obj.times));
-            obj.switchedTo(1:2:end)=2;
-            obj.switchedFrom=ones(1,length(obj.times));            
-            obj.switchedFrom(2:2:end)=2;
+            obj.switchedTo=ones(1,length(obj.times));           
+            obj.switchedTo(initialPump:2:end)=2;
+            obj.switchedFrom=ones(1,length(obj.times));
+            obj.switchedFrom(3-initialPump:2:end)=2;
 
+            
             
         end
         
@@ -192,11 +200,19 @@ classdef flowChanges
             p1=obj.pumps{1}.serial;
             p2=obj.pumps{2}.serial;
             
-            if obj.pumps{1}.diameter>=14.43
-                wVol1=num2str(obj.switchParams.withdrawVol/1e3);
-            else
-                wVol1=num2str(obj.switchParams.withdrawVol);
-            end
+            %The next part is necessary for NE100 pumps  becuase the pumps switch
+            %their units from ul to ml if using 10ml syringes (diam 14.43)
+            %or bigger. - commented for pump1 because it's now a different
+            %model (NE1002) that doesn't do this. You can manually change
+            %the units to nl on that pump - will be a disaster if someone
+            %does this...
+            
+            
+%             if obj.pumps{1}.diameter>=14.43
+%                 wVol1=num2str(obj.switchParams.withdrawVol/1e3);
+%             else
+                 wVol1=num2str(obj.switchParams.withdrawVol);
+%             end
             
             if obj.pumps{2}.diameter>=14.43
                 wVol2=num2str(obj.switchParams.withdrawVol/1e3);
@@ -230,7 +246,7 @@ classdef flowChanges
         
         function obj=setSwitchParams(obj)
             %runs user dialogue to determine the parameters for switching.
-            defaults={'50','10'};
+            defaults={'50','100'};
             answers=inputdlg({'Volume for fast pumping stage of switch (ul)','Flow rate for fast pumping stage of switch (ul/min)'},'Switching parameters',1,defaults);
             obj.switchParams.withdrawVol=str2num(answers{1});
             obj.switchParams.rate=str2num(answers{2});
@@ -326,8 +342,26 @@ classdef flowChanges
             pump2=str2double(pump2);
             obj.flowPostSwitch(2,:)=pump2';
         end
-            
         
+        function obj=displayFlowChanges(obj)
+        %Displays the information contained in the object - should allow
+        %the user to check if things are correctly set up
+        
+        %This is unfinished (obviously)
+        dispFig=figure('Toolbar','none','menubar','none','numbertitle','off','name','Switching experiment setup');
+        %Convert times to comma-separated string
+        timesString=commaString(obj.times);
+        timesText=uicontrol('Parent',dispFig,'Style','Text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .90   1 .03],'String',['Switching times (min): ' timesString]);
+        initialText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .95   1 .03],'String',['Initial pump: ' num2str(obj.initialPump)]);
+        switchedToText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .85   1 .03],'String',['Pump switched to at each change: ' commaString(obj.switchedTo)]);
+        switchedFromText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .80   1 .03],'String',['Pump switched from at each change: ' commaString(obj.switchedFrom)]);
+        postSwitch1Text=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .75   1 .03],'String',['Pump1 flow rate after each switch: ' commaString(obj.flowPostSwitch(1,:))]);
+        postSwitch2Text=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .70   1 .03],'String',['Pump2 flow rate after each switch: ' commaString(obj.flowPostSwitch(2,:))]);
+        volText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .65   1 .03],'String',['Volume of fast infuse/withdraw step during switching:' num2str(obj.switchParams.withdrawVol)]);
+        rateText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .60   1 .03],'String',['Rate of fast infuse/withdraw step during switching:' num2str(obj.switchParams.rate)]);
+        switchPlot=axes('Parent',dispFig,'Units','Normalized','Position',[.02 .05  .95 .45]);figure(gcf)
+        end
+    
         
         
     end

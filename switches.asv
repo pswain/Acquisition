@@ -115,14 +115,7 @@ classdef switches
            
        end
        
-       function writeSwitchDetails(obj,file)
-           %Records the details contained in the switches object in the file
-           %represented by the input file identifier. Must refer to a
-           %valid, open text file. Used, eg., for writing details to a
-           %microscope experiment Acq file.
-           fprintf(file,'\r\n');
-       end
-       
+      
        
        
    end
