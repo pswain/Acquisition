@@ -1,20 +1,8 @@
 function []=acqTimelapse(acqData,logfile,exptFolder,posDirectories)
 global mmc;
 tic%start of timer - toc statement will give time since this tic
-%Make a figure for each position - COMMENTED THIS - LEAVE DISPLAY TO WORRY
-%ABOUT LATER
-% if size(acqData.points,1)>1
-%     for p=1:size(acqData.points,1)
-%     figure;
-%     set(gcf,'NumberTitle','off');
-%     set(gcf,'Name',char(acqData.points(1,:)));
-%     end
-% else
-%     figure;
-%     set(gcf,'NumberTitle','off');
-%     set(gcf,'Name',char(acqData.info(1)));
-%end
-acqData.z(3)=1;%    remove tomorrow and fix bug
+
+acqData.z(3)=1;%    PFS is on - there is a bug that needs to be fixed so this line is not necessary
 acqData.logtext=1;
 logstring=strcat('Experiment started at: ',datestr(clock));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
 
@@ -154,32 +142,34 @@ for t=1:numTimepoints%start of timepoint loop.
    maxgroups=zeros(numGroups,numChannels);
         %loop through the positions
         for pos=1:numPositions
-            %Run pump Changeing function if necessary
-            acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60,logfile);            
+            %Run pump changing function if necessary
+            acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60,logfile);
+            %Determine the position group of the current point
             groupid=cell2mat(acqData.points(pos,6));
             groups=[acqData.points{:,6}];%the list of groups
             gp=find(groups)==groupid;%gp is the (logical) index to the entry for this group in CHsets
             logstring=strcat('Position:',num2str(pos),', ',char(acqData.points(pos,1)));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
             logstring=strcat('Position group:',num2str(groupid)); acqData.logtext=writelog(logfile,acqData.logtext,logstring);                                          
+            %PFS handling is simpler if there's only one position and no
+            %z-sectioning -check if this is the case
             if numPositions==1 && acqData.z(4)==0;%1 position, no z sectioning
                 single=1;
             else
                 single=0;
-            end            
+            end      
             if acqData.z(3)==1 && single==0
                 %using the PFS and things are moving (either in z or xy) - need to switch it off for capture - therefore need to correct for drift
                 visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
-               if acqData.z(4)~=0%anyZ = 1 if any channel does z sectioning.
+               if acqData.z(4)~=0% == 1 if any channel does z sectioning.
                    %Call correct drift with the z position of this point as
                    %the input reference position - will calculate drift
                    %relative to where the lens was when the point was
                    %marked.
-                   %drift=correctDrift(logfile,zref,drift,PFSOffset)
-%                    logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-%                    acqData.z(5)=correctDrift(logfile,acqData.points(pos,4),acqData.z(5),acqData.points(pos,5));
-%                    mmc.setProperty('TIPFSStatus','State','Off');
-%                    pause(0.4);%Gives it time to switch off - is pretty slow                                    
-%                    %Does any channel at this position do z sectioning?
+                   logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+                   acqData.z(5)=correctDrift(logfile,acqData.points(pos,4),acqData.z(5),acqData.points(pos,5));
+                   mmc.setProperty('TIPFSStatus','State','Off');
+                   pause(0.4);%Gives it time to switch off - is pretty slow                                    
+                   %Does any channel at this position do z sectioning?
                    anyZThisPos=false;
                    for n=1:size(acqData.channels,1)
                           try
@@ -381,35 +371,6 @@ logstring=strcat('Time since start of timelapse: ',num2str(currTime));acqData.lo
 status=mmc.getProperty('TIPFSStatus', 'Status');
 logstring=strcat('TIPFS status:',char(status));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
 
-% %Image display code goes here if desired - images are in the  variable.
-% %Only displays the image in the middle of a stack
-% if acqData.z(1)>1
-%     middle=round(acqData.z(1)/2);
-% else
-%     middle=1;
-% end
-% 
-% if numPositions==0 || numPositions==1%ie if there is only one window
-%     numPositions=1;
-%     windowname=char(acqData.info(1));
-% end
-% for p=1:size(acqData.points,1)
-% %activate the window for this position
-% figure ('Name',char(acqData.points(p,1)));
-%     for ch=1:size(acqData.channels,1)%this bit isn't working
-%        a=subplot(1,size(acqData.channels,1),p);
-%        title(char(acqData.Channels(p)))
-%        set(a,'YTick',[]);
-%        set(a,'XTick',[]);
-%        img=timepoint(position,ch,middle,:,:);
-%        img=squeeze(img);
-%        imshow(img,[]);
-%        drawnow;
-%     end%of loop through channels for image display
-% end%of loop through positions for image display
-
-
-
 clear timepointData;
 %Timer while statement to wait for the correct time to start the
 %next time point.
@@ -433,19 +394,7 @@ if t<numTimepoints%wait only if experiment needs to continue
      end
      clear guiinfo;
 end
-%Need to address focus drift here - incorporate any drift that has occured
-%during the wait with another call to correctDrift
-%Use the z position of the last point as the reference.
-%     if numPositions==1 && acqData.z(4)==0
-%         %do not switch PFS off or correct for drift if only 1
-%         %position and no z sectioning - in this case the PFS
-%         %can stay on all the time and do all the drift
-%         %correcting itself.
-%     else
-%         acqData.z(5)=correctDrift(logfile,acqData.points(end,4),acqData.z(5),acqData.points(end,5));
-%         mmc.setProperty('PFSStatus','State','Off');
-%         pause(0.4);%Gives it time to switch off - is pretty slow
-%     end
+
 
 
 end%of timepoint loop

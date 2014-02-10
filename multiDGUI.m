@@ -2747,8 +2747,17 @@ switch choice
                     flowRates=repmat(flowRates,1,length(txtTimes));
                     %Now all entries are the same - first flow input
                     %followed by second. Swap the even entries
-                    flowRates(1,ind)=oldFlow(2);
-                    flowRates(2,ind)=oldFlow(1);
+                    
+                    if initialPump==1
+                        flowRates(1,ind)=oldFlow(2);%The lower flow rate - for times 1, 3, 5 etc.
+                        flowRates(2,ind)=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc
+                    else
+                        %Pump 2 is dominant at the start of the experiment
+                        %- 1st switch is to pump 1 - so that has the higher
+                        %rate after the odd numbered switches.
+                        flowRates(1,ind)=oldFlow(1);%The higher flow rate - for times 1, 3, 5 etc.
+                        flowRates(2,ind)=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc
+                    end
                 end
                 if ~problem
                     handles.acquisition.flow{5}=handles.acquisition.flow{5}.setSwitchTimes(txtTimes,flowRates,initialPump);
@@ -2791,6 +2800,39 @@ switch choice
         startPump=str2double(input{5});
         endPump=str2double(input{6});
         handles.acquisition.flow{5}=handles.acquisition.flow{5}.makeLinearRamp(rampStart,rampStop,highFlow,lowFlow,startPump,endPump);
+case 'Enter times'
+        if handles.acquisition.flow{5}.times==0
+            defaults={'0', '4', '.4'};
+        else
+            defaults={'0', '4', '.4'};
+        end
+        answers=inputdlg({'Enter flow times in min after start of timelapse (separated by commas): ','Enter flow rates of pump 1 (in ul/min, separated by commas)','Enter flow rates of pump 2 (in ul/min, separated by commas)'},'Flow parameters',1,defaults);
+        times=answers{1};
+        %CONVERT TO VECTOR OF DOUBLES
+        txtTimes=textscan(times,'%f','Delimiter',',');
+        txtTimes=cell2mat(txtTimes);
+        regTimes=regexp(times,[','],'Split');
+        %Flow rates
+                hFlw=answers{2};
+        pump1flow=textscan(hFlw,'%f','Delimiter',',');
+        pump1flow=cell2mat(pump1flow)';
+        lFlw=answers{3};
+        pump2flow=textscan(lFlw,'%f','Delimiter',',');
+        pump2flow=cell2mat(pump2flow)';
+        if ~any(isnan([pump1flow pump2flow]))
+            if length(txtTimes)==length(regTimes)
+                flowRates=[pump1flow; pump2flow];
+                if size(flowRates,2)==1
+                    flowRates=repmat(flowRates,1,length(txtTimes));
+                end
+                handles.acquisition.flow{5}=handles.acquisition.flow{5}.setFlowTimes(txtTimes,flowRates);
+            else
+                errordlg('Answer contains invalid times');
+            end
+        else
+            errordlg('Answer contains invalid times');
+            
+        end
 end
      
 
