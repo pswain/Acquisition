@@ -2750,13 +2750,19 @@ switch choice
                     
                     if initialPump==1
                         flowRates(1,ind)=oldFlow(2);%The lower flow rate - for times 1, 3, 5 etc.
-                        flowRates(2,ind)=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc
+                        flowRates(1,logical(1-ind))=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc.                                       
+                        flowRates(2,ind)=oldFlow(1);%The higher flow rate - for times 1, 3, 5 etc
+                        flowRates(2,logical(1-ind))=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc
+
                     else
                         %Pump 2 is dominant at the start of the experiment
                         %- 1st switch is to pump 1 - so that has the higher
                         %rate after the odd numbered switches.
-                        flowRates(1,ind)=oldFlow(1);%The higher flow rate - for times 1, 3, 5 etc.
-                        flowRates(2,ind)=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc
+                        flowRates(1,ind)=oldFlow(1);%The higher flow rate - for switches 1, 3, 5 etc.
+                        flowRates(1,logical(1-ind))=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc.
+                        flowRates(2,ind)=oldFlow(2);%The lower flow rate - for times 1, 3, 5 etc
+                        flowRates(2,logical(1-ind))=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc
+
                     end
                 end
                 if ~problem
@@ -2773,7 +2779,6 @@ switch choice
     if problem
         errordlg(errorMessage);
     end
-    handles.acquisition.flow{5}.displayFlowChanges;
     case 'Periodic'
         defaults={'30','0',num2str(handles.acquisition.time(4)/60),'4','.4'};
         input = inputdlg({'Switch the flow every....min','Start switching at ... min','Stop switching at ... min','Flow rate of dominant pump (ul/min)','Flow rate of non-dominant pump (ul/min)'},'Periodic switching',1,defaults);
@@ -2804,7 +2809,30 @@ case 'Enter times'
         if handles.acquisition.flow{5}.times==0
             defaults={'0', '4', '.4'};
         else
-            defaults={'0', '4', '.4'};
+        timeString='';
+        pump1String='';
+        pump2String='';
+        for n=1:length(handles.acquisition.flow{5}.times)
+            thisTimeString=num2str(handles.acquisition.flow{5}.times(n));%String made from the time entry
+            charsT=length(thisTimeString);%Number of characters in the time entry for this change
+            thisP1String=num2str(handles.acquisition.flow{5}.flowPostSwitch(1,n));
+            charsP1=length(thisP1String);
+            thisP2String=num2str(handles.acquisition.flow{5}.flowPostSwitch(2,n));
+            charsP2=length(thisP2String);
+            if n<length(handles.acquisition.flow{5}.times)                
+                timeString(length(timeString)+1:length(timeString)+1+charsT)=[thisTimeString ','];
+                
+                pump1String(length(pump1String)+1:length(pump1String)+1+charsP1)=[thisP1String ','];
+                pump2String(length(pump2String)+1:length(pump2String)+1+charsP2)=[thisP2String ','];
+
+            else%This is the last change - don't add a comma
+                timeString(length(timeString)+1:length(timeString)+charsT)=thisTimeString;
+                pump1String(length(pump1String)+1:length(pump1String)+charsP1)=thisP1String;
+                pump2String(length(pump2String)+1:length(pump2String)+charsP2)=thisP2String;
+
+            end
+        end
+        defaults={timeString,pump1String,pump2String};
         end
         answers=inputdlg({'Enter flow times in min after start of timelapse (separated by commas): ','Enter flow rates of pump 1 (in ul/min, separated by commas)','Enter flow rates of pump 2 (in ul/min, separated by commas)'},'Flow parameters',1,defaults);
         times=answers{1};
@@ -2834,7 +2862,8 @@ case 'Enter times'
             
         end
 end
-     
+handles.acquisition.flow{5}.displayFlowChanges;
+    
 
 guidata(hObject, handles);
 updateFlowDisplay(handles);
@@ -3073,7 +3102,6 @@ switch value
         end       
     case 2%CCD mode selected
         set(handles.startgainGFP,'Enable','off');
-        set(handles.voltGFP,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3131,7 +3159,6 @@ switch value
         end       
     case 2%CCD mode selected
         set(handles.startgainYFP,'Enable','off');
-        set(handles.voltYFP,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3187,7 +3214,6 @@ switch value
         end       
     case 2%CCD mode selected
         set(handles.startgainmCherry,'Enable','off');
-        set(handles.voltmCherry,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3244,7 +3270,6 @@ switch value
         end       
     case 2%CCD mode selected
         set(handles.startgaintdTomato,'Enable','off');
-        set(handles.volttdTomato,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3715,7 +3740,6 @@ switch value
         end       
     case 2%CCD mode selected
         set(handles.startgaincy5,'Enable','off');
-        set(handles.voltcy5,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -4806,7 +4830,6 @@ value=get(hObject,'Value');
 switch value
     case 1%EM mode selected
         set(handles.(startgainTag),'Enable','on');
-        set(handles.(epgTag),'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -4818,7 +4841,6 @@ switch value
         end       
     case 2%CCD mode selected
         set(handles.(startgainTag),'Enable','off');
-        set(handles.(epgTag),'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -4830,7 +4852,6 @@ switch value
         end     
         case 3%EM mode selected
         set(handles.(startgainTag),'Enable','on');
-        set(handles.(epgTag),'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -5067,6 +5088,7 @@ if get(hObject,'Value')==1
        set(handles.zspacing,'Enable','on');
     end
     set(handles.(skipTag),'Enable','on');
+    set(handles.(voltTag),'Enable','on');
     set(handles.(zTag),'Enable','on');
     set(handles.(starttpTag),'Enable','on');
     set(handles.(snapTag),'Enable','on');
@@ -5309,11 +5331,13 @@ end
 
 % --- Executes on button press in liveDIC.
 function liveDIC_Callback(hObject, eventdata, handles)
-% hObject    handle to liveDIC (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+%Starts the live mode of the micromanager gui running after setting
+%microscope for DIC acquisition.
+
+
 global gui;
 global mmc;
+mmc.setProperty('Evolve','Port','Normal');
 if gui.isLiveModeOn
 gui.enableLiveMode(0);
 set(handles.liveDIC,'String','Live');

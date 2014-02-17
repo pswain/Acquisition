@@ -1913,11 +1913,16 @@ function start_Callback(hObject, eventdata, handles)
 %Before running acquisisition - simple checks - eg are there any channels,
 %approx time for capturing stack will fit into time interval.
 %have experiment details been entered?
-sizeChannels=size(handles.acquisition.channels(:,1));
-nChannels=(sizeChannels(1));
-if nChannels==0
-    warndlg('No channels are selected - try again','No channels','modal');
-    return;
+if ~isempty(handles.acquisition.channels)
+    sizeChannels=size(handles.acquisition.channels(:,1));
+    nChannels=(sizeChannels(1));
+    if nChannels==0
+        warndlg('No channels are selected - try again','No channels','modal');
+        return;
+    end
+else
+     warndlg('No channels are selected - try again','No channels','modal');
+        return;
 end
 
 %Then - display a modal dialog box showing the experimental settings with a
@@ -2742,8 +2747,23 @@ switch choice
                     flowRates=repmat(flowRates,1,length(txtTimes));
                     %Now all entries are the same - first flow input
                     %followed by second. Swap the even entries
-                    flowRates(1,ind)=oldFlow(2);
-                    flowRates(2,ind)=oldFlow(1);
+                    
+                    if initialPump==1
+                        flowRates(1,ind)=oldFlow(2);%The lower flow rate - for times 1, 3, 5 etc.
+                        flowRates(1,logical(1-ind))=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc.                                       
+                        flowRates(2,ind)=oldFlow(1);%The higher flow rate - for times 1, 3, 5 etc
+                        flowRates(2,logical(1-ind))=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc
+
+                    else
+                        %Pump 2 is dominant at the start of the experiment
+                        %- 1st switch is to pump 1 - so that has the higher
+                        %rate after the odd numbered switches.
+                        flowRates(1,ind)=oldFlow(1);%The higher flow rate - for switches 1, 3, 5 etc.
+                        flowRates(1,logical(1-ind))=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc.
+                        flowRates(2,ind)=oldFlow(2);%The lower flow rate - for times 1, 3, 5 etc
+                        flowRates(2,logical(1-ind))=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc
+
+                    end
                 end
                 if ~problem
                     handles.acquisition.flow{5}=handles.acquisition.flow{5}.setSwitchTimes(txtTimes,flowRates,initialPump);
@@ -2785,8 +2805,42 @@ switch choice
         startPump=str2double(input{5});
         endPump=str2double(input{6});
         handles.acquisition.flow{5}=handles.acquisition.flow{5}.makeLinearRamp(rampStart,rampStop,highFlow,lowFlow,startPump,endPump);
+case 'Enter times'
+        if handles.acquisition.flow{5}.times==0
+            defaults={'0', '4', '.4'};
+        else
+            defaults={'0', '4', '.4'};
+        end
+        answers=inputdlg({'Enter flow times in min after start of timelapse (separated by commas): ','Enter flow rates of pump 1 (in ul/min, separated by commas)','Enter flow rates of pump 2 (in ul/min, separated by commas)'},'Flow parameters',1,defaults);
+        times=answers{1};
+        %CONVERT TO VECTOR OF DOUBLES
+        txtTimes=textscan(times,'%f','Delimiter',',');
+        txtTimes=cell2mat(txtTimes);
+        regTimes=regexp(times,[','],'Split');
+        %Flow rates
+                hFlw=answers{2};
+        pump1flow=textscan(hFlw,'%f','Delimiter',',');
+        pump1flow=cell2mat(pump1flow)';
+        lFlw=answers{3};
+        pump2flow=textscan(lFlw,'%f','Delimiter',',');
+        pump2flow=cell2mat(pump2flow)';
+        if ~any(isnan([pump1flow pump2flow]))
+            if length(txtTimes)==length(regTimes)
+                flowRates=[pump1flow; pump2flow];
+                if size(flowRates,2)==1
+                    flowRates=repmat(flowRates,1,length(txtTimes));
+                end
+                handles.acquisition.flow{5}=handles.acquisition.flow{5}.setFlowTimes(txtTimes,flowRates);
+            else
+                errordlg('Answer contains invalid times');
+            end
+        else
+            errordlg('Answer contains invalid times');
+            
+        end
 end
-        
+handles.acquisition.flow{5}.displayFlowChanges;
+    
 
 guidata(hObject, handles);
 updateFlowDisplay(handles);
@@ -3025,7 +3079,6 @@ switch value
         end       
     case 2%CCD mode selected
         set(handles.startgainGFP,'Enable','off');
-        set(handles.voltGFP,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -5261,11 +5314,13 @@ end
 
 % --- Executes on button press in liveDIC.
 function liveDIC_Callback(hObject, eventdata, handles)
-% hObject    handle to liveDIC (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+%Starts the live mode of the micromanager gui running after setting
+%microscope for DIC acquisition.
+
+
 global gui;
 global mmc;
+mmc.setProperty('Evolve','Port','Normal');
 if gui.isLiveModeOn
 gui.enableLiveMode(0);
 set(handles.liveDIC,'String','Live');

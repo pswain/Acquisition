@@ -359,11 +359,41 @@ classdef flowChanges
         postSwitch2Text=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .70   1 .03],'String',['Pump2 flow rate after each switch: ' commaString(obj.flowPostSwitch(2,:))]);
         volText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .65   1 .03],'String',['Volume of fast infuse/withdraw step during switching:' num2str(obj.switchParams.withdrawVol)]);
         rateText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .60   1 .03],'String',['Rate of fast infuse/withdraw step during switching:' num2str(obj.switchParams.rate)]);
+        %Plot a visual representation of the switching
         switchPlot=axes('Parent',dispFig,'Units','Normalized','Position',[.02 .05  .95 .45]);figure(gcf)
+        %Set axis limits
+        maxTime=1.1*max(obj.times);
+        set(switchPlot, 'XLim',[0 maxTime]);
+        maxRate=1.1*max(max(obj.flowPostSwitch(:)));
+        set(switchPlot,'YLim',[0 maxRate]);
+        set(switchPlot, 'XLim',[0 maxTime]);
+        set(switchPlot,'YLim',[0 maxRate]);
+        hold on
+        timeVector=obj.times;
+        timeVector(end+1)=maxTime;
+        for n=2:length(timeVector)
+            times=[timeVector(n) timeVector(n-1)];
+            flow1=[obj.flowPostSwitch(1,n-1) obj.flowPostSwitch(1,n-1)];
+            flow2=[obj.flowPostSwitch(2,n-1) obj.flowPostSwitch(2,n-1)];
+            if n==length(timeVector)
+                lStyle='--';
+            else
+                lStyle='-';
+            end
+            if flow1(1)==flow2(1)
+                plot(times,flow1,'color','m','Linestyle',lStyle);
+            else
+                plot(times, flow1,'color','b','Linestyle',lStyle);
+                plot(times, flow2,'color','r','Linestyle',lStyle);  
+            end
         end
+
+        
+        l={['Pump1: ' obj.pumps{1}.contents] ['Pump2: ' obj.pumps{2}.contents]};
+        legend(l,'Location','NorthOutside');
     
         
-        
+        end
     end
     methods (Static)
         function outString = makeString(numbers)

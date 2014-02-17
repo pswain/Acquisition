@@ -15,13 +15,6 @@ function[]=visitXY(logfile,point,pfsOn,texthandle)
 
 global mmc;
 
-% Make sure the PFS is off - can lose it's lock when moving - esp under
-% channels in microfluidic devices.
-% if strcmp(mmc.getProperty('PFSStatus','State'),'Locked')==1
-%     logstring='PFS switched off for XY stage movement';writelog(logfile,texthandle,logstring);
-%     mmc.setProperty('PFSStatus','State','Off');
-%     pause (0.4);
-% end
 
 %move to XY position defined in point input.
 x=cell2mat(point(2));
@@ -31,17 +24,13 @@ mmc.waitForDevice('XYStage');
 logstring=strcat('Moved to X:',num2str(x),', Y:',num2str(y));writelog(logfile,texthandle,logstring);
 
 
-%this makes sure the PFS is focused at the new point
+%this makes sure the Z drive is focused at the new point (through
+%adjustments by the PFS)
 if pfsOn==1
     status=mmc.getProperty('TIPFSStatus','Status');
     while strcmp(status,'Focusing')==1;
-        pause(.5);
+        pause(.2);
         status=mmc.getProperty('TIPFSStatus','Status');
     end
 end
-%     if pfsOn==1
-%         mmc.setProperty('PFSStatus','State','On');
-%         mmc.waitForDevice('PFSStatus');
-%         fprintf(logfile,'%s',strcat('PFS switched on after XY stage movement. Status:',char(mmc.getProperty('PFSStatus','State'))));
-%         fprintf(logfile,'\r\n');
-%     end
+

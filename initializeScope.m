@@ -20,8 +20,6 @@ mmc.stopSequenceAcquisition;%Will allow acquisition to run if someone has
 mmc.setShutterDevice('DTOL-Shutter');
 mmc.setProperty('Evolve', 'Gain', '2');
 mmc.setProperty('Evolve', 'ClearMode', 'Clear Pre-Sequence');
-mmc.setProperty('Evolve','MultiplierGain','270');%starting gain
-%next 2 lines are specific for QUANT version of scripts
 mmc.setProperty('Evolve','PP  4   ENABLED','Yes');%Enable quant view - output in photoelectrons
 mmc.setProperty('Evolve','PP  4   (e)','1');%One gray level per photoelectron
 
@@ -30,7 +28,3 @@ mmc.setProperty('DTOL-Shutter','OnOff', '0');
 mmc.setProperty('TILightPath','Label','2-Left100');%all light should go to the camera
 mmc.setAutoShutter(1);
 pause on;
-
-%height=mmc.getImageHeight;
-%width=mmc.getImageWidth;
-
