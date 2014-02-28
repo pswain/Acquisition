@@ -1,0 +1,22 @@
+*.txt text
+
+*.m text
+
+*.m~ text
+*.log text
+
+
+
+*.png binary
+
+*.mat binary
+
+*.jpeg binary
+
+*.jpg binary
+
+*.pdf binary
+
+*.tiff binary
+
+*.tif binary
