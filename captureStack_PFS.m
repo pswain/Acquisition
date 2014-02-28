@@ -19,7 +19,7 @@
 %correcting for any changes in exposure time that have occured to avoid
 %saturation in the data.
 
-function [stack maxvalue]=captureStack(filename,thisZ, zinfo, offset, EM, E)
+function [stack maxvalue]=captureStack_PFS(filename,thisZ, zinfo, offset, EM, E)
 global mmc;
 height=512;
 width=512;

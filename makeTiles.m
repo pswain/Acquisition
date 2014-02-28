@@ -30,7 +30,7 @@ if strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked')
    mmc.setRelativeXYPosition('XYStage',100,0);
    %Wait for the pfs to finish focusing
    status='Focusing';
-   while strcmp('Status','Focusing')
+   while strcmp(status,'Focusing')
       status=mmc.getProperty('TIPFSStatus','Status');
       pause (0.1);
    end
@@ -40,7 +40,7 @@ if strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked')
    %Then slope in Y
    mmc.setRelativeXYPosition('XYStage',0,100);
    status='Focusing';
-   while strcmp('Status','Focusing')
+   while strcmp(status,'Focusing')
       status=mmc.getProperty('TIPFSStatus','Status');
       pause (0.1);
    end
@@ -48,7 +48,7 @@ if strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked')
    ySlope=newZ_y-newZ_x;
    %Return stage to original position
    mmc.setRelativeXYPosition('XYStage',-100,-100);
-   while strcmp('Status','Focusing')
+   while strcmp(status,'Focusing')
       status=mmc.getProperty('TIPFSStatus','Status');
       pause (0.1);
    end
