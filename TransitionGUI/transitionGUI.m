@@ -22,7 +22,7 @@ function varargout = transitionGUI(varargin)
 
 % Edit the above text to modify the response to help transitionGUI
 
-% Last Modified by GUIDE v2.5 02-Dec-2013 21:31:31
+% Last Modified by GUIDE v2.5 20-Mar-2014 15:15:28
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -202,6 +202,27 @@ end
 function [step_values,slope]=linear_changes(start_value, finish, duration)
 slope= (finish-start_value)/duration;
 step_values= start_value:slope:start_value+(finish-start_value);
+
+function [step_values,slope]=stepRampStep(start_value, finish, rampDuration, step1Duration,step2Duration)
+slope= (finish-start_value)/rampDuration;
+ramp= start_value:slope:start_value+(finish-start_value);
+initialStep= step(start_value, step1Duration);
+finalStep= step(finish, step2Duration);
+step_values=[initialStep(1:end-1) ramp(1:end-1) finalStep]
+
+function [step_values,slope]=boundedTrapezium(start_value, finish, rampDuration, edgeStepDuration,midStepDuration)
+slope= (finish-start_value)/rampDuration;
+ramp= start_value:slope:start_value+(finish-start_value);
+ramp2= start_value+(finish-start_value):-slope:start_value;
+edgeStep= step(start_value, edgeStepDuration);
+midStep= step(finish,midStepDuration);
+step_values=[edgeStep(1:end-1) ramp(1:end-1) midStep(1:end-1) ramp2(1:end-1) edgeStep]
+
+
+
+
+
+
 
 
 function [step_values,order]=exp_arrival(start_value, finish, order, number)
@@ -671,8 +692,19 @@ output= [times', full_transition1, full_transition2];
                 case 5
                     transition_string=strcat('step(', num2str(finish),',',num2str(duration),')');
                 case 6
-                    transition_string=strcat('param_switching(', num2str(start),',', num2str(finish),',', num2str(especial1),',', num2str(especial2),',',num2str(duration), ',', num2str(state), ')')
-           
+                %stepRampStep(start_value, finish, rampDuration, step1Duration,step2Duration)
+                transition_string=strcat('stepRampStep(', num2str(start),',', num2str(finish),',', num2str(duration),',', num2str(especial1),',', num2str(especial2),')');  
+                case 7
+                   %boundedTrapezium(start_value, finish, rampDuration, edgeStepDuration,midStepDuration)
+                transition_string=strcat('boundedTrapezium(', num2str(start),',', num2str(finish),',', num2str(duration),',', num2str(especial1),',', num2str(especial2),')');  
+              
+                case 8
+                    transition_string=strcat('(', num2str(start),',', num2str(finish),',', num2str(especial1),',', num2str(especial2),',',num2str(duration), ',', num2str(state), ')')
+              
+                    
+                    %transition_string=strcat('param_switching(', num2str(start),',', num2str(finish),',', num2str(especial1),',', num2str(especial2),',',num2str(duration), ',', num2str(state), ')')
+ 
+                    
             end
             
             
@@ -680,7 +712,7 @@ output= [times', full_transition1, full_transition2];
             function updateSlider(transition_type, handles, objname, textname, slider2name, text2name, initialflowname, text3name, text4name)
               
                  switch transition_type
-                case 1
+                case 1 %linear
                     
                     strcat('set(handles.', objname, ',''Enable'',''off'')')
                     eval(  strcat('set(handles.', text3name, ',''string'',''Initial flow rate'')'))
@@ -690,7 +722,7 @@ output= [times', full_transition1, full_transition2];
                     eval(  strcat('set(handles.', slider2name, ',''Visible'',''off'')'))
                     eval(  strcat('set(handles.', text2name, ',''string'','''')'))
                    eval(  strcat('set(handles.', initialflowname, ',''Visible'',''on'')'))
-                case 2
+                case 2 %exponential
                       slidervalue= num2str(eval(strcat('get(handles.', objname, ',''Value'')')))
                       eval(  strcat('set(handles.', text3name, ',''string'',''Initial flow rate'')'))
                      eval(  strcat('set(handles.', text4name, ',''string'',''Final flow rate'')'))
@@ -699,18 +731,27 @@ output= [times', full_transition1, full_transition2];
                     eval(  strcat('set(handles.', slider2name, ',''Visible'',''off'')'))
                     eval(  strcat('set(handles.', text2name, ',''string'','''')'))
                    eval(  strcat('set(handles.', initialflowname, ',''Visible'',''on'')'))
-                case 3
+                   
+                    eval(  strcat('set(handles.', objname, ',''SliderStep'',[.0005,.1])'))
+                     eval(  strcat('set(handles.', objname, ',''Max'',20)'))
+                    
+                   
+                case 3 %sigmoidal
                       slidervalue= num2str(eval(strcat('get(handles.', objname, ',''Value'')')))
                       eval(  strcat('set(handles.', text3name, ',''string'',''Initial flow rate'')'))
                      eval(  strcat('set(handles.', text4name, ',''string'',''Final flow rate'')'))
                       slider2value= num2str(eval(strcat('get(handles.', slider2name, ',''Value'')')))
                     eval(  strcat('set(handles.', objname, ',''Enable'',''on'')'))
-                     eval(  strcat('set(handles.', textname, ',''string'',''Param 1:  ', slidervalue, '  '')'))
-                     eval(  strcat('set(handles.', text2name, ',''string'',''Param 2:  ', slider2value, '  '')'))
+                     eval(  strcat('set(handles.', textname, ',''string'',''steepness:  ', slidervalue, '  '')'))
+                     eval(  strcat('set(handles.', text2name, ',''string'',''threshold:  ', slider2value, '  '')'))
                      eval(  strcat('set(handles.', slider2name, ',''Visible'',''on'')'))
                     eval(  strcat('set(handles.', initialflowname, ',''Visible'',''on'')'))
+                     eval(  strcat('set(handles.', objname, ',''SliderStep'',[.0005,.1])'))
+                     eval(  strcat('set(handles.', objname, ',''Max'',20)'))
+                     eval(  strcat('set(handles.', slider2name, ',''SliderStep'',[.0005,.1])'))
+                     eval(  strcat('set(handles.', slider2name, ',''Max'',20)'))
                      
-                case 4
+                case 4 %exponential arrival stabilization
                       slidervalue= num2str(eval(strcat('get(handles.', objname, ',''Value'')')))
                     eval(  strcat('set(handles.', text3name, ',''string'',''Initial flow rate'')'))
                      eval(  strcat('set(handles.', text4name, ',''string'',''Final flow rate'')'))
@@ -719,7 +760,7 @@ output= [times', full_transition1, full_transition2];
                      eval(  strcat('set(handles.', text2name, ',''string'','''')'))
                      eval(  strcat('set(handles.', textname, ',''string'',''order :  ', slidervalue, '  '')'))
                      eval(  strcat('set(handles.', initialflowname, ',''Visible'',''on'')'))
-                case 5
+                case 5  %step
                      eval(  strcat('set(handles.', objname, ',''Enable'',''off'')'))
                      eval(  strcat('set(handles.', text3name, ',''string'',''Initial flow rate'')'))
                      eval(  strcat('set(handles.', text4name, ',''string'',''Final flow rate'')'))
@@ -728,8 +769,44 @@ output= [times', full_transition1, full_transition2];
                      eval(  strcat('set(handles.', text2name, ',''string'','''')'))
                      eval(  strcat('set(handles.', initialflowname, ',''Visible'',''off'')'))
                      
-                case 6
+                case 6  %step ramp step
+                     slidervalue= num2str(eval(strcat('get(handles.', objname, ',''Value'')')))
+                    slider2value= num2str(eval(strcat('get(handles.', slider2name, ',''Value'')')))
+                     eval(  strcat('set(handles.', objname, ',''Enable'',''on'')'))
+                     eval(  strcat('set(handles.', objname, ',''SliderStep'',[.005,.1])'))
+                     eval(  strcat('set(handles.', objname, ',''Max'',200)'))
+                     eval(  strcat('set(handles.', slider2name, ',''SliderStep'',[.005,.1])'))
+                     eval(  strcat('set(handles.', slider2name, ',''Max'',200)'))
+                     eval(  strcat('set(handles.', text3name, ',''string'',''Low flow rate'')'))
+                     eval(  strcat('set(handles.', text4name, ',''string'',''High flow rate'')'))
+                     eval(  strcat('set(handles.', slider2name, ',''Visible'',''on'')'))
+                     
+                     eval(  strcat('set(handles.', initialflowname, ',''Visible'',''on'')'))  
+                     %eval(  strcat('set(handles.', textname, ',''string'',''Khigh low:  ', slidervalue, '  '')'))
+                      eval(  strcat('set(handles.', textname, ',''string'',''step 1 length:  ', slidervalue, '  '')'))
+                     eval(  strcat('set(handles.', text2name, ',''string'',''step length:  ', slider2value, '  '')'))
+                     %eval(  strcat('set(handles.', text2name, ',''string'',''Klow high:  ', slider2value, '  '')'))
                    
+                     
+              case 7 %bounded trapezium
+                           slidervalue= num2str(eval(strcat('get(handles.', objname, ',''Value'')')))
+                    slider2value= num2str(eval(strcat('get(handles.', slider2name, ',''Value'')')))
+                     eval(  strcat('set(handles.', objname, ',''Enable'',''on'')'))
+                     eval(  strcat('set(handles.', objname, ',''SliderStep'',[.005,.1])'))
+                     eval(  strcat('set(handles.', objname, ',''Max'',200)'))
+                     eval(  strcat('set(handles.', slider2name, ',''SliderStep'',[.005,.1])'))
+                     eval(  strcat('set(handles.', slider2name, ',''Max'',200)'))
+                     eval(  strcat('set(handles.', text3name, ',''string'',''Low flow rate'')'))
+                     eval(  strcat('set(handles.', text4name, ',''string'',''High flow rate'')'))
+                     eval(  strcat('set(handles.', slider2name, ',''Visible'',''on'')'))
+                     
+                     eval(  strcat('set(handles.', initialflowname, ',''Visible'',''on'')'))  
+                     %eval(  strcat('set(handles.', textname, ',''string'',''Khigh low:  ', slidervalue, '  '')'))
+                      eval(  strcat('set(handles.', textname, ',''string'',''edge step length:  ', slidervalue, '  '')'))
+                     eval(  strcat('set(handles.', text2name, ',''string'',''mid step length:  ', slider2value, '  '')'))
+                     %eval(  strcat('set(handles.', text2name, ',''string'',''Klow high:  ', slider2value, '  '')'))
+                         
+              case 8
                      slidervalue= num2str(eval(strcat('get(handles.', objname, ',''Value'')')))
                     slider2value= num2str(eval(strcat('get(handles.', slider2name, ',''Value'')')))
                      eval(  strcat('set(handles.', objname, ',''Enable'',''on'')'))
@@ -741,9 +818,7 @@ output= [times', full_transition1, full_transition2];
                      %eval(  strcat('set(handles.', textname, ',''string'',''Khigh low:  ', slidervalue, '  '')'))
                       eval(  strcat('set(handles.', textname, ',''string'',''Param 1:  ', slidervalue, '  '')'))
                      eval(  strcat('set(handles.', text2name, ',''string'',''Param 2:  ', slider2value, '  '')'))
-                     %eval(  strcat('set(handles.', text2name, ',''string'',''Klow high:  ', slider2value, '  '')'))
-                     
-                     
+                     %eval(  strcat('set(handles.', text2name, ',''string'',''Klow high:  ', slider2value, '  '')'))  
             end
                 
                 
@@ -1291,3 +1366,13 @@ switch get(eventdata.NewValue,'Tag')
         set(handles.uipanel2, 'UserData', 1);
          extractnplot1(handles);
 end
+
+
+% --- Executes on key press with focus on listbox1 and none of its controls.
+function listbox1_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to listbox1 (see GCBO)
+% eventdata  structure with the following fields (see UICONTROL)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
