@@ -1,6 +1,7 @@
 classdef switches
    properties
       times%double vector, times at which switch should occur
+      initialPump%intgeger, The number of the dominant pump at the start of the experiment
       switched%logical vector, indicates if each switch has occurred
       switchedTo%double vector, number of the pump that has the faster pumping rate after each switch
       switchedFrom%double vector, number of the pump that has the slower pumping rate after each switch
@@ -20,6 +21,7 @@ classdef switches
           
           %Default parameters
           obj.times=0;
+          obj.initialPump=1;
           obj.switchParams.withdrawVol=50;%vol in microlitres
           obj.switched=true;
           obj.switchedTo=2;
@@ -31,14 +33,15 @@ classdef switches
           
           %Define default switching parameters
           obj.switchParams.withdrawVol=50;%vol in microlitres
-          obj.switchParams.rate=10;%rate of pumping during switching in microlitres/min
+          obj.switchParams.rate=100;%rate of pumping during switching in microlitres/min
 
        end
        
-       function obj=setTimes(obj, times,highFlow, lowFlow)
+       function obj=setTimes(obj, times,highFlow, lowFlow, initialPump)
            %Generates switching parameters from input times
+           obj.initialPump=initialPump;
            obj.numSwitches=length(times);
-           obj.times=times;            
+           obj.times=times;
            obj.switched=false(1,obj.numSwitches);
            obj.flowPostSwitch=repmat([highFlow;lowFlow],1,obj.numSwitches);
            obj.switchTimes=zeros(1,obj.numSwitches);        
@@ -115,6 +118,7 @@ classdef switches
            
        end
        
+      
        
        
    end

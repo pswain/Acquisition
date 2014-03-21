@@ -5,7 +5,7 @@ global mmc;
 %also saves acquisition settings
 [logfile,exptFolder,posDirectories]=initializeFiles(acqData);
 
-%try
+
     %Microscope initialization script
     initializeScope;
 
@@ -13,7 +13,7 @@ global mmc;
     %this info to acqData and record initial (reference) position of the Z
     %drive
 
-    if strcmp('Locked in focus',mmc.getProperty('TIPFSStatus','Status'))==1
+    if strcmp('Locked',mmc.getProperty('TIPFSStatus','Status'))==1
         acqData.z(3)=1;
         fprintf(logfile,'%s','PFS is locked');
         fprintf(logfile,'\r\n');

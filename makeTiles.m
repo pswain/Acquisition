@@ -28,17 +28,30 @@ if strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked')
    startZ=mmc.getPosition('TIZDrive')
    %First any slope in X
    mmc.setRelativeXYPosition('XYStage',100,0);
-   pause(1);%Takes a while for the PFS to make the adjustment (can you query this? - is there a 'moving' state?. If so replace with a while loop)
+   %Wait for the pfs to finish focusing
+   status='Focusing';
+   while strcmp(status,'Focusing')
+      status=mmc.getProperty('TIPFSStatus','Status');
+      pause (0.1);
+   end
+
    newZ_x=mmc.getPosition('TIZDrive');
    xSlope=newZ_x-startZ;
    %Then slope in Y
    mmc.setRelativeXYPosition('XYStage',0,100);
-   pause(1);%Takes a while for the PFS to make the adjustment (can you query this? - is there a 'moving' state?. If so replace with a while loop)
+   status='Focusing';
+   while strcmp(status,'Focusing')
+      status=mmc.getProperty('TIPFSStatus','Status');
+      pause (0.1);
+   end
    newZ_y=mmc.getPosition('TIZDrive');
    ySlope=newZ_y-newZ_x;
    %Return stage to original position
    mmc.setRelativeXYPosition('XYStage',-100,-100);
-   pause(1);
+   while strcmp(status,'Focusing')
+      status=mmc.getProperty('TIPFSStatus','Status');
+      pause (0.1);
+   end
    disp(['Sample slopes by ' num2str(xSlope) 'microns per 100um movement in x']);
    disp(['Sample slopes by ' num2str(ySlope) 'microns per 100um movement in y']);
    disp(['Slope will be corrected when determining tiled positions']);
@@ -58,16 +71,16 @@ for row=1:nRows
         %Generate a default name and make sure this name hasn't already been taken
         number=number+1;
         defName=strcat('pos',num2str(number));%generate default point name       
-        tiles{number,1}=defName
-        tiles{number,2}=(col-1)*colSpacing+startX
-        tiles{number,3}=(row-1)*rowSpacing+startY
+        tiles{number,1}=defName;
+        tiles{number,2}=(col-1)*colSpacing+startX;
+        tiles{number,3}=(row-1)*rowSpacing+startY;
         %Calculate z position based on how far away from the start position
         %it is in x and y and the recorded slopes.
-        xDistance=(col-1)*colSpacing
-        zDisplacementX=xDistance*xSlope     
-        yDistance=(row-1)*rowSpacing
-        zDisplacementY=yDistance*ySlope      
-        tiles{number,4}=startZ+zDisplacementX+zDisplacementY
+        xDistance=(col-1)*colSpacing;
+        zDisplacementX=xDistance*xSlope;     
+        yDistance=(row-1)*rowSpacing;
+        zDisplacementY=yDistance*ySlope;      
+        tiles{number,4}=startZ+zDisplacementX+zDisplacementY;
         tiles{number,5}=mmc.getPosition('TIPFSOffset');
         tiles{number,6}=number;
         

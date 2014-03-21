@@ -22,12 +22,12 @@ pause(.5);
 
 status=mmc.getProperty('TIPFSStatus','Status');
 
-while strcmp(status,'Focusing')==1;
+while strcmp(status,'Focusing')==1 || strcmp(status,'Activating');
     pause(.5);
     status=mmc.getProperty('TIPFSStatus','Status');
 end
 
-if strcmp(status,'Locked in focus')==1;
+if strcmp(status,'Locked')==1;
     if nargin==4
         if iscell(PFSOffset)
             PFSOffset=cell2mat(PFSOffset);

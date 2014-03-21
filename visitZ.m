@@ -14,6 +14,13 @@
 
 %Without a point: Only the first 4 of the inputs above
 
+%If anyz==1 (ie at least one channel does z sectioning) then the focus is
+%moved to the top of the stack, taking either the input z position (if
+%nargin>3) or the starting position of the z drive (if nargin==3) as the
+%centre of the stack.
+
+%If anyz==0 the focus is moved to the set position if input, corrected for the drift.
+
 
 function[startingZ]=visitZ(varargin)
 global mmc;
@@ -38,8 +45,8 @@ logstring=strcat('VisitZ script. Starting Z drive position is:',num2str(starting
 %Define the set Z position - either from a supplied point or just use
 %starting Z.
 if nargin>3%a defined point has been supplied
-    setZ=point(3);
-    logstring=strcat('Defined Z drive position from point:',num2str(setZ));writelog(logfile,logtext,logstring);
+    setZ=point(3)+drift;
+    logstring=strcat('Defined Z drive position from point:',num2str(point(3)));writelog(logfile,logtext,logstring);
 else%no point supplied
     setZ=startingZ;
     logstring=strcat('No point input to visitZ. startingZ taken as set position.');writelog(logfile,logtext,logstring);
@@ -56,8 +63,7 @@ else%no points do Z sectioning. Move stage only to set position.
     logstring=strcat('No points do Z sectioning. Use set Z position');writelog(logfile,logtext,logstring);
 end
   
-correctedZ=targetZ+drift;
-mmc.setPosition('TIZDrive',correctedZ);
+mmc.setPosition('TIZDrive',targetZ);
 mmc.waitForDevice('TIZDrive');
 logstring=strcat('Z drift:',num2str(drift));writelog(logfile,logtext,logstring);
 logstring=strcat('Z drive moved to position:',num2str(correctedZ));writelog(logfile,logtext,logstring);
