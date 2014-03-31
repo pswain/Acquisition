@@ -232,6 +232,7 @@ for t=1:numTimepoints%start of timepoint loop.
        else
            posFolder=exptFolder;
        end
+       
        positionData=captureChannels(acqData,logfile,posFolder,pos,t,CHsets);%data for all channels stored for this position in the position variable
        
        %Record the maximum value measured for each channel - if it is the highest of
