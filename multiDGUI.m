@@ -124,6 +124,12 @@ handles.output = hObject;
 addpath(genpath('C:\AcquisitionData\Swain Lab\OmeroCode'));
 
 
+%Show warning if running from the shared, public folder
+if strcmp(pwd,'C:\Users\Public\Microscope Control');
+    msgbox('MultiDGUI is running from the shared Microscope Control folder - please do not edit this version of the software!','Running shared software','Warn');
+end
+
+
 %If there is a last saved acquisition file then load the acquisition
 %settings from that. Points are not loaded.
 %First get the file name of the last saved acquisition:

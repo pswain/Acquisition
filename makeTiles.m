@@ -29,29 +29,18 @@ if strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked')
    %First any slope in X
    mmc.setRelativeXYPosition('XYStage',100,0);
    %Wait for the pfs to finish focusing
-   status='Focusing';
-   while strcmp(status,'Focusing')
-      status=mmc.getProperty('TIPFSStatus','Status');
-      pause (0.1);
-   end
+   pause(1.2);
 
    newZ_x=mmc.getPosition('TIZDrive');
    xSlope=newZ_x-startZ;
    %Then slope in Y
-   mmc.setRelativeXYPosition('XYStage',0,100);
-   status='Focusing';
-   while strcmp(status,'Focusing')
-      status=mmc.getProperty('TIPFSStatus','Status');
-      pause (0.1);
-   end
+   mmc.setRelativeXYPosition('XYStage',0,100)
+   pause(1.2);
    newZ_y=mmc.getPosition('TIZDrive');
    ySlope=newZ_y-newZ_x;
    %Return stage to original position
    mmc.setRelativeXYPosition('XYStage',-100,-100);
-   while strcmp(status,'Focusing')
-      status=mmc.getProperty('TIPFSStatus','Status');
-      pause (0.1);
-   end
+   pause(1);
    disp(['Sample slopes by ' num2str(xSlope) 'microns per 100um movement in x']);
    disp(['Sample slopes by ' num2str(ySlope) 'microns per 100um movement in y']);
    disp(['Slope will be corrected when determining tiled positions']);
