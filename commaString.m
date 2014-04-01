@@ -11,4 +11,5 @@ a(b)=[];
 if strcmp(a(end),',')
     a(end)=[];
 end
+
 commaS=a;
