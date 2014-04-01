@@ -1,9 +1,11 @@
+
 *.txt text
 
 *.m text
 
 *.m~ text
 *.log text
+*.asv text
 
 
 
@@ -20,3 +22,4 @@
 *.tiff binary
 
 *.tif binary
+*.fig binary

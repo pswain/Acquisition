@@ -122,7 +122,7 @@ handles.output = hObject;
 
 %Add necessary folders to path
 addpath(genpath('C:\AcquisitionData\Swain Lab\OmeroCode'));
-
+   addpath(['.' filesep 'transitionGUI']);
 
 %Show warning if running from the shared, public folder
 if strcmp(pwd,'C:\Users\Public\Microscope Control');
@@ -2811,6 +2811,16 @@ switch choice
         startPump=str2double(input{5});
         endPump=str2double(input{6});
         handles.acquisition.flow{5}=handles.acquisition.flow{5}.makeLinearRamp(rampStart,rampStop,highFlow,lowFlow,startPump,endPump);
+
+case 'Design flow transition'
+    d=transitionGUI;
+  % handles.acquisition.flow{5}.times=d(:,1);
+  % handles.acquisition.flow{5}.flowPostSwitch=d(:,[2 3]);
+    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setTimes(d(:,1)', d(:,[2 3])');
+    handles.acquisition.flow{5}.switchedTo=0;
+    handles.acquisition.flow{5}.switchedFrom=0;
+
+    
 case 'Enter times'
         if handles.acquisition.flow{5}.times==0
             defaults={'0', '4', '.4'};

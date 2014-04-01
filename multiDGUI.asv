@@ -2694,6 +2694,14 @@ function switchMethod_Callback(hObject, eventdata, handles)
 contents=get(hObject,'String');
 choice=contents{get(hObject,'Value')};
 switch choice
+	case 'Design flow transition'
+    	d=transitionGUI;
+  	% handles.acquisition.flow{5}.times=d(:,1);
+  	% handles.acquisition.flow{5}.flowPostSwitch=d(:,[2 3]);
+    	handles.acquisition.flow{5}=handles.acquisition.flow{5}.setTimes(d(:,1)', d(:,[2 3])');
+    	handles.acquisition.flow{5}.switchedTo=0;
+    	handles.acquisition.flow{5}.switchedFrom=0;
+
     case 'Enter switch times'
         %Define a variable to check if inputs are OK
         problem=false;
