@@ -1,7 +1,18 @@
 global mmc;
 global gui;
-% global acq;
-mmc=gui.getCore;
+
+%Define the global variable mmc. If on the microscope computer this will be
+%the micromanager core object associated with the micromanager gui.
+
+%If not - make a demo mmc object based on the class DemoMMC - this can be
+%used for testing and debugging code away from the microscope.
+
+[idum,hostname]= system('hostname');
+if strmatch(hostname,'SCE-BIO-C023471')>0
+    mmc=gui.getCore;
+else
+    mmc=DemoMMC();
+end
 
 mmc.loadSystemConfiguration('C:\Micromanager config files\MMConfig_Windows7.cfg');
 mmc.setConfig('Channel','DIC');

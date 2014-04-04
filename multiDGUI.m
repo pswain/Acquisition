@@ -269,13 +269,17 @@ set(handles.pointsTable,'Data',handles.acquisition.points);
 %activate the eyepiece and camera buttons and inactivate the launch
 %micromanager button
 isthereagui=exist ('gui','var');
-
+global gui;
 if isthereagui~=1
     if ~ismac%Don't initialize the gui if working on the software on a mac - won't necessarily have micromanager on the path
         guiconfig;
+    else
+        %use dummy gui class to create a virtual gui - just to allow the
+        %software to run - this only because I have so far failed to start
+        %the gui from a mac
+        gui=DemoGUI;
     end
 end
-global gui;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -2963,7 +2967,7 @@ set(handles.EM,'Enable','on');
 set(handles.CCD,'Enable','on');
 
 for i=1:length(handles.acquisition.flow{5}.pumps)
-    fopen(handles.acquisition.flow{5}.pumps{i}.serial);
+    handles.acquisition.flow{5}.pumps{i}.openPump;    
 end
 guidata(hObject, handles);
 
