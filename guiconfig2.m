@@ -8,7 +8,7 @@ global gui;
 %used for testing and debugging code away from the microscope.
 
 [idum,hostname]= system('hostname');
-if strmatch(hostname,'SCE-BIO-C023471')>0
+if strmatch(hostname,'SCE-BIO-C02471')>0
     mmc=gui.getCore;
 else
     mmc=DemoMMC();

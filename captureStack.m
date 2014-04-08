@@ -77,7 +77,7 @@ else%single section acquisition
     %then just capture an image.
     if anyZ==1
        z=nSlices/2;
-       slicePosition=pifPos+(2*((z-1)*sliceInterval));
+       slicePosition=pifPos+(2*((z+0.5)*sliceInterval));
        mmc.setPosition('PIFOC',slicePosition+offset);
        pause(0.5);
     end

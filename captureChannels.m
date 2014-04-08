@@ -52,7 +52,7 @@ for ch=1:numChannels%loop through the channels
     if expos~=0
         %set exposure and dye configuration (filters and LEDs)
         mmc.setExposure(expos);
-        mmc=mmc.setConfig('Channel', chName);
+        mmc.setConfig('Channel', chName);
         mmc.waitForConfig('Channel', chName);       
         %Set LED voltage based on information in acqData.channels
         LED=mmc.getProperty('DTOL-Switch','State');

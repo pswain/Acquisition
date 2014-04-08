@@ -52,9 +52,9 @@ else%no point supplied
     logstring=strcat('No point input to visitZ. startingZ taken as set position.');writelog(logfile,logtext,logstring);
 end
  
-%Define the target Z position - either the top of the stack or just the set
+%Define the target Z position - either the bottom of the stack or just the set
 %position
-if anyZ==1%at least one channel does Z sectioning - need to move to the top of the stack.
+if anyZ==1%at least one channel does Z sectioning - need to move to the bottom of the stack.
     %calculate position at the top of the stack
     targetZ=setZ-(sliceInterval*(floor((numSlices-1)/2)));
     logstring=strcat('At least one channel does Z sectioning. Top of stack target position:',num2str(targetZ));writelog(logfile,logtext,logstring);
@@ -66,4 +66,4 @@ end
 mmc.setPosition('TIZDrive',targetZ);
 mmc.waitForDevice('TIZDrive');
 logstring=strcat('Z drift:',num2str(drift));writelog(logfile,logtext,logstring);
-logstring=strcat('Z drive moved to position:',num2str(correctedZ));writelog(logfile,logtext,logstring);
+logstring=strcat('Z drive moved to position:',num2str(targetZ));writelog(logfile,logtext,logstring);

@@ -18,81 +18,80 @@ classdef DemoMMC
           mmc.devices.Evolve.Port='Normal';
           mmc.devices.DTOL_Switch.State=0;
           mmc.devices.PIFOC.Position=0;
-
-         
-          
-          
-          
+                   
        end
-       function loadSystemConfiguration(mmc, filepath)
+   end
+   methods (Static)
+       function loadSystemConfiguration(filepath)
            %demo load config function - currently does nothing - could be
            %used to get a config file with various demo devices for more
            %detailed testing of the code
            disp('loadSystemConfiguration - demo function was run');
            disp('filepath');
        end
-       function mmc=setConfig (mmc,groupName,configName)
+       function setConfig (groupName,configName)
+          global mmc;
           disp('setConfig - demo function was run');
           disp(['Configuration set: ' groupName ',' configName]);
           
           if strcmp(groupName,'Channel')
               switch configName
                   case 'GFP'
-                      mmc=mmc.setProperty('DTOL_Switch','State',4);
-                      mmc=mmc.setProperty('DTOL_Switch','Label','Digital 2');
-                      mmc=mmc.setProperty('TIAnalyzer','Inserted','Extracted');
-                      mmc=mmc.setProperty('TIFilterBlock1','Label','4-G/mC');
-                      mmc=mmc.setProperty('TIFilterBlock1','State',3);
-                      mmc=mmc.setProperty('EmissionFilterWheel','Label','GFP');
-                      mmc=mmc.setProperty('EmissionFilterWheel','State',4);                                          
+                      mmc.setProperty('DTOL_Switch','State',4);
+                      mmc.setProperty('DTOL_Switch','Label','Digital 2');
+                      mmc.setProperty('TIAnalyzer','Inserted','Extracted');
+                      mmc.setProperty('TIFilterBlock1','Label','4-G/mC');
+                      mmc.setProperty('TIFilterBlock1','State',3);
+                      mmc.setProperty('EmissionFilterWheel','Label','GFP');
+                      mmc.setProperty('EmissionFilterWheel','State',4);                                          
                   case 'DIC'
-                      mmc=mmc.setProperty('DTOL_Switch','State',1);
-                      mmc=mmc.setProperty('DTOL_Switch','Label','Digital 0');
-                      mmc=mmc.setProperty('TIAnalyzer','Inserted','Inserted');
-                      mmc=mmc.setProperty('TIFilterBlock1','Label','2-ANALY');
-                      mmc=mmc.setProperty('TIFilterBlock1','State',1);
-                      mmc=mmc.setProperty('EmissionFilterWheel','Label','Open1');
-                      mmc=mmc.setProperty('EmissionFilterWheel','State',7);   
+                      mmc.setProperty('DTOL_Switch','State',1);
+                      mmc.setProperty('DTOL_Switch','Label','Digital 0');
+                      mmc.setProperty('TIAnalyzer','Inserted','Inserted');
+                      mmc.setProperty('TIFilterBlock1','Label','2-ANALY');
+                      mmc.setProperty('TIFilterBlock1','State',1);
+                      mmc.setProperty('EmissionFilterWheel','Label','Open1');
+                      mmc.setProperty('EmissionFilterWheel','State',7);   
                   case 'GFPAutoFL'
-                      mmc=mmc.setProperty('DTOL_Switch','State',4);
-                      mmc=mmc.setProperty('DTOL_Switch','Label','Digital 2');
-                      mmc=mmc.setProperty('TIAnalyzer','Inserted','Extracted');
-                      mmc=mmc.setProperty('TIFilterBlock1','Label','4-G/mC');
-                      mmc=mmc.setProperty('TIFilterBlock1','State',3);
-                      mmc=mmc.setProperty('EmissionFilterWheel','Label','tdTomato');
-                      mmc=mmc.setProperty('EmissionFilterWheel','State',5);   
+                      mmc.setProperty('DTOL_Switch','State',4);
+                      mmc.setProperty('DTOL_Switch','Label','Digital 2');
+                      mmc.setProperty('TIAnalyzer','Inserted','Extracted');
+                      mmc.setProperty('TIFilterBlock1','Label','4-G/mC');
+                      mmc.setProperty('TIFilterBlock1','State',3);
+                      mmc.setProperty('EmissionFilterWheel','Label','tdTomato');
+                      mmc.setProperty('EmissionFilterWheel','State',5);   
                   case 'CFP'
-                      mmc=mmc.setProperty('DTOL_Switch','State',2);
-                      mmc=mmc.setProperty('DTOL_Switch','Label','Digital 1');
-                      mmc=mmc.setProperty('TIAnalyzer','Inserted','Extracted');
-                      mmc=mmc.setProperty('TIFilterBlock1','Label','3-C/Y/C');
-                      mmc=mmc.setProperty('TIFilterBlock1','State',2);
-                      mmc=mmc.setProperty('EmissionFilterWheel','Label','CFP');
-                      mmc=mmc.setProperty('EmissionFilterWheel','State',1);   
+                      mmc.setProperty('DTOL_Switch','State',2);
+                      mmc.setProperty('DTOL_Switch','Label','Digital 1');
+                      mmc.setProperty('TIAnalyzer','Inserted','Extracted');
+                      mmc.setProperty('TIFilterBlock1','Label','3-C/Y/C');
+                      mmc.setProperty('TIFilterBlock1','State',2);
+                      mmc.setProperty('EmissionFilterWheel','Label','CFP');
+                      mmc.setProperty('EmissionFilterWheel','State',1);   
                   case 'YFP'
-                      mmc=mmc.setProperty('DTOL_Switch','State',4);
-                      mmc=mmc.setProperty('DTOL_Switch','Label','Digital 2');
-                      mmc=mmc.setProperty('TIAnalyzer','Inserted','Extracted');
-                      mmc=mmc.setProperty('TIFilterBlock1','Label','3-C/Y/C');
-                      mmc=mmc.setProperty('TIFilterBlock1','State',2);
-                      mmc=mmc.setProperty('EmissionFilterWheel','Label','YFP');
-                      mmc=mmc.setProperty('EmissionFilterWheel','State',2);   
+                      mmc.setProperty('DTOL_Switch','State',4);
+                      mmc.setProperty('DTOL_Switch','Label','Digital 2');
+                      mmc.setProperty('TIAnalyzer','Inserted','Extracted');
+                      mmc.setProperty('TIFilterBlock1','Label','3-C/Y/C');
+                      mmc.setProperty('TIFilterBlock1','State',2);
+                      mmc.setProperty('EmissionFilterWheel','Label','YFP');
+                      mmc.setProperty('EmissionFilterWheel','State',2);   
                   case 'mCherry'
-                      mmc=mmc.setProperty('DTOL_Switch','State',8);
-                      mmc=mmc.setProperty('DTOL_Switch','Label','Digital 3');
-                      mmc=mmc.setProperty('TIAnalyzer','Inserted','Extracted');
-                      mmc=mmc.setProperty('TIFilterBlock1','Label','4-G/mC');
-                      mmc=mmc.setProperty('TIFilterBlock1','State',3);
-                      mmc=mmc.setProperty('EmissionFilterWheel','Label','mCherry');
-                      mmc=mmc.setProperty('EmissionFilterWheel','State',3);   
+                      mmc.setProperty('DTOL_Switch','State',8);
+                      mmc.setProperty('DTOL_Switch','Label','Digital 3');
+                      mmc.setProperty('TIAnalyzer','Inserted','Extracted');
+                      mmc.setProperty('TIFilterBlock1','Label','4-G/mC');
+                      mmc.setProperty('TIFilterBlock1','State',3);
+                      mmc.setProperty('EmissionFilterWheel','Label','mCherry');
+                      mmc.setProperty('EmissionFilterWheel','State',3);   
                   case 'tdTomato'       
-                      mmc=mmc.setProperty('DTOL_Switch','State',8);
-                      mmc=mmc.setProperty('DTOL_Switch','Label','Digital 3');
-                      mmc=mmc.setProperty('TIAnalyzer','Inserted','Extracted');
-                      mmc=mmc.setProperty('TIFilterBlock1','Label','5-tdTom');
-                      mmc=mmc.setProperty('TIFilterBlock1','State',4);
-                      mmc=mmc.setProperty('EmissionFilterWheel','Label','tdTomato');
-                      mmc=mmc.setProperty('EmissionFilterWheel','State',5);  
+                      mmc.setProperty('DTOL_Switch','State',8);
+                      mmc.setProperty('DTOL_Switch','Label','Digital 3');
+                      mmc.setProperty('TIAnalyzer','Inserted','Extracted');
+                      mmc.setProperty('TIFilterBlock1','Label','5-tdTom');
+                      mmc.setProperty('TIFilterBlock1','State',4);
+                      mmc.setProperty('EmissionFilterWheel','Label','tdTomato');
+                      mmc.setProperty('EmissionFilterWheel','State',5);  
                   
               end
           end
@@ -101,29 +100,32 @@ classdef DemoMMC
           
        end
        
-       function waitForConfig(mmc, groupName,chName)
+       function waitForConfig(groupName,chName)
           disp('waitForConfig - demo function was run');
        
        end
 
        
-       function stopSequenceAcquisition(mmc)
+       function stopSequenceAcquisition()
             disp('stopSequenceAcquisition - demo function was run');
 
        end
        
-       function setExposure (mmc,exposure)
+       function setExposure (exposure)
+          global mmc
           disp('setExposure - demo function was run');
           disp(['Exposure set to: ' num2str(exposure)]);
           mmc.exposure=exposure;       
        end
    
-       function setShutterDevice(mmc,devicename)
+       function  setShutterDevice(devicename)
+           global mmc
            mmc.shutterDevice=devicename;
            disp('setShutterDevice - demo function was run');
        end
        
-       function mmc=setProperty(mmc,deviceName, propertyName, propertyValue)
+       function setProperty(deviceName, propertyName, propertyValue)
+           global mmc
             propertyName(strfind(propertyName,' '))='_';%avoids a possible error of an invalid field name for the structure in the next line
             propertyName(strfind(propertyName,'('))='C';%avoids a possible error of an invalid field name for the structure in the next line
             propertyName(strfind(propertyName,')'))='S';%avoids a possible error of an invalid field name for the structure in the next line
@@ -147,14 +149,16 @@ classdef DemoMMC
             disp([deviceName ': ' propertyName ': ' value]);
        end
        
-       function setAutoShutter(mmc,input);
+       function setAutoShutter(input)
+           global mmc
             mmc.autoShutter=input;
             disp('setAutoShutter - demo function was run');
 
        end
        
-       function propertyValue=getProperty(mmc,deviceName, propertyName)
-            propertyName(strfind(propertyName,' '))='_';%avoids a possible error of an invalid field name for the structure in the next line
+       function propertyValue=getProperty(deviceName, propertyName)
+           global mmc; 
+           propertyName(strfind(propertyName,' '))='_';%avoids a possible error of an invalid field name for the structure in the next line
             propertyName(strfind(propertyName,'('))='C';%avoids a possible error of an invalid field name for the structure in the next line
             propertyName(strfind(propertyName,')'))='S';%avoids a possible error of an invalid field name for the structure in the next line
             propertyName(strfind(propertyName,'-'))='_';%avoids a possible error of an invalid field name for the structure in the next line
@@ -181,38 +185,44 @@ classdef DemoMMC
             disp([deviceName ': ' propertyName ': ' value]);
        end
        
-       function xPosition=getXPosition(mmc,device)
+       function xPosition=getXPosition(device)
+          global mmc;          
           xPosition=mmc.getProperty(device,'XPosition');
            
            
        end
-       function yPosition=getYPosition(mmc,device)
+       function yPosition=getYPosition(device)
+          global mmc;
           yPosition=mmc.getProperty(device,'YPosition');         
        end
            
-       function zPosition=getZPosition(mmc,device)
-          z=mmc.getProperty(device,'ZPosition');
+       function zPosition=getZPosition(device)
+           global mmc;
+           z=mmc.getProperty(device,'ZPosition');
        end
        
-       function position=getPosition(mmc,device)
+       function position=getPosition(device)
+           global mmc;
            position=mmc.getProperty(device,'Position');
        end
        
-       function position=setPosition(mmc,device,position)
-           position=mmc.setProperty(device,'Position',position);
+       function setPosition(device,position)
+           global mmc;
+           mmc.setProperty(device,'Position',position);
        end
        
-       function setXYPosition(mmc,device, x, y)
+       function setXYPosition(device, x, y)
+           global mmc;
            mmc.setProperty(device,'XPosition',x);
            mmc.setProperty(device,'YPosition',y);
        end
-       function waitForDevice(mmc,device)
+       function waitForDevice(device)
        end
-       function snapImage(mmc)
+       function snapImage()
             disp('Image snapped - DemoMMC');         
        end
        
-       function img=getImage(mmc)
+       function img=getImage()
            img=zeros(262144,1);
            img=uint16(img);
            for n=1:262144
