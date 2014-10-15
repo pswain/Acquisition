@@ -175,13 +175,14 @@ users=[swain tyers millar];
 %Initialize the Omero projects and tags lists
 if ismac
    addpath(genpath('/Volumes/AcquisitionData2/Swain Lab/OmeroCode'));
-   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfo.mat');
+   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfoSkye.mat');
 
 else
-    load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfo.mat');
+    load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
 end
 handles.aquisition.omero=struct('project',{}, 'tags',{}, 'object',{});
 handles.acquisition.omero.object=obj2;
+
 
 %Display the projects
 proj=handles.acquisition.omero.object.getProjectNames;
@@ -2810,7 +2811,7 @@ case 'Design flow transition'
     d=transitionGUI;
   % handles.acquisition.flow{5}.times=d(:,1);
   % handles.acquisition.flow{5}.flowPostSwitch=d(:,[2 3]);
-    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setTimes(d(:,1)', d(:,[2 3])');
+    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setFlowTimes(d(:,1)', d(:,[2 3])');
     handles.acquisition.flow{5}.switchedTo=0;
     handles.acquisition.flow{5}.switchedFrom=0;
 

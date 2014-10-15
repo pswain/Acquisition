@@ -18,8 +18,13 @@ switch name
         name='Luis';
     case 'v1agrana'
         name='Alejandro';
-        
+    case 's1256902'
+        name='Derek';
+    case 'v1jtraet'
+        name='Joleen';
 end
+        
+
 [swain tyers millar]=getUsers;
 testSwain=strcmp(name,swain);
 testTyers=strcmp(name,tyers);

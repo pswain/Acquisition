@@ -2,7 +2,7 @@ global mmc;
 global gui;
 % global acq;
 mmc=gui.getCore;
-
+% mmc.loadSystemConfiguration('C:\Micromanager config files\MMConfig_Windows7.cfg');
 mmc.loadSystemConfiguration('C:\Micromanager config files\MMConfig_Windows7.cfg');
 mmc.setConfig('Channel','DIC');
 mmc.setExposure(10);
