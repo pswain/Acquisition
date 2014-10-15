@@ -123,12 +123,15 @@ handles.output = hObject;
 %Add necessary folders to path
 addpath(genpath('C:\AcquisitionData\Swain Lab\OmeroCode'));
    addpath(['.' filesep 'transitionGUI']);
-
+ 
 %Show warning if running from the shared, public folder
 if strcmp(pwd,'C:\Users\Public\Microscope Control');
     msgbox('MultiDGUI is running from the shared Microscope Control folder - please do not edit this version of the software!','Running shared software','Warn');
 end
 
+%Get free disk space
+handles.freeDisk=checkDiskSpace;
+set(handles.GbFree,'String',num2str(handles.freeDisk));
 
 %If there is a last saved acquisition file then load the acquisition
 %settings from that. Points are not loaded.
@@ -181,10 +184,10 @@ users=[swain tyers millar];
 %Initialize the Omero projects and tags lists
 if ismac
    addpath(genpath('/Volumes/AcquisitionData2/Swain Lab/OmeroCode'));
-   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfo.mat');
+   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfoSkye.mat');
 
 else
-    load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfo.mat');
+    load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
 end
 handles.aquisition.omero=struct('project',{}, 'tags',{}, 'object',{});
 handles.acquisition.omero.object=obj2;
@@ -757,7 +760,7 @@ else
     end
     end
 end
-  
+updateDiskSpace(handles);
      
         
         
@@ -840,6 +843,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 % --- Executes on button press in text7. Use YFP button
 function useYFP_Callback(hObject, eventdata, handles)
@@ -916,6 +920,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 % --- Executes on button press in text8. mCherry use button
@@ -994,6 +999,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 % --- Executes on button press in text9. tdTomato use button
@@ -1070,6 +1076,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -1150,6 +1157,7 @@ else%this channel has been deselected
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -1272,7 +1280,10 @@ nFlowTimepoints=sizeFlow(1);
 %        handles.acquisition.flow{4}(nFlowTimepoints+1:timepoints)=0;
 %    end
 % end
+updateDiskSpace(handles);
+
 guidata(hObject, handles);
+
 updateFlowDisplay(handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -1383,6 +1394,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1432,6 +1444,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1481,6 +1494,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
   
 % --- Executes on button press in mChZsect.
@@ -1529,6 +1543,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 % --- Executes on button press in tdZsect.
@@ -1577,6 +1592,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1626,6 +1642,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1860,6 +1877,7 @@ else
          end
      end   
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -1881,6 +1899,7 @@ end
 
 function nZsections_Callback(hObject, eventdata, handles)
 handles.acquisition.z(1)=str2double(get(hObject,'String'));
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -1988,6 +2007,7 @@ set(handles.totaltime,'Enable','off');
 set(handles.unitsTotal,'Enable','off');
 handles.acquisition.time(1)=0;
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -2185,6 +2205,7 @@ end
 
 set(hObject,'Data',table);
 handles.acquisition.points=table;
+updateDiskSpace(handles);
 guidata(hObject, handles);
 % hObject    handle to pointsTable (see GCBO)
 % eventdata  structure with the following fields (see UITABLE)
@@ -3894,6 +3915,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -3915,6 +3937,7 @@ else
             end
      end   
 end
+updateDiskSpace(handles);
    guidata(hObject, handles);
 
 
@@ -4020,6 +4043,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -4137,6 +4161,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -4164,6 +4189,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -4191,6 +4217,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4219,6 +4246,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4247,6 +4275,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4275,6 +4304,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4303,6 +4333,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -5019,6 +5050,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 function GFPAutoFLstarttp_Callback(hObject, eventdata, handles)
@@ -5169,6 +5201,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -5194,6 +5227,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
