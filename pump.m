@@ -151,10 +151,20 @@ classdef pump
            end
        end
        
-       
-   end
+       function openPump(obj)
+           %Opens the pump for sending and receiving commands
+           [idum,hostname]= system('hostname');
+           if strmatch(hostname,'SCE-BIO-C023471')>0                
+                fopen(obj.serial);
+           else
+               %Not running on the microscope computer - create a false
+               %open command - to allow the software to run.
+               obj.serial='Pump open';
+           end
+       end
    
    
    
     
+   end
 end

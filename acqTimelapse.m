@@ -148,8 +148,6 @@ for t=1:numTimepoints%start of timepoint loop.
           break%This leaves the position loop
        end
 
-            
-            
        
        %Run pump changing function if necessary
        acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60,logfile);
@@ -176,6 +174,12 @@ for t=1:numTimepoints%start of timepoint loop.
                %marked.
                logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
                acqData.z(5)=correctDrift(logfile,acqData.points(pos,4),acqData.z(5),acqData.points(pos,5));
+               %
+               %
+               %CALL TO VISITZ ADDED HERE
+               startingZ=visitZ(logfile,acqData.z,acqData.points(pos,:)); % This has been (re)added 4_4_14 - needs to be tested
+               %
+               %
                mmc.setProperty('TIPFSStatus','State','Off');
                pause(0.4);%Gives it time to switch off - is pretty slow
                %Does any channel at this position do z sectioning?

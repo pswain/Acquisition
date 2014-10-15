@@ -3,8 +3,8 @@
 %1. Imaging configuration (LED, exposure time, filter positions etc) must
 %   be set
 %2. If any channel in the acquisition does z sectioning the z position
-%should be moved to the top of the stack. If not the focus should be
-%positioned at the desired focal position
+%should be moved to the top of the stack before calling this.
+%If not the focus should be positioned at the desired focal position
 
 %Arguments:
 %1. filename - complete path for a directory to save the files into. Note - a
@@ -77,7 +77,7 @@ else%single section acquisition
     %then just capture an image.
     if anyZ==1
        z=nSlices/2;
-       slicePosition=pifPos+(2*((z-1)*sliceInterval));
+       slicePosition=pifPos+(2*((z+0.5)*sliceInterval));
        mmc.setPosition('PIFOC',slicePosition+offset);
        pause(0.5);
     end

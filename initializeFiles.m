@@ -12,6 +12,17 @@
 function [logFile,exptFolder,directories]=initializeFiles(acqData)
 %Make experiment directory
 root=acqData.info(3);
+%Check that you are on the microscope computer - if not - change the root
+%to a sensible one for a mac
+[idum,hostname]= system('hostname');
+
+if ~strcmp(hostname,'SCE-BIO-C023471')
+    [redundant user]=system('whoami');
+    user=user(1:end-1);
+    root=root{:};
+    root=['/Users/' user '/Documents/TestMultiDGUIData/' root(4:end)];    
+end
+
 acqName=acqData.info(1);
 dir=char(strcat(root,'/',acqName));
 exptNum=0;
