@@ -23,7 +23,7 @@ function varargout = multiDGUI(varargin)
 
 % Edit the above text to modify the response to help multiDGUI
 
-% Last Modified by GUIDE v2.5 30-Jan-2014 16:17:13
+% Last Modified by GUIDE v2.5 29-Oct-2014 16:18:55
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -66,8 +66,7 @@ handles.output = hObject;
 %Column 3 - skip number - eg if 2 only take an image every 2nd time point in this channel, if 3 only every 3rd etc.
 %Column 4 - 1 if using Z sectioning, 0 if not
 %Column 5 - starting timepoint - no images will be captured in this channel until this timepoint
-%Column 6 - Camera mode. 1 if EM with gain+exposure correction, 2 if CCD, 3
-%if EM with constant gain and exposure
+%Column 6 - Camera mode. 1 if EM with gain+exposure correction, 2 if CCD, 3 if EM with constant gain and exposure
 %Column 7 - Starting EM gain (not used if camera in CCD mode, default 270).
 %Column 8 - LED voltage - number between 0 and 4 - the voltage applied across the LED during the exposure
 
@@ -122,7 +121,16 @@ handles.output = hObject;
 
 %Add necessary folders to path
 addpath(genpath('C:\AcquisitionData\Swain Lab\OmeroCode'));
-   addpath(['.' filesep 'transitionGUI']);
+addpath(['.' filesep 'transitionGUI']);
+%Get computer name
+[idum,hostname]= system('hostname');
+%Create microscope object - details will depend on which computer is
+%running this
+handles.acquisition.microscope=Microscope;
+
+
+
+
 
 %If there is a last saved acquisition file then load the acquisition
 %settings from that. Points are not loaded.
@@ -175,10 +183,17 @@ users=[swain tyers millar];
 %Initialize the Omero projects and tags lists
 if ismac
    addpath(genpath('/Volumes/AcquisitionData2/Swain Lab/OmeroCode'));
-   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfo.mat');
-
+   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfoSkye.mat');
+   addpath('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\OmeroCode');
+   macMMPath;
 else
-    load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfo.mat');
+    [idum,hostname]= system('hostname');
+    if strcmp(hostname(1:end-1),'SCE-BIO-C03727')
+        addpath(genpath('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\OmeroCode'));
+        load('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
+    else
+        load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
+    end
 end
 handles.aquisition.omero=struct('project',{}, 'tags',{}, 'object',{});
 handles.acquisition.omero.object=obj2;
@@ -265,9 +280,11 @@ set(handles.pointsTable,'Data',handles.acquisition.points);
 isthereagui=exist ('gui','var');
 
 if isthereagui~=1
-    if ~ismac%Don't initialize the gui if working on the software on a mac - won't necessarily have micromanager on the path
-        guiconfig;
+    if ismac%Don't initialize the gui if working on the software on a mac - won't necessarily have micromanager on the path
+        disp('Initializing micromanager path for mac');
+        macMMPath;
     end
+ guiconfig;
 end
 global gui;
 
@@ -323,19 +340,22 @@ function radiobutton1_ButtonDownFcn(hObject, eventdata, handles)
 
 
 
-function DICexp_Callback(hObject, eventdata, handles)
-% hObject    handle to DICexp (see GCBO)
+function expChannel_Callback(hObject, eventdata, handles)
+% hObject    handle to expCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of DICexp as text
-%        str2double(get(hObject,'String')) returns contents of DICexp as a double
+% Hints: get(hObject,'String') returns contents of expCh1 as text
+%        str2double(get(hObject,'String')) returns contents of expCh1 as a double
+[chName tagEnd]=getChannel(hObject,handles);
+
+
 expos=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
-        if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+        if strcmp(handles.acquisition.channels(n,1),chName)==1
         handles.acquisition.channels{n,2}=expos;
         end
     end
@@ -346,8 +366,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function DICexp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to DICexp (see GCBO)
+function expCh1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to expCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -360,13 +380,13 @@ end
 
 
 
-function CFPexp_Callback(hObject, eventdata, handles)
-% hObject    handle to CFPexp (see GCBO)
+function expCh2_Callback(hObject, eventdata, handles)
+% hObject    handle to expCh2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of CFPexp as text
-%        str2double(get(hObject,'String')) returns contents of CFPexp as a double
+% Hints: get(hObject,'String') returns contents of expCh2 as text
+%        str2double(get(hObject,'String')) returns contents of expCh2 as a double
 expos=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -380,8 +400,8 @@ end
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function CFPexp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to CFPexp (see GCBO)
+function expCh2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to expCh2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 % Hint: edit controls usually have a white background on Windows.
@@ -392,13 +412,13 @@ end
 
 
 
-function GFPexp_Callback(hObject, eventdata, handles)
-% hObject    handle to GFPexp (see GCBO)
+function expCh3_Callback(hObject, eventdata, handles)
+% hObject    handle to expCh3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of GFPexp as text
-%        str2double(get(hObject,'String')) returns contents of GFPexp as a double
+% Hints: get(hObject,'String') returns contents of expCh3 as text
+%        str2double(get(hObject,'String')) returns contents of expCh3 as a double
 expos=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -412,8 +432,8 @@ end
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function GFPexp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to GFPexp (see GCBO)
+function expCh3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to expCh3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -425,13 +445,13 @@ end
 
 
 
-function YFPexp_Callback(hObject, eventdata, handles)
-% hObject    handle to YFPexp (see GCBO)
+function expCh4_Callback(hObject, eventdata, handles)
+% hObject    handle to expCh4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of YFPexp as text
-%        str2double(get(hObject,'String')) returns contents of YFPexp as a double
+% Hints: get(hObject,'String') returns contents of expCh4 as text
+%        str2double(get(hObject,'String')) returns contents of expCh4 as a double
 expos=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -445,8 +465,8 @@ end
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function YFPexp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to YFPexp (see GCBO)
+function expCh4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to expCh4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -458,13 +478,13 @@ end
 
 
 
-function mChexp_Callback(hObject, eventdata, handles)
-% hObject    handle to mChexp (see GCBO)
+function expCh5_Callback(hObject, eventdata, handles)
+% hObject    handle to expCh5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of mChexp as text
-%        str2double(get(hObject,'String')) returns contents of mChexp as a double
+% Hints: get(hObject,'String') returns contents of expCh5 as text
+%        str2double(get(hObject,'String')) returns contents of expCh5 as a double
 expos=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -478,8 +498,8 @@ end
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function mChexp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to mChexp (see GCBO)
+function expCh5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to expCh5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -491,13 +511,13 @@ end
 
 
 
-function tdexp_Callback(hObject, eventdata, handles)
-% hObject    handle to tdexp (see GCBO)
+function expCh6_Callback(hObject, eventdata, handles)
+% hObject    handle to expCh6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of tdexp as text
-%        str2double(get(hObject,'String')) returns contents of tdexp as a double
+% Hints: get(hObject,'String') returns contents of expCh6 as text
+%        str2double(get(hObject,'String')) returns contents of expCh6 as a double
 expos=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -511,8 +531,8 @@ end
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function tdexp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to tdexp (see GCBO)
+function expCh6_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to expCh6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -534,10 +554,10 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.DICexp,'Enable','off'); 
+   set(handles.expCh1,'Enable','off'); 
 
 else
-    set(handles.DICexp,'Enable','on');
+    set(handles.expCh1,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
@@ -559,10 +579,10 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.CFPexp,'Enable','off'); 
+   set(handles.expCh2,'Enable','off'); 
 
 else
-    set(handles.CFPexp,'Enable','on');
+    set(handles.expCh2,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
@@ -573,7 +593,7 @@ if nChannels~=0
 end
  guidata(hObject, handles);
 
-% --- Executes on button press in skipGFP.
+% --- Executes on button press in skipCh3.
 function GFPpointexp_Callback(hObject, eventdata, handles)
 % hObject    handle to GFPpointexp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -584,10 +604,10 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.GFPexp,'Enable','off'); 
+   set(handles.expCh3,'Enable','off'); 
 
 else
-    set(handles.GFPexp,'Enable','on');
+    set(handles.expCh3,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
@@ -609,10 +629,10 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.YFPexp,'Enable','off'); 
+   set(handles.expCh4,'Enable','off'); 
 
 else
-    set(handles.YFPexp,'Enable','on');
+    set(handles.expCh4,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
@@ -623,7 +643,7 @@ if nChannels~=0
 end
  guidata(hObject, handles);
 
-% --- Executes on button press in skipmCh.
+% --- Executes on button press in skipCh5.
 function mChpointexp_Callback(hObject, eventdata, handles)
 % hObject    handle to mChpointexp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -634,10 +654,10 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.mChexp,'Enable','off'); 
+   set(handles.expCh5,'Enable','off'); 
 
 else
-    set(handles.mChexp,'Enable','on');
+    set(handles.expCh5,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
@@ -659,10 +679,10 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.tdexp,'Enable','off'); 
+   set(handles.expCh6,'Enable','off'); 
 
 else
-    set(handles.tdexp,'Enable','on');
+    set(handles.expCh6,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
@@ -674,54 +694,54 @@ end
  guidata(hObject, handles);
 
 % --- Executes on button press in text5. Use CFP
-function useCFP_Callback(hObject, eventdata, handles)
+function useCh2_Callback(hObject, eventdata, handles)
 
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.CFPZsect,'Value')==1
+     if get(handles.ZsectCh2,'Value')==1
        set(handles.nZsections,'Enable','on');
        set(handles.zspacing,'Enable','on');
      end
-   set(handles.skipCFP,'Enable','on');
-   set(handles.CFPZsect,'Enable','on');
-   set(handles.CFPstarttp,'Enable','on');
-   set(handles.snapCFP,'Enable','on');
-   set(handles.cammodeCFP,'Enable','on');
-   set(handles.skipCFP,'Enable','on');
+   set(handles.skipCh2,'Enable','on');
+   set(handles.ZsectCh2,'Enable','on');
+   set(handles.starttpCh2,'Enable','on');
+   set(handles.snapCh2,'Enable','on');
+   set(handles.cammodeCh2,'Enable','on');
+   set(handles.skipCh2,'Enable','on');
     %camera settings - enable controls
-   set(handles.cammodeCFP,'Enable','on');%%%%%
-   if get(handles.cammodeCFP,'Value')==1%channel set to camera EM mode
-       set (handles.startgainCFP,'Enable','on');%%%%%
-       set (handles.voltCFP,'Enable','on');%%%%%
+   set(handles.cammodeCh2,'Enable','on');%%%%%
+   if get(handles.cammodeCh2,'Value')==1%channel set to camera EM mode
+       set (handles.startgainCh2,'Enable','on');%%%%%
+       set (handles.voltCh2,'Enable','on');%%%%%
    end   %%%%%
-   set(handles.CFPexp,'Enable','on');
+   set(handles.expCh2,'Enable','on');
    handles.acquisition.channels{nChannels+1,1}='CFP';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.CFPexp,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.CFPZsect,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCFP,'String'));
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.CFPstarttp,'String'));%add to others
+   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh2,'String'));
+   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh2,'Value');%add to others
+   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh2,'String'));
+   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh2,'String'));%add to others
     %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCFP,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCFP,'String'));
+   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh2,'Value');
+   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh2,'String'));
    if isempty(handles.acquisition.channels(nChannels+1,7))
        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
    end
-   handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCFP,'String')));
+   handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh2,'String')));
    %update the points list (if there is one) - add a column for exposure times for this channel
    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
    end
 else
-    set(handles.CFPexp,'Enable','off');
-    set(handles.skipCFP,'Enable','off');
-    set(handles.CFPZsect,'Enable','off');%add to others
-    set(handles.CFPstarttp,'Enable','off');%add to others
-    set(handles.snapCFP,'Enable','off');
-    set(handles.cammodeCFP,'Enable','off');
-    set(handles.startgainCFP,'Enable','off');%%%%%
-    set(handles.voltCFP,'Enable','off');%%%%%
-    set(handles.skipCFP,'Enable','off');
+    set(handles.expCh2,'Enable','off');
+    set(handles.skipCh2,'Enable','off');
+    set(handles.ZsectCh2,'Enable','off');%add to others
+    set(handles.starttpCh2,'Enable','off');%add to others
+    set(handles.snapCh2,'Enable','off');
+    set(handles.cammodeCh2,'Enable','off');
+    set(handles.startgainCh2,'Enable','off');%%%%%
+    set(handles.voltCh2,'Enable','off');%%%%%
+    set(handles.skipCh2,'Enable','off');
 
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
@@ -754,7 +774,7 @@ end
 guidata(hObject, handles);
 
 % --- Executes on button press in text6. Use GFP
-function useGFP_Callback(hObject, eventdata, handles)
+function useCh3_Callback(hObject, eventdata, handles)
 % hObject    handle to text6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -764,48 +784,48 @@ function useGFP_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.GFPZsect,'Value')==1
+     if get(handles.ZsectCh3,'Value')==1
        set(handles.nZsections,'Enable','on');
    
        set(handles.zspacing,'Enable','on');
      end
-   set(handles.skipGFP,'Enable','on');
-   set(handles.GFPZsect,'Enable','on');
-   set(handles.GFPstarttp,'Enable','on');%add to others
-   set(handles.snapGFP,'Enable','on');%%%%%
-   set(handles.cammodeGFP,'Enable','on');%%%%%
+   set(handles.skipCh3,'Enable','on');
+   set(handles.ZsectCh3,'Enable','on');
+   set(handles.starttpCh3,'Enable','on');%add to others
+   set(handles.snapCh3,'Enable','on');%%%%%
+   set(handles.cammodeCh3,'Enable','on');%%%%%
    %camera settings - enable controls
-   set(handles.cammodeGFP,'Enable','on');%%%%%
-   if get(handles.cammodeGFP,'Value')==1%channel set to camera EM mode
-       set (handles.startgainGFP,'Enable','on');%%%%%
-       set (handles.voltGFP,'Enable','on');%%%%%
+   set(handles.cammodeCh3,'Enable','on');%%%%%
+   if get(handles.cammodeCh3,'Value')==1%channel set to camera EM mode
+       set (handles.startgainCh3,'Enable','on');%%%%%
+       set (handles.voltCh3,'Enable','on');%%%%%
    end   %%%%%
-   set(handles.GFPexp,'Enable','on');
+   set(handles.expCh3,'Enable','on');
    handles.acquisition.channels{nChannels+1,1}='GFP';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.GFPexp,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipGFP,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.GFPZsect,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.GFPstarttp,'String'));%add to others
+   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh3,'String'));
+   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh3,'String'));
+   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh3,'Value');%add to others
+   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh3,'String'));%add to others
    %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeGFP,'Value');%%%%%
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainGFP,'String'));%%%%%
+   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh3,'Value');%%%%%
+   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh3,'String'));%%%%%
    if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
    end%
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltGFP,'String')));
+      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh3,'String')));
    %update the points list (if there is one) - add a column for exposure times for this channel
    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
    end
 else
-    set(handles.GFPexp,'Enable','off');
-    set(handles.skipGFP,'Enable','off');
-    set(handles.GFPZsect,'Enable','off');%add to others
-    set(handles.GFPstarttp,'Enable','off');%add to others
-    set(handles.snapGFP,'Enable','off');%%%%%
-    set(handles.cammodeGFP,'Enable','off');%%%%%
-    set(handles.startgainGFP,'Enable','off');%%%%%
-    set(handles.voltGFP,'Enable','off');%%%%%
+    set(handles.expCh3,'Enable','off');
+    set(handles.skipCh3,'Enable','off');
+    set(handles.ZsectCh3,'Enable','off');%add to others
+    set(handles.starttpCh3,'Enable','off');%add to others
+    set(handles.snapCh3,'Enable','off');%%%%%
+    set(handles.cammodeCh3,'Enable','off');%%%%%
+    set(handles.startgainCh3,'Enable','off');%%%%%
+    set(handles.voltCh3,'Enable','off');%%%%%
     sizeChannels=size(handles.acquisition.channels);%%%%%
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
@@ -832,7 +852,7 @@ else
 end
 guidata(hObject, handles);
 % --- Executes on button press in text7. Use YFP button
-function useYFP_Callback(hObject, eventdata, handles)
+function useCh4_Callback(hObject, eventdata, handles)
 % hObject    handle to text7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -841,48 +861,48 @@ function useYFP_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.YFPZsect,'Value')==1
+     if get(handles.ZsectCh4,'Value')==1
       set(handles.nZsections,'Enable','on');
       set(handles.zspacing,'Enable','on');
      end
-   set(handles.skipYFP,'Enable','on');
-   set(handles.YFPZsect,'Enable','on');
-   set(handles.YFPstarttp,'Enable','on');%add to others
-   set(handles.snapYFP,'Enable','on');%%%%%
-   set(handles.cammodeYFP,'Enable','on');%%%%%
+   set(handles.skipCh4,'Enable','on');
+   set(handles.ZsectCh4,'Enable','on');
+   set(handles.starttpCh4,'Enable','on');%add to others
+   set(handles.snapCh4,'Enable','on');%%%%%
+   set(handles.cammodeCh4,'Enable','on');%%%%%
    %camera settings - enable controls
-   set(handles.cammodeYFP,'Enable','on');%%%%%
-   if get(handles.cammodeYFP,'Value')==1%channel set to camera EM mode
-       set (handles.startgainYFP,'Enable','on');%%%%%
-       set (handles.voltYFP,'Enable','on');%%%%%
+   set(handles.cammodeCh4,'Enable','on');%%%%%
+   if get(handles.cammodeCh4,'Value')==1%channel set to camera EM mode
+       set (handles.startgainCh4,'Enable','on');%%%%%
+       set (handles.voltCh4,'Enable','on');%%%%%
    end   %%%%%
-   set(handles.YFPexp,'Enable','on');
+   set(handles.expCh4,'Enable','on');
    handles.acquisition.channels{nChannels+1,1}='YFP';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.YFPexp,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipYFP,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.YFPZsect,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.YFPstarttp,'String'));%add to others
+   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh4,'String'));
+   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh4,'String'));
+   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh4,'Value');%add to others
+   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh4,'String'));%add to others
    %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeYFP,'Value');%%%%%
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainYFP,'String'));%%%%%
+   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh4,'Value');%%%%%
+   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh4,'String'));%%%%%
    if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
    end%
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltYFP,'String')));
+      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh4,'String')));
     %update the points list (if there is one) - add a column for exposure times for this channel
    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
    end
 else
-    set(handles.YFPexp,'Enable','off');
-    set(handles.skipYFP,'Enable','off');
-    set(handles.YFPZsect,'Enable','off');%add to others
-    set(handles.YFPstarttp,'Enable','off');%add to others
-    set(handles.snapYFP,'Enable','off');%%%%%
-    set(handles.cammodeYFP,'Enable','off');%%%%%
-    set(handles.startgainYFP,'Enable','off');%%%%%
+    set(handles.expCh4,'Enable','off');
+    set(handles.skipCh4,'Enable','off');
+    set(handles.ZsectCh4,'Enable','off');%add to others
+    set(handles.starttpCh4,'Enable','off');%add to others
+    set(handles.snapCh4,'Enable','off');%%%%%
+    set(handles.cammodeCh4,'Enable','off');%%%%%
+    set(handles.startgainCh4,'Enable','off');%%%%%
     sizeChannels=size(handles.acquisition.channels);%%%%%
-    set(handles.voltYFP,'Enable','off');%%%%%
+    set(handles.voltCh4,'Enable','off');%%%%%
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
        anyZ=0;
@@ -909,7 +929,7 @@ end
 guidata(hObject, handles);
 
 % --- Executes on button press in text8. mCherry use button
-function usemCh_Callback(hObject, eventdata, handles)
+function useCh5_Callback(hObject, eventdata, handles)
 % hObject    handle to text8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -918,49 +938,49 @@ function usemCh_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.mChZsect,'Value')==1
+     if get(handles.ZsectCh5,'Value')==1
        set(handles.nZsections,'Enable','on');
        set(handles.zspacing,'Enable','on');
      end
-   set(handles.skipmCh,'Enable','on');
-   set(handles.mChZsect,'Enable','on');
-   set(handles.mChstarttp,'Enable','on');%add to others
-   set(handles.snapmCherry,'Enable','on');
-   set(handles.cammodemCherry,'Enable','on');
-   set(handles.skipmCh,'Enable','on');
+   set(handles.skipCh5,'Enable','on');
+   set(handles.ZsectCh5,'Enable','on');
+   set(handles.starttpCh5,'Enable','on');%add to others
+   set(handles.snapCh5,'Enable','on');
+   set(handles.cammodeCh5,'Enable','on');
+   set(handles.skipCh5,'Enable','on');
     %camera settings - enable controls
-   set(handles.cammodemCherry,'Enable','on');%%%%%
-   if get(handles.cammodemCherry,'Value')==1%channel set to camera EM mode
-       set (handles.startgainmCherry,'Enable','on');%%%%%
-       set (handles.voltmCherry,'Enable','on');%%%%%
+   set(handles.cammodeCh5,'Enable','on');%%%%%
+   if get(handles.cammodeCh5,'Value')==1%channel set to camera EM mode
+       set (handles.startgainCh5,'Enable','on');%%%%%
+       set (handles.voltCh5,'Enable','on');%%%%%
    end   %%%%%
-   set(handles.mChexp,'Enable','on');
+   set(handles.expCh5,'Enable','on');
    handles.acquisition.channels{nChannels+1,1}='mCherry';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.mChexp,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipmCh,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.mChZsect,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.mChstarttp,'String'));%add to others
+   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh5,'String'));
+   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh5,'String'));
+   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh5,'Value');%add to others
+   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh5,'String'));%add to others
    %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodemCherry,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainmCherry,'String'));
+   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh5,'Value');
+   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh5,'String'));
    if isempty(handles.acquisition.channels(nChannels+1,7))
        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
    end
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltmCherry,'String')));
+      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh5,'String')));
     %update the points list (if there is one) - add a column for exposure times for this channel
    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
    end
 else
-    set(handles.mChexp,'Enable','off');
-    set(handles.skipmCh,'Enable','off');
-    set(handles.mChZsect,'Enable','off');%add to others
-    set(handles.mChstarttp,'Enable','off');%add to others
-    set(handles.snapmCherry,'Enable','off');
-    set(handles.cammodemCherry,'Enable','off');
-    set(handles.startgainmCherry,'Enable','off');%%%%%
-    set(handles.voltmCherry,'Enable','off');%%%%%
-    set(handles.skipmCh,'Enable','off');
+    set(handles.expCh5,'Enable','off');
+    set(handles.skipCh5,'Enable','off');
+    set(handles.ZsectCh5,'Enable','off');%add to others
+    set(handles.starttpCh5,'Enable','off');%add to others
+    set(handles.snapCh5,'Enable','off');
+    set(handles.cammodeCh5,'Enable','off');
+    set(handles.startgainCh5,'Enable','off');%%%%%
+    set(handles.voltCh5,'Enable','off');%%%%%
+    set(handles.skipCh5,'Enable','off');
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         anyZ=0;
@@ -987,7 +1007,7 @@ end
 guidata(hObject, handles);
 
 % --- Executes on button press in text9. tdTomato use button
-function usetd_Callback(hObject, eventdata, handles)
+function useCh6_Callback(hObject, eventdata, handles)
 % hObject    handle to text9 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -996,47 +1016,47 @@ function usetd_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.tdZsect,'Value')==1
+     if get(handles.ZsectCh6,'Value')==1
        set(handles.nZsections,'Enable','on');
        set(handles.zspacing,'Enable','on');
      end
-   set(handles.skiptd,'Enable','on');
-   set(handles.tdZsect,'Enable','on');
-   set(handles.tdstarttp,'Enable','on');%add to others
-   set(handles.snaptdTomato,'Enable','on');
-   set(handles.cammodetdTomato,'Enable','on');
+   set(handles.skipCh6,'Enable','on');
+   set(handles.ZsectCh6,'Enable','on');
+   set(handles.starttpCh6,'Enable','on');%add to others
+   set(handles.snapCh6,'Enable','on');
+   set(handles.cammodeCh6,'Enable','on');
     %camera settings - enable controls
-   set(handles.cammodetdTomato,'Enable','on');%%%%%
-   if get(handles.cammodetdTomato,'Value')==1%channel set to camera EM mode
-       set (handles.startgaintdTomato,'Enable','on');%%%%%
-       set (handles.volttdTomato,'Enable','on');%%%%%
+   set(handles.cammodeCh6,'Enable','on');%%%%%
+   if get(handles.cammodeCh6,'Value')==1%channel set to camera EM mode
+       set (handles.startgainCh6,'Enable','on');%%%%%
+       set (handles.voltCh6,'Enable','on');%%%%%
    end   %%%%%
-   set(handles.tdexp,'Enable','on');
+   set(handles.expCh6,'Enable','on');
    handles.acquisition.channels{nChannels+1,1}='tdTomato';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.tdexp,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.tdZsect,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skiptd,'String'));
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.tdstarttp,'String'));%add to others
+   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh6,'String'));
+   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh6,'Value');%add to others
+   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh6,'String'));
+   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh6,'String'));%add to others
    %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodetdTomato,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgaintdTomato,'String'));
+   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh6,'Value');
+   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh6,'String'));
    if isempty(handles.acquisition.channels(nChannels+1,7))
        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
    end
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.volttdTomato,'String')));
+      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh6,'String')));
    %update the points list (if there is one) - add a column for exposure times for this channel
    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
    end
 else
-    set(handles.tdexp,'Enable','off');
-    set(handles.skiptd,'Enable','off');
-    set(handles.tdZsect,'Enable','off');%add to others
-    set(handles.tdstarttp,'Enable','off');%add to others
-    set(handles.snaptdTomato,'Enable','off');
-    set(handles.cammodetdTomato,'Enable','off');
-    set(handles.startgaintdTomato,'Enable','off');%%%%%
-    set(handles.volttdTomato,'Enable','off');%%%%%
+    set(handles.expCh6,'Enable','off');
+    set(handles.skipCh6,'Enable','off');
+    set(handles.ZsectCh6,'Enable','off');%add to others
+    set(handles.starttpCh6,'Enable','off');%add to others
+    set(handles.snapCh6,'Enable','off');
+    set(handles.cammodeCh6,'Enable','off');
+    set(handles.startgainCh6,'Enable','off');%%%%%
+    set(handles.voltCh6,'Enable','off');%%%%%
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         anyZ=0;
@@ -1063,65 +1083,68 @@ end
 guidata(hObject, handles);
 
 
-% --- Executes on button press in useDIC.
-function useDIC_Callback(hObject, eventdata, handles)
-% hObject    handle to useDIC (see GCBO)
+% --- Executes on button press in useCh1.
+function useChannel_Callback(hObject, eventdata, handles)
+% hObject    handle to useCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of useDIC
+%Callback to be used for all "Use" channel buttons
+%First determine which one has called it.
+
+[chName tagEnd]=getChannel(hObject,handles);
+
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-   if get(handles.DICZsect,'Value')==1
+   if get(handles.(['Zsect' tagEnd]),'Value')==1
        set(handles.nZsections,'Enable','on');
        set(handles.zspacing,'Enable','on');
    end
-   set(handles.skipDIC2,'Enable','on');
-   set(handles.DICZsect,'Enable','on');
-   set(handles.DICstarttp,'Enable','on');
-   set(handles.snapDIC,'Enable','on');
-   set(handles.cammodeDIC,'Enable','on');
-   set(handles.skipDIC2,'Enable','on');
+   set(handles.(['skip' tagEnd]),'Enable','on');
+   set(handles.(['Zsect' tagEnd]),'Enable','on');
+   set(handles.(['starttp' tagEnd]),'Enable','on');
+   set(handles.(['snap' tagEnd]),'Enable','on');
+   set(handles.(['cammode' tagEnd]),'Enable','on');
+   set(handles.(['skip' tagEnd]),'Enable','on');
    %camera settings - enable controls
-   set(handles.cammodeDIC,'Enable','on');%%%%%
-   if get(handles.cammodeDIC,'Value')==1%channel set to camera EM mode
-       set (handles.startgainDIC,'Enable','on');%%%%%
-       set (handles.voltDIC,'Enable','on');%%%%%
+   set(handles.(['cammode' tagEnd]),'Enable','on');%%%%%
+   if get(handles.(['cammode' tagEnd]),'Value')==1%channel set to camera EM mode
+       set (handles.(['startgain' tagEnd]),'Enable','on');%%%%%
+       set (handles.(['volt' tagEnd]),'Enable','on');%%%%%
    end   %%%%%
-   set(handles.DICexp,'Enable','on');
+   set(handles.(['exp' tagEnd]),'Enable','on');
    %initialise channels entry
-   handles.acquisition.channels{nChannels+1,1}='DIC';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.DICexp,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipDIC2,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.DICZsect,'Value');
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.DICstarttp,'String'));
+   handles.acquisition.channels{nChannels+1,1}=chName;
+   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.(['exp' tagEnd]),'String'));
+   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.(['skip' tagEnd]),'String'));
+   handles.acquisition.channels{nChannels+1,4}=get(handles.(['Zsect' tagEnd]),'Value');
+   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.(['starttp' tagEnd]),'String'));
    %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeDIC,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainDIC,'String'));%%%%%
+   handles.acquisition.channels{nChannels+1,6}=get(handles.(['cammode' tagEnd]),'Value');
+   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.(['startgain' tagEnd]),'String'));%%%%%
    if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
    end%
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltDIC,'String')));
+      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.(['volt' tagEnd]),'String')));
    %update the points list (if there is one) - add a column for exposure times for this channel
    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
    end
 else%this channel has been deselected
-    set(handles.DICexp,'Enable','off');
-    set(handles.skipDIC2,'Enable','off');
-    set(handles.DICZsect,'Enable','off');
-    set(handles.DICstarttp,'Enable','off');
-    set(handles.snapDIC,'Enable','off');
-    set(handles.cammodeDIC,'Enable','off');
-    set(handles.startgainDIC,'Enable','off')
-    set(handles.voltDIC,'Enable','off');
-    set(handles.skipDIC2,'Enable','off');
+    set(handles.(['exp' tagEnd]),'Enable','off');
+    set(handles.(['skip' tagEnd]),'Enable','off');
+    set(handles.(['Zsect' tagEnd]),'Enable','off');
+    set(handles.(['starttp' tagEnd]),'Enable','off');
+    set(handles.(['snap' tagEnd]),'Enable','off');
+    set(handles.(['cammode' tagEnd]),'Enable','off');
+    set(handles.(['startgain' tagEnd]),'Enable','off')
+    set(handles.(['volt' tagEnd]),'Enable','off');
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it
-            if strcmp(char(handles.acquisition.channels(n,1)),'DIC')==1
+            if strcmp(char(handles.acquisition.channels(n,1)),chName)==1
             delnumber=n;%mark this channel for deletion
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
@@ -1143,40 +1166,40 @@ end
 guidata(hObject, handles);
 
 
-% --- Executes on button press in useGFP.
+% --- Executes on button press in useCh3.
 %function useGFP_Callback(hObject, eventdata, handles)
-% hObject    handle to useGFP (see GCBO)
+% hObject    handle to useCh3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of useGFP
+% Hint: get(hObject,'Value') returns toggle state of useCh3
 
 
-% --- Executes on button press in useYFP.
+% --- Executes on button press in useCh4.
 %function useYFP_Callback(hObject, eventdata, handles)
-% hObject    handle to useYFP (see GCBO)
+% hObject    handle to useCh4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of useYFP
+% Hint: get(hObject,'Value') returns toggle state of useCh4
 
 
-% --- Executes on button press in usemCh.
+% --- Executes on button press in useCh5.
 %function usemCh_Callback(hObject, eventdata, handles)
-% hObject    handle to usemCh (see GCBO)
+% hObject    handle to useCh5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of usemCh
+% Hint: get(hObject,'Value') returns toggle state of useCh5
 
 
-% --- Executes on button press in usetd.
+% --- Executes on button press in useCh6.
 %function usetd_Callback(hObject, eventdata, handles)
-% hObject    handle to usetd (see GCBO)
+% hObject    handle to useCh6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of usetd
+% Hint: get(hObject,'Value') returns toggle state of useCh6
 
 
 % --- Executes on selection change in units.
@@ -1327,8 +1350,10 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in DICZsect.
-function DICZsect_Callback(hObject, eventdata, handles)
+% --- Executes on button press in ZsectCh1.
+function ZsectChannel_Callback(hObject, eventdata, handles)
+[chName tagEnd]=getChannel(hObject,handles);
+
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and record that z sectioning is being done for
                           %this channel in the handles.acquisition.channels cell array
@@ -1341,7 +1366,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'DIC')==1
+            if strcmp(char(handles.acquisition.channels(n,1)),chName)==1
             handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
@@ -1356,7 +1381,7 @@ else%if this button has been deselected
     anyZ=0;
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'DIC')==1
+            if strcmp(char(handles.acquisition.channels(n,1)),chName)==1
             handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
@@ -1376,8 +1401,8 @@ end
   guidata(hObject, handles);
 
 
-% --- Executes on button press in GFPZsect.
-function GFPZsect_Callback(hObject, eventdata, handles)
+% --- Executes on button press in ZsectCh3.
+function ZsectCh3_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and record that z sectioning is being done for
                           %this channel in the handles.acquisition.channels cell array
@@ -1425,8 +1450,8 @@ end
   guidata(hObject, handles);
 
 
-% --- Executes on button press in YFPZsect.
-function YFPZsect_Callback(hObject, eventdata, handles)
+% --- Executes on button press in ZsectCh4.
+function ZsectCh4_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and record that z sectioning is being done for
                           %this channel in the handles.acquisition.channels cell array
@@ -1473,8 +1498,8 @@ else%if this button has been deselected
 end
   guidata(hObject, handles);
   
-% --- Executes on button press in mChZsect.
-function mChZsect_Callback(hObject, eventdata, handles)
+% --- Executes on button press in ZsectCh5.
+function ZsectCh5_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and record that z sectioning is being done for
                           %this channel in the handles.acquisition.channels cell array
@@ -1521,8 +1546,8 @@ else%if this button has been deselected
 end
   guidata(hObject, handles);
 
-% --- Executes on button press in tdZsect.
-function tdZsect_Callback(hObject, eventdata, handles)
+% --- Executes on button press in ZsectCh6.
+function ZsectCh6_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and record that z sectioning is being done for
                           %this channel in the handles.acquisition.channels cell array
@@ -1570,8 +1595,8 @@ end
   guidata(hObject, handles);
 
 
-% --- Executes on button press in CFPZsect.
-function CFPZsect_Callback(hObject, eventdata, handles)
+% --- Executes on button press in ZsectCh2.
+function ZsectCh2_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and record that z sectioning is being done for
                           %this channel in the handles.acquisition.channels cell array
@@ -1619,7 +1644,7 @@ end
   guidata(hObject, handles);
 
 
-function CFPstarttp_Callback(hObject, eventdata, handles)
+function starttpCh2_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
@@ -1629,7 +1654,7 @@ if isempty(get(hObject,'String'))~=1;
             end
         end
 else
-    set(handles.CFPstarttp,'String','0');
+    set(handles.starttpCh2,'String','0');
      for n=1:sizeChannels(1)
          if strcmp(char(handles.acquisition.channels(n,1)),'CFP')==1
             handles.acquisition.channels(n,5)=num2cell(0);
@@ -1641,8 +1666,8 @@ end
    
    
 % --- Executes during object creation, after setting all properties.
-function CFPstarttp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to CFPstarttp (see GCBO)
+function starttpCh2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to starttpCh2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1654,7 +1679,7 @@ end
 
 
 
-function GFPstarttp_Callback(hObject, eventdata, handles)
+function starttpCh3_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
@@ -1664,7 +1689,7 @@ if isempty(get(hObject,'String'))~=1;
             end
         end
 else
-    set(handles.GFPstarttp,'String','0');
+    set(handles.starttpCh3,'String','0');
      for n=1:sizeChannels(1)
          if strcmp(char(handles.acquisition.channels(n,1)),'GFP')==1
             handles.acquisition.channels(n,5)=num2cell(0);
@@ -1675,8 +1700,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function GFPstarttp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to GFPstarttp (see GCBO)
+function starttpCh3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to starttpCh3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1688,7 +1713,7 @@ end
 
 
 
-function YFPstarttp_Callback(hObject, eventdata, handles)
+function starttpCh4_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
@@ -1698,7 +1723,7 @@ if isempty(get(hObject,'String'))~=1;
             end
         end
 else
-    set(handles.YFPstarttp,'String','0');
+    set(handles.starttpCh4,'String','0');
      for n=1:sizeChannels(1)
          if strcmp(char(handles.acquisition.channels(n,1)),'YFP')==1
             handles.acquisition.channels(n,5)=num2cell(0);
@@ -1708,8 +1733,8 @@ end
    guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function YFPstarttp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to YFPstarttp (see GCBO)
+function starttpCh4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to starttpCh4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1721,7 +1746,7 @@ end
 
 
 
-function mChstarttp_Callback(hObject, eventdata, handles)
+function starttpCh5_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
@@ -1731,7 +1756,7 @@ if isempty(get(hObject,'String'))~=1;
             end
         end
 else
-    set(handles.mChstarttp,'String','0');
+    set(handles.starttpCh5,'String','0');
      for n=1:sizeChannels(1)
          if strcmp(char(handles.acquisition.channels(n,1)),'mCherry')==1
             handles.acquisition.channels(n,5)=num2cell(0);
@@ -1741,8 +1766,8 @@ end
    guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function mChstarttp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to mChstarttp (see GCBO)
+function starttpCh5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to starttpCh5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1754,7 +1779,7 @@ end
 
 
 
-function tdstarttp_Callback(hObject, eventdata, handles)
+function starttpCh6_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
@@ -1764,7 +1789,7 @@ if isempty(get(hObject,'String'))~=1;
             end
         end
 else
-    set(handles.tdstarttp,'String','0');
+    set(handles.starttpCh6,'String','0');
      for n=1:sizeChannels(1)
          if strcmp(char(handles.acquisition.channels(n,1)),'tdTomato')==1
             handles.acquisition.channels(n,5)=num2cell(0);
@@ -1775,8 +1800,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function tdstarttp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to tdstarttp (see GCBO)
+function starttpCh6_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to starttpCh6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1818,24 +1843,9 @@ starttp=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 callingTag=get(hObject,'Tag');
 %Get the name of the channel
-switch callingTag
-    case 'DICstarttp'
-        channelName='DIC';
-    case 'CFPstarttp'
-        channelName='CFP';
-    case 'GFPstarttp'
-        channelName='GFP';
-    case 'YFPstarttp'
-        channelName='YFP';
-    case 'mChstarttp'
-        channelName='mCherry';
-    case 'tdstarttp'
-        channelName='tdTomato';
-    case 'cy5starttp'
-        channelName='cy5';
-    case 'GFPAutoFlstarttp'
-        channelName='GFPAutoFl';
-end
+[channelName tagEnd]=getChannel(hObject,handles);
+
+
 if isempty(get(hObject,'String'))~=1;
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
@@ -1843,7 +1853,7 @@ if isempty(get(hObject,'String'))~=1;
             end
         end
 else
-    set(handles.DICstarttp,'String','1');
+    set(handles.starttpCh1,'String','1');
      for n=1:sizeChannels(1)
          if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
             handles.acquisition.channels(n,5)=num2cell(1);
@@ -1856,8 +1866,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function DICstarttp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to DICstarttp (see GCBO)
+function starttpCh1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to starttpCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -2351,13 +2361,13 @@ function []=refreshGUI(handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
-    set(handles.useDIC,'Value',0);
-    set(handles.useCFP,'Value',0);
-    set(handles.useGFP,'Value',0);
-    set(handles.useYFP,'Value',0);        
-    set(handles.usemCh,'Value',0);
-    set(handles.usetd,'Value',0);
-    set(handles.usecy5,'Value',0);
+    set(handles.useCh1,'Value',0);
+    set(handles.useCh2,'Value',0);
+    set(handles.useCh3,'Value',0);
+    set(handles.useCh4,'Value',0);        
+    set(handles.useCh5,'Value',0);
+    set(handles.useCh6,'Value',0);
+    set(handles.useCh7,'Value',0);
 useDIC=0;
 useCFP=0;
 useGFP=0;
@@ -2371,179 +2381,179 @@ usecy5=0;
         switch chName
             case 'DIC'
             useDIC=1;%variable to check later if DIC is used
-            set(handles.DICexp,'Enable','on');  
-            set(handles.useDIC,'Value',1);
-            set(handles.DICZsect,'Enable','on');
-            set(handles.DICstarttp,'Enable','on');
-            set(handles.cammodeDIC,'Enable','on');
-            set(handles.startgainDIC,'Enable','on');
-            set(handles.voltDIC,'Enable','on');
-            set(handles.DICexp,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
-            set(handles.DICZsect,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.DICstarttp,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeDIC,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainDIC,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltDIC,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+            set(handles.expCh1,'Enable','on');  
+            set(handles.useCh1,'Value',1);
+            set(handles.ZsectCh1,'Enable','on');
+            set(handles.starttpCh1,'Enable','on');
+            set(handles.cammodeCh1,'Enable','on');
+            set(handles.startgainCh1,'Enable','on');
+            set(handles.voltCh1,'Enable','on');
+            set(handles.expCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
+            set(handles.ZsectCh1,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+            set(handles.starttpCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+            set(handles.cammodeCh1,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+            set(handles.startgainCh1,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+            set(handles.voltCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             
                 
             case 'CFP'
             useCFP=1;
-            set(handles.CFPexp,'Enable','on');  
-            set(handles.useCFP,'Value',1);
-            set(handles.CFPZsect,'Enable','on');
-            set(handles.CFPstarttp,'Enable','on');
-            set(handles.cammodeCFP,'Enable','on');
-            set(handles.startgainCFP,'Enable','on');
-            set(handles.voltCFP,'Enable','on');
-            set(handles.CFPexp,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
-            set(handles.CFPZsect,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.CFPstarttp,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeCFP,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainCFP,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltCFP,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+            set(handles.expCh2,'Enable','on');  
+            set(handles.useCh2,'Value',1);
+            set(handles.ZsectCh2,'Enable','on');
+            set(handles.starttpCh2,'Enable','on');
+            set(handles.cammodeCh2,'Enable','on');
+            set(handles.startgainCh2,'Enable','on');
+            set(handles.voltCh2,'Enable','on');
+            set(handles.expCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
+            set(handles.ZsectCh2,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+            set(handles.starttpCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+            set(handles.cammodeCh2,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+            set(handles.startgainCh2,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+            set(handles.voltCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'GFP'
               useGFP=1;
-            set(handles.GFPexp,'Enable','on');  
-            set(handles.useGFP,'Value',1);
-            set(handles.GFPZsect,'Enable','on');
-            set(handles.GFPstarttp,'Enable','on');
-            set(handles.cammodeGFP,'Enable','on');
-            set(handles.startgainGFP,'Enable','on');
-            set(handles.voltGFP,'Enable','on');
-            set(handles.GFPexp,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.GFPZsect,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.GFPstarttp,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeGFP,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainGFP,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltGFP,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+            set(handles.expCh3,'Enable','on');  
+            set(handles.useCh3,'Value',1);
+            set(handles.ZsectCh3,'Enable','on');
+            set(handles.starttpCh3,'Enable','on');
+            set(handles.cammodeCh3,'Enable','on');
+            set(handles.startgainCh3,'Enable','on');
+            set(handles.voltCh3,'Enable','on');
+            set(handles.expCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+            set(handles.ZsectCh3,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+            set(handles.starttpCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+            set(handles.cammodeCh3,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+            set(handles.startgainCh3,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+            set(handles.voltCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'YFP'
-            set(handles.YFPexp,'Enable','on');  
-            set(handles.useYFP,'Value',1);
-            set(handles.YFPZsect,'Enable','on');
-            set(handles.YFPstarttp,'Enable','on');
-            set(handles.cammodeYFP,'Enable','on');
-            set(handles.startgainYFP,'Enable','on');
-            set(handles.voltYFP,'Enable','on');
-            set(handles.YFPexp,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.YFPZsect,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.YFPstarttp,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeYFP,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainYFP,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltYFP,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+            set(handles.expCh4,'Enable','on');  
+            set(handles.useCh4,'Value',1);
+            set(handles.ZsectCh4,'Enable','on');
+            set(handles.starttpCh4,'Enable','on');
+            set(handles.cammodeCh4,'Enable','on');
+            set(handles.startgainCh4,'Enable','on');
+            set(handles.voltCh4,'Enable','on');
+            set(handles.expCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+            set(handles.ZsectCh4,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+            set(handles.starttpCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+            set(handles.cammodeCh4,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+            set(handles.startgainCh4,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+            set(handles.voltCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'mCherry'
-            set(handles.mChexp,'Enable','on');  
-            set(handles.usemCh,'Value',1);
-            set(handles.skipmCh,'Enable','on');
-            set(handles.mChZsect,'Enable','on');
-            set(handles.mChstarttp,'Enable','on');
-            set(handles.cammodemCherry,'Enable','on');
-            set(handles.startgainmCherry,'Enable','on');
-            set(handles.voltmCherry,'Enable','on');
-            set(handles.mChexp,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.mChZsect,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.mChstarttp,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodemCherry,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainmCherry,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltmCherry,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+            set(handles.expCh5,'Enable','on');  
+            set(handles.useCh5,'Value',1);
+            set(handles.skipCh5,'Enable','on');
+            set(handles.ZsectCh5,'Enable','on');
+            set(handles.starttpCh5,'Enable','on');
+            set(handles.cammodeCh5,'Enable','on');
+            set(handles.startgainCh5,'Enable','on');
+            set(handles.voltCh5,'Enable','on');
+            set(handles.expCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+            set(handles.ZsectCh5,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+            set(handles.starttpCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+            set(handles.cammodeCh5,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+            set(handles.startgainCh5,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+            set(handles.voltCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'tdTomato'
             usetd=1;            
-            set(handles.tdexp,'Enable','on');  
-            set(handles.usetd,'Value',1);
+            set(handles.expCh6,'Enable','on');  
+            set(handles.useCh6,'Value',1);
             set(handles.tdskip,'Enable','on');
-            set(handles.tdZsect,'Enable','on');
-            set(handles.tdstarttp,'Enable','on');
-            set(handles.cammodetdTomato,'Enable','on');
-            set(handles.startgaintdTomato,'Enable','on');
-            set(handles.volttdTomato,'Enable','on');
-            set(handles.tdexp,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.tdZsect,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.tdstarttp,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodetdTomato,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgaintdTomato,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.volttdTomato,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+            set(handles.ZsectCh6,'Enable','on');
+            set(handles.starttpCh6,'Enable','on');
+            set(handles.cammodeCh6,'Enable','on');
+            set(handles.startgainCh6,'Enable','on');
+            set(handles.voltCh6,'Enable','on');
+            set(handles.expCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+            set(handles.ZsectCh6,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+            set(handles.starttpCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+            set(handles.cammodeCh6,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+            set(handles.startgainCh6,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+            set(handles.voltCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'cy5'
             usetd=1;            
-            set(handles.cy5exp,'Enable','on');  
-            set(handles.usecy5,'Value',1);
-            set(handles.skipCy5,'Enable','on');
-            set(handles.cy5Zsect,'Enable','on');
-            set(handles.cy5starttp,'Enable','on');
-            set(handles.cammodecy5,'Enable','on');
-            set(handles.startgaincy5,'Enable','on');
-            set(handles.voltcy5,'Enable','on');
-            set(handles.cy5exp,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.cy5Zsect,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.cy5starttp,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodecy5,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgaincy5,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltcy5,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+            set(handles.expCh7,'Enable','on');  
+            set(handles.useCh7,'Value',1);
+            set(handles.skipCh7,'Enable','on');
+            set(handles.ZsectCh7,'Enable','on');
+            set(handles.starttpCh7,'Enable','on');
+            set(handles.cammodeCh7,'Enable','on');
+            set(handles.startgainCh7,'Enable','on');
+            set(handles.voltCh7,'Enable','on');
+            set(handles.expCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+            set(handles.ZsectCh7,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+            set(handles.starttpCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+            set(handles.cammodeCh7,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+            set(handles.startgainCh7,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+            set(handles.voltCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
         end%end of channel name switch
     end%end of loop through the channels
 end%end of if statment - if number of channels isn't zero
 
 %if any channel is not used make sure all channel options are disabled
 if useDIC==0
-    set(handles.DICexp,'Enable','off');  
-    set(handles.skipDIC2,'Enable','off');
-    set(handles.DICZsect,'Enable','off');
-    set(handles.DICstarttp,'Enable','off');
-    set(handles.cammodeDIC,'Enable','off');
-    set(handles.startgainDIC,'Enable','off');
-    set(handles.voltDIC,'Enable','off');
+    set(handles.expCh1,'Enable','off');  
+    set(handles.skipCh1,'Enable','off');
+    set(handles.ZsectCh1,'Enable','off');
+    set(handles.starttpCh1,'Enable','off');
+    set(handles.cammodeCh1,'Enable','off');
+    set(handles.startgainCh1,'Enable','off');
+    set(handles.voltCh1,'Enable','off');
 end
 if useCFP==0
-    set(handles.CFPexp,'Enable','off');  
-    set(handles.skipCFP,'Enable','off');
-    set(handles.CFPZsect,'Enable','off');
-    set(handles.CFPstarttp,'Enable','off');
-    set(handles.cammodeCFP,'Enable','off');
-    set(handles.startgainCFP,'Enable','off');
-    set(handles.voltCFP,'Enable','off');
+    set(handles.expCh2,'Enable','off');  
+    set(handles.skipCh2,'Enable','off');
+    set(handles.ZsectCh2,'Enable','off');
+    set(handles.starttpCh2,'Enable','off');
+    set(handles.cammodeCh2,'Enable','off');
+    set(handles.startgainCh2,'Enable','off');
+    set(handles.voltCh2,'Enable','off');
 end
 if useGFP==0
-    set(handles.GFPexp,'Enable','off');  
-    set(handles.skipGFP,'Enable','off');
-    set(handles.GFPZsect,'Enable','off');
-    set(handles.GFPstarttp,'Enable','off');
-    set(handles.cammodeGFP,'Enable','off');
-    set(handles.startgainGFP,'Enable','off');
-    set(handles.voltGFP,'Enable','off');
+    set(handles.expCh3,'Enable','off');  
+    set(handles.skipCh3,'Enable','off');
+    set(handles.ZsectCh3,'Enable','off');
+    set(handles.starttpCh3,'Enable','off');
+    set(handles.cammodeCh3,'Enable','off');
+    set(handles.startgainCh3,'Enable','off');
+    set(handles.voltCh3,'Enable','off');
 end
 if useYFP==0
-    set(handles.YFPexp,'Enable','off');  
-    set(handles.skipYFP,'Enable','off');
-    set(handles.YFPZsect,'Enable','off');
-    set(handles.YFPstarttp,'Enable','off');
-    set(handles.cammodeYFP,'Enable','off');
-    set(handles.startgainYFP,'Enable','off');
-    set(handles.voltYFP,'Enable','off');
+    set(handles.expCh4,'Enable','off');  
+    set(handles.skipCh4,'Enable','off');
+    set(handles.ZsectCh4,'Enable','off');
+    set(handles.starttpCh4,'Enable','off');
+    set(handles.cammodeCh4,'Enable','off');
+    set(handles.startgainCh4,'Enable','off');
+    set(handles.voltCh4,'Enable','off');
 end
 if usemCh==0
-    set(handles.mChexp,'Enable','off');  
-    set(handles.skipmCh,'Enable','off');
-    set(handles.mChZsect,'Enable','off');
-    set(handles.mChstarttp,'Enable','off');   
-    set(handles.cammodemCherry,'Enable','off');
-    set(handles.startgainmCherry,'Enable','off');
-    set(handles.voltmCherry,'Enable','off');
+    set(handles.expCh5,'Enable','off');  
+    set(handles.skipCh5,'Enable','off');
+    set(handles.ZsectCh5,'Enable','off');
+    set(handles.starttpCh5,'Enable','off');   
+    set(handles.cammodeCh5,'Enable','off');
+    set(handles.startgainCh5,'Enable','off');
+    set(handles.voltCh5,'Enable','off');
 end
 if usetd==0
-    set(handles.tdexp,'Enable','off');  
-    set(handles.skiptd,'Enable','off');
-    set(handles.tdZsect,'Enable','off');
-    set(handles.tdstarttp,'Enable','off');
-    set(handles.cammodetdTomato,'Enable','off');
-    set(handles.startgaintdTomato,'Enable','off');
-    set(handles.volttdTomato,'Enable','off');
+    set(handles.expCh6,'Enable','off');  
+    set(handles.skipCh6,'Enable','off');
+    set(handles.ZsectCh6,'Enable','off');
+    set(handles.starttpCh6,'Enable','off');
+    set(handles.cammodeCh6,'Enable','off');
+    set(handles.startgainCh6,'Enable','off');
+    set(handles.voltCh6,'Enable','off');
 end
 if usecy5==0
-    set(handles.cy5exp,'Enable','off');  
-    set(handles.skipCy5,'Enable','off');
-    set(handles.cy5Zsect,'Enable','off');
-    set(handles.cy5starttp,'Enable','off');
-    set(handles.cammodecy5,'Enable','off');
-    set(handles.startgaincy5,'Enable','off');
-    set(handles.voltcy5,'Enable','off');
+    set(handles.expCh7,'Enable','off');  
+    set(handles.skipCh7,'Enable','off');
+    set(handles.ZsectCh7,'Enable','off');
+    set(handles.starttpCh7,'Enable','off');
+    set(handles.cammodeCh7,'Enable','off');
+    set(handles.startgainCh7,'Enable','off');
+    set(handles.voltCh7,'Enable','off');
 end
     
 % Z settings - active only if at least one channel is doing z sectioning
@@ -2950,14 +2960,19 @@ camera;
 
 % --- Executes on button press in loadConfig.
 function loadConfig_Callback(hObject, eventdata, handles)
-guiconfig2;
+guiconfig2(handles.acquisition.microscope);
+handles.acquisition.microscope.setGUI(handles);
 set(handles.eye,'Enable','on');
 set(handles.camera,'Enable','on');
 set(handles.EM,'Enable','on');
 set(handles.CCD,'Enable','on');
 
 for i=1:length(handles.acquisition.flow{5}.pumps)
+    try
     fopen(handles.acquisition.flow{5}.pumps{i}.serial);
+    catch
+       warndlg(['Failed to connect to pump number ' num2str(i)]);
+    end
 end
 guidata(hObject, handles);
 
@@ -2977,42 +2992,46 @@ CCD;
 set(handles.EM,'Value',0);
 
 
-% --- Executes on selection change in cammodeDIC.
-function cammodeDIC_Callback(hObject, eventdata, handles)
+% --- Executes on selection change in cammodeCh1.
+function cammodeChannel_Callback(hObject, eventdata, handles)
+[chName tagEnd]=getChannel(hObject,handles);
+
+
+
 value=get(hObject,'Value');
 switch value
     case 1%EM_Smart mode selected
-        set(handles.startgainDIC,'Enable','on');
-        set(handles.voltDIC,'Enable','on');
+        set(handles.(['startgain' tagEnd]),'Enable','on');
+        set(handles.(['volt' tagEnd]),'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+            if strcmp(handles.acquisition.channels(n,1),chName)==1
                 handles.acquisition.channels{n,6}=value;%1=EM camera mode with correction
             end
             end
         end       
     case 2%CCD mode selected
-        set(handles.startgainDIC,'Enable','off');
-        set(handles.voltDIC,'Enable','off');
+        set(handles.(['startgain' tagEnd]),'Enable','off');
+        set(handles.(['volt' tagEnd]),'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+            if strcmp(handles.acquisition.channels(n,1),chName)==1
                 handles.acquisition.channels{n,6}=2;%2=CCD camera mode
             end
             end
         end
      case 3%EM_Constant mode selected
-        set(handles.startgainDIC,'Enable','on');
-        set(handles.voltDIC,'Enable','on');
+        set(handles.(['startgain' tagEnd]),'Enable','on');
+        set(handles.(['volt' tagEnd]),'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+            if strcmp(handles.acquisition.channels(n,1),chName)==1
                 handles.acquisition.channels{n,6}=value;%3=EM constant
             end
             end
@@ -3024,8 +3043,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function cammodeDIC_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cammodeDIC (see GCBO)
+function cammodeCh1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cammodeCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3036,13 +3055,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on selection change in cammodeCFP.
-function cammodeCFP_Callback(hObject, eventdata, handles)
+% --- Executes on selection change in cammodeCh2.
+function cammodeCh2_Callback(hObject, eventdata, handles)
 value=get(hObject,'Value');
 switch value
     case 1%EM mode selected
-        set(handles.startgainCFP,'Enable','on');
-        set(handles.voltCFP,'Enable','on');
+        set(handles.startgainCh2,'Enable','on');
+        set(handles.voltCh2,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3053,8 +3072,8 @@ switch value
             end
         end       
     case 2%CCD mode selected
-        set(handles.startgainCFP,'Enable','off');
-        set(handles.voltCFP,'Enable','off');
+        set(handles.startgainCh2,'Enable','off');
+        set(handles.voltCh2,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3065,8 +3084,8 @@ switch value
             end
         end       
     case 3%EM mode selected
-        set(handles.startgainCFP,'Enable','on');
-        set(handles.voltCFP,'Enable','on');
+        set(handles.startgainCh2,'Enable','on');
+        set(handles.voltCh2,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3082,8 +3101,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function cammodeCFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cammodeCFP (see GCBO)
+function cammodeCh2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cammodeCh2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3094,13 +3113,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on selection change in cammodeGFP.
-function cammodeGFP_Callback(hObject, eventdata, handles)
+% --- Executes on selection change in cammodeCh3.
+function cammodeCh3_Callback(hObject, eventdata, handles)
 value=get(hObject,'Value');
 switch value
     case 1%EM mode selected
-        set(handles.startgainGFP,'Enable','on');
-        set(handles.voltGFP,'Enable','on');
+        set(handles.startgainCh3,'Enable','on');
+        set(handles.voltCh3,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3111,7 +3130,7 @@ switch value
             end
         end       
     case 2%CCD mode selected
-        set(handles.startgainGFP,'Enable','off');
+        set(handles.startgainCh3,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3122,8 +3141,8 @@ switch value
             end
         end     
         case 3%EM mode selected
-        set(handles.startgainGFP,'Enable','on');
-        set(handles.voltGFP,'Enable','on');
+        set(handles.startgainCh3,'Enable','on');
+        set(handles.voltCh3,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3139,8 +3158,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function cammodeGFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cammodeGFP (see GCBO)
+function cammodeCh3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cammodeCh3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3151,13 +3170,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on selection change in cammodeYFP.
-function cammodeYFP_Callback(hObject, eventdata, handles)
+% --- Executes on selection change in cammodeCh4.
+function cammodeCh4_Callback(hObject, eventdata, handles)
 value=get(hObject,'Value');
 switch value
     case 1%EM mode selected
-        set(handles.startgainYFP,'Enable','on');
-        set(handles.voltYFP,'Enable','on');
+        set(handles.startgainCh4,'Enable','on');
+        set(handles.voltCh4,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3168,7 +3187,7 @@ switch value
             end
         end       
     case 2%CCD mode selected
-        set(handles.startgainYFP,'Enable','off');
+        set(handles.startgainCh4,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3179,8 +3198,8 @@ switch value
             end
         end       
     case 3%EM mode selected
-        set(handles.startgainYFP,'Enable','on');
-        set(handles.voltYFP,'Enable','on');
+        set(handles.startgainCh4,'Enable','on');
+        set(handles.voltCh4,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3194,8 +3213,8 @@ end
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function cammodeYFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cammodeYFP (see GCBO)
+function cammodeCh4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cammodeCh4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3206,13 +3225,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on selection change in cammodemCherry.
-function cammodemCherry_Callback(hObject, eventdata, handles)
+% --- Executes on selection change in cammodeCh5.
+function cammodeCh5_Callback(hObject, eventdata, handles)
 value=get(hObject,'Value');
 switch value
     case 1%EM mode selected
-        set(handles.startgainmCherry,'Enable','on');
-        set(handles.voltmCherry,'Enable','on');
+        set(handles.startgainCh5,'Enable','on');
+        set(handles.voltCh5,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3223,7 +3242,7 @@ switch value
             end
         end       
     case 2%CCD mode selected
-        set(handles.startgainmCherry,'Enable','off');
+        set(handles.startgainCh5,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3234,8 +3253,8 @@ switch value
             end
         end       
      case 3%EM mode selected
-        set(handles.startgainmCherry,'Enable','on');
-        set(handles.voltmCherry,'Enable','on');
+        set(handles.startgainCh5,'Enable','on');
+        set(handles.voltCh5,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3250,8 +3269,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function cammodemCherry_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cammodemCherry (see GCBO)
+function cammodeCh5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cammodeCh5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3262,13 +3281,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on selection change in cammodetdTomato.
-function cammodetdTomato_Callback(hObject, eventdata, handles)
+% --- Executes on selection change in cammodeCh6.
+function cammodeCh6_Callback(hObject, eventdata, handles)
 value=get(hObject,'Value');
 switch value
     case 1%EM mode selected
-        set(handles.startgaintdTomato,'Enable','on');
-        set(handles.volttdTomato,'Enable','on');
+        set(handles.startgainCh6,'Enable','on');
+        set(handles.voltCh6,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3279,7 +3298,7 @@ switch value
             end
         end       
     case 2%CCD mode selected
-        set(handles.startgaintdTomato,'Enable','off');
+        set(handles.startgainCh6,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3290,8 +3309,8 @@ switch value
             end
         end       
     case 3%EM mode selected
-        set(handles.startgaintdTomato,'Enable','on');
-        set(handles.volttdTomato,'Enable','on');
+        set(handles.startgainCh6,'Enable','on');
+        set(handles.voltCh6,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3305,8 +3324,8 @@ end
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function cammodetdTomato_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cammodetdTomato (see GCBO)
+function cammodeCh6_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cammodeCh6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3318,14 +3337,15 @@ end
 
 
 
-function startgainDIC_Callback(hObject, eventdata, handles)
+function startgainChannel_Callback(hObject, eventdata, handles)
+[chName tagEnd]=getChannel(hObject,handles);
 
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
    if nChannels~=0
       for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+           if strcmp(handles.acquisition.channels(n,1),chName)==1
                 handles.acquisition.channels{n,7}=startgain;
            end
       end
@@ -3336,8 +3356,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function startgainDIC_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to startgainDIC (see GCBO)
+function startgainCh1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to startgainCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3349,7 +3369,7 @@ end
 
 
 
-function startgainCFP_Callback(hObject, eventdata, handles)
+function startgainCh2_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
@@ -3364,8 +3384,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function startgainCFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to startgainCFP (see GCBO)
+function startgainCh2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to startgainCh2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3377,7 +3397,7 @@ end
 
 
 
-function startgainGFP_Callback(hObject, eventdata, handles)
+function startgainCh3_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
@@ -3392,8 +3412,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function startgainGFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to startgainGFP (see GCBO)
+function startgainCh3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to startgainCh3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3405,7 +3425,7 @@ end
 
 
 
-function startgainYFP_Callback(hObject, eventdata, handles)
+function startgainCh4_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
@@ -3419,8 +3439,8 @@ nChannels=size(handles.acquisition.channels,1);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function startgainYFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to startgainYFP (see GCBO)
+function startgainCh4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to startgainCh4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3432,7 +3452,7 @@ end
 
 
 
-function startgainmCherry_Callback(hObject, eventdata, handles)
+function startgainCh5_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
@@ -3446,8 +3466,8 @@ nChannels=size(handles.acquisition.channels,1);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function startgainmCherry_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to startgainmCherry (see GCBO)
+function startgainCh5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to startgainCh5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3459,7 +3479,7 @@ end
 
 
 
-function startgaintdTomato_Callback(hObject, eventdata, handles)
+function startgainCh6_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
@@ -3474,8 +3494,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function startgaintdTomato_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to startgaintdTomato (see GCBO)
+function startgainCh6_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to startgainCh6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3486,103 +3506,111 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in snapDIC.
-function snapDIC_Callback(hObject, eventdata, handles)
+% --- Executes on button press in snapCh1.
+function snap_Callback(hObject, eventdata, handles)
 
 channel={};
-channel(1)=cellstr('DIC');
-channel(2)=num2cell(str2double(get(handles.DICexp,'String')));
+tag=get(hObject,'Tag');
+chNum=tag(end);
+useTag=['useCh' num2str(chNum)];
+expTag=['expCh' num2str(chNum)];
+cammodeTag=['cammodeCh' num2str(chNum)];
+startGainTag=['startgainCh' num2str(chNum)];
+voltTag=['voltCh' num2str(chNum)];
+
+channel(1)=cellstr(get(handles.(useTag),'String'));
+channel(2)=num2cell(str2double(get(handles.(expTag),'String')));
 channel(3)=num2cell(1);
 channel(4)=num2cell(0);
 channel(5)=num2cell(0);
-channel(6)=num2cell(get(handles.cammodeDIC,'Value'));
-channel(7)=num2cell(str2double(get(handles.startgainDIC,'String')));
-channel(8)=num2cell(str2double(get(handles.voltDIC,'String')));
+channel(6)=num2cell(get(handles.(cammodeTag),'Value'));
+channel(7)=num2cell(str2double(get(handles.(startGainTag),'String')));
+channel(8)=num2cell(str2double(get(handles.(voltTag),'String')));
 
-    snap(channel);
-set(handles.snapDIC,'Value',0);
+    snap(channel, handles.acquisition.microscope);
+set(hObject,'Value',0);
 
 
-% --- Executes on button press in snapCFP.
-function snapCFP_Callback(hObject, eventdata, handles)
+% --- Executes on button press in snapCh2.
+function snapCh2_Callback(hObject, eventdata, handles)
 channel={};
 channel(1)=cellstr('CFP');
-channel(2)=num2cell(str2double(get(handles.CFPexp,'String')));
+channel(2)=num2cell(str2double(get(handles.expCh2,'String')));
 channel(3)=num2cell(1);
 channel(4)=num2cell(0);
 channel(5)=num2cell(0);
-channel(6)=num2cell(get(handles.cammodeCFP,'Value'));
-channel(7)=num2cell(str2double(get(handles.startgainCFP,'String')));
-channel(8)=num2cell(str2double(get(handles.voltCFP,'String')));
+channel(6)=num2cell(get(handles.cammodeCh2,'Value'));
+channel(7)=num2cell(str2double(get(handles.startgainCh2,'String')));
+channel(8)=num2cell(str2double(get(handles.voltCh2,'String')));
 
     snap(channel);
-set(handles.snapCFP,'Value',0);
-% --- Executes on button press in snapGFP.
-function snapGFP_Callback(hObject, eventdata, handles)
+set(handles.snapCh2,'Value',0);
+% --- Executes on button press in snapCh3.
+function snapCh3_Callback(hObject, eventdata, handles)
 
 channel={};
 channel(1)=cellstr('GFP');
-channel(2)=num2cell(str2double(get(handles.GFPexp,'String')));
+channel(2)=num2cell(str2double(get(handles.expCh3,'String')));
 channel(3)=num2cell(1);
 channel(4)=num2cell(0);
 channel(5)=num2cell(0);
-channel(6)=num2cell(get(handles.cammodeGFP,'Value'));
-channel(7)=num2cell(str2double(get(handles.startgainGFP,'String')));
-channel(8)=num2cell(str2double(get(handles.voltGFP,'String')));
+channel(6)=num2cell(get(handles.cammodeCh3,'Value'));
+channel(7)=num2cell(str2double(get(handles.startgainCh3,'String')));
+channel(8)=num2cell(str2double(get(handles.voltCh3,'String')));
 
     snap(channel);
-set(handles.snapGFP,'Value',0);
+set(handles.snapCh3,'Value',0);
 
-% --- Executes on button press in snapYFP.
-function snapYFP_Callback(hObject, eventdata, handles)
+% --- Executes on button press in snapCh4.
+function snapCh4_Callback(hObject, eventdata, handles)
 channel={};
 channel(1)=cellstr('YFP');
-channel(2)=num2cell(str2double(get(handles.YFPexp,'String')));
+channel(2)=num2cell(str2double(get(handles.expCh4,'String')));
 channel(3)=num2cell(1);
 channel(4)=num2cell(0);
 channel(5)=num2cell(0);
-channel(6)=num2cell(get(handles.cammodeYFP,'Value'));
-channel(7)=num2cell(str2double(get(handles.startgainYFP,'String')));
-channel(8)=num2cell(str2double(get(handles.voltYFP,'String')));
+channel(6)=num2cell(get(handles.cammodeCh4,'Value'));
+channel(7)=num2cell(str2double(get(handles.startgainCh4,'String')));
+channel(8)=num2cell(str2double(get(handles.voltCh4,'String')));
     snap(channel);
-set(handles.snapYFP,'Value',0);
+set(handles.snapCh4,'Value',0);
 
-% --- Executes on button press in snapmCherry.
-function snapmCherry_Callback(hObject, eventdata, handles)
+% --- Executes on button press in snapCh5.
+function snapCh5_Callback(hObject, eventdata, handles)
 channel={};
 channel(1)=cellstr('mCherry');
-channel(2)=num2cell(str2double(get(handles.mChexp,'String')));
+channel(2)=num2cell(str2double(get(handles.expCh5,'String')));
 channel(3)=num2cell(1);
 channel(4)=num2cell(0);
 channel(5)=num2cell(0);
-channel(6)=num2cell(str2mat((get(handles.cammodemCherry,'Value'))));
-channel(7)=num2cell(str2double(get(handles.startgainmCherry,'String')));
-channel(8)=num2cell(str2double(get(handles.voltmCherry,'String')));
+channel(6)=num2cell(str2mat((get(handles.cammodeCh5,'Value'))));
+channel(7)=num2cell(str2double(get(handles.startgainCh5,'String')));
+channel(8)=num2cell(str2double(get(handles.voltCh5,'String')));
 
     snap(channel);
-    set(handles.snapmCherry,'Value',0);
+    set(handles.snapCh5,'Value',0);
 
 
-% --- Executes on button press in snaptdTomato.
-function snaptdTomato_Callback(hObject, eventdata, handles)
+% --- Executes on button press in snapCh6.
+function snapCh6_Callback(hObject, eventdata, handles)
 channel={};
 channel(1)=cellstr('tdTomato');
-channel(2)=num2cell(str2double(get(handles.tdexp,'String')));
+channel(2)=num2cell(str2double(get(handles.expCh6,'String')));
 channel(3)=num2cell(1);
 channel(4)=num2cell(0);
 channel(5)=num2cell(0);
-channel(6)=num2cell(str2mat((get(handles.cammodetdTomato,'Value'))));
-channel(7)=num2cell(str2double(get(handles.startgaintdTomato,'String')));
-channel(8)=num2cell(str2double(get(handles.volttdTomato,'String')));
+channel(6)=num2cell(str2mat((get(handles.cammodeCh6,'Value'))));
+channel(7)=num2cell(str2double(get(handles.startgainCh6,'String')));
+channel(8)=num2cell(str2double(get(handles.voltCh6,'String')));
 
     snap(channel);
-    set(handles.snaptdTomato,'Value',0);
+    set(handles.snapCh6,'Value',0);
 
 
 
 % --- Executes during object creation, after setting all properties.
-function voltDIC_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to voltDIC (see GCBO)
+function voltCh1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to voltCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3597,8 +3625,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function voltCFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to voltCFP (see GCBO)
+function voltCh2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to voltCh2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3613,8 +3641,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function voltGFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to voltGFP (see GCBO)
+function voltCh3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to voltCh3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3628,8 +3656,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function voltYFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to voltYFP (see GCBO)
+function voltCh4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to voltCh4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3642,8 +3670,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function voltmCherry_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to voltmCherry (see GCBO)
+function voltCh5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to voltCh5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3658,8 +3686,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function volttdTomato_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to volttdTomato (see GCBO)
+function voltCh6_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to voltCh6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3685,7 +3713,7 @@ disp('Debug here');
 
 
 
-function cy5exp_Callback(hObject, eventdata, handles)
+function expCh7_Callback(hObject, eventdata, handles)
 expos=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -3700,8 +3728,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function cy5exp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cy5exp (see GCBO)
+function expCh7_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to expCh7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3718,10 +3746,10 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.cy5exp,'Enable','off'); 
+   set(handles.expCh7,'Enable','off'); 
 
 else
-    set(handles.cy5exp,'Enable','on');
+    set(handles.expCh7,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
@@ -3732,13 +3760,13 @@ if nChannels~=0
 end
  guidata(hObject, handles);
 
-% --- Executes on selection change in cammodecy5.
-function cammodecy5_Callback(hObject, eventdata, handles)
+% --- Executes on selection change in cammodeCh7.
+function cammodeCh7_Callback(hObject, eventdata, handles)
 value=get(hObject,'Value');
 switch value
     case 1%EM mode selected
-        set(handles.startgaincy5,'Enable','on');
-        set(handles.voltcy5,'Enable','on');
+        set(handles.startgainCh7,'Enable','on');
+        set(handles.voltCh7,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3749,7 +3777,7 @@ switch value
             end
         end       
     case 2%CCD mode selected
-        set(handles.startgaincy5,'Enable','off');
+        set(handles.startgainCh7,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3760,8 +3788,8 @@ switch value
             end
         end       
     case 3%EM mode selected
-        set(handles.startgaincy5,'Enable','on');
-        set(handles.voltcy5,'Enable','on');
+        set(handles.startgainCh7,'Enable','on');
+        set(handles.voltCh7,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
@@ -3775,8 +3803,8 @@ end
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function cammodecy5_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cammodecy5 (see GCBO)
+function cammodeCh7_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cammodeCh7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3788,7 +3816,7 @@ end
 
 
 
-function startgaincy5_Callback(hObject, eventdata, handles)
+function startgainCh7_Callback(hObject, eventdata, handles)
 
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
@@ -3803,8 +3831,8 @@ nChannels=size(handles.acquisition.channels,1);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function startgaincy5_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to startgaincy5 (see GCBO)
+function startgainCh7_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to startgainCh7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3816,18 +3844,18 @@ end
 
 
 
-function voltcy5_Callback(hObject, eventdata, handles)
-% hObject    handle to voltcy5 (see GCBO)
+function voltCh7_Callback(hObject, eventdata, handles)
+% hObject    handle to voltCh7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of voltcy5 as text
-%        str2double(get(hObject,'String')) returns contents of voltcy5 as a double
+% Hints: get(hObject,'String') returns contents of voltCh7 as text
+%        str2double(get(hObject,'String')) returns contents of voltCh7 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function voltcy5_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to voltcy5 (see GCBO)
+function voltCh7_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to voltCh7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3838,8 +3866,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in cy5Zsect.
-function cy5Zsect_Callback(hObject, eventdata, handles)
+% --- Executes on button press in ZsectCh7.
+function ZsectCh7_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and record that z sectioning is being done for
                           %this channel in the handles.acquisition.channels cell array
@@ -3888,7 +3916,7 @@ end
 
 
 
-function cy5starttp_Callback(hObject, eventdata, handles)
+function starttpCh7_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
@@ -3898,7 +3926,7 @@ if isempty(get(hObject,'String'))~=1;
             end
         end
 else
-    set(handles.cy5starttp,'String','0');
+    set(handles.starttpCh7,'String','0');
      for n=1:sizeChannels(1)
          if strcmp(char(handles.acquisition.channels(n,1)),'cy5')==1
             handles.acquisition.channels(n,5)=num2cell(0);
@@ -3909,8 +3937,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function cy5starttp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cy5starttp (see GCBO)
+function starttpCh7_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to starttpCh7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3921,72 +3949,72 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in snapcy5.
-function snapcy5_Callback(hObject, eventdata, handles)
+% --- Executes on button press in snapCh7.
+function snapCh7_Callback(hObject, eventdata, handles)
 
 channel={};
 channel(1)=cellstr('cy5');
-channel(2)=num2cell(str2double(get(handles.cy5exp,'String')));
+channel(2)=num2cell(str2double(get(handles.expCh7,'String')));
 channel(3)=num2cell(1);
 channel(4)=num2cell(0);
 channel(5)=num2cell(0);
-channel(6)=num2cell(get(handles.cammodecy5,'Value'));
-channel(7)=num2cell(str2double(get(handles.startgaincy5,'String')));
-channel(8)=num2cell(str2double(get(handles.voltcy5,'String')));
+channel(6)=num2cell(get(handles.cammodeCh7,'Value'));
+channel(7)=num2cell(str2double(get(handles.startgainCh7,'String')));
+channel(8)=num2cell(str2double(get(handles.voltCh7,'String')));
 
     snap(channel);
-set(handles.snapcy5,'Value',0);
+set(handles.snapCh7,'Value',0);
 
  
 
-% --- Executes on button press in usecy5.
-function usecy5_Callback(hObject, eventdata, handles)
+% --- Executes on button press in useCh7.
+function useCh7_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.cy5Zsect,'Value')==1
+     if get(handles.ZsectCh7,'Value')==1
        set(handles.nZsections,'Enable','on');
        set(handles.zspacing,'Enable','on');
      end
-   set(handles.skipCy5,'Enable','on');
-   set(handles.cy5Zsect,'Enable','on');
-   set(handles.cy5starttp,'Enable','on');%add to others
-   set(handles.snapcy5,'Enable','on');
-   set(handles.cammodecy5,'Enable','on');
+   set(handles.skipCh7,'Enable','on');
+   set(handles.ZsectCh7,'Enable','on');
+   set(handles.starttpCh7,'Enable','on');%add to others
+   set(handles.snapCh7,'Enable','on');
+   set(handles.cammodeCh7,'Enable','on');
     %camera settings - enable controls
-   set(handles.cammodecy5,'Enable','on');%%%%%
-   if get(handles.cammodecy5,'Value')==1%channel set to camera EM mode
-       set (handles.startgaincy5,'Enable','on');%%%%%
-       set (handles.voltcy5,'Enable','on');%%%%%
+   set(handles.cammodeCh7,'Enable','on');%%%%%
+   if get(handles.cammodeCh7,'Value')==1%channel set to camera EM mode
+       set (handles.startgainCh7,'Enable','on');%%%%%
+       set (handles.voltCh7,'Enable','on');%%%%%
    end   %%%%%
-   if get(handles.skipCy5,'Value')~=1
-   set(handles.cy5exp,'Enable','on');
+   if get(handles.skipCh7,'Value')~=1
+   set(handles.expCh7,'Enable','on');
    end
    handles.acquisition.channels{nChannels+1,1}='cy5';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.cy5exp,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCy5,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.cy5Zsect,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.cy5starttp,'String'));%add to others
+   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh7,'String'));
+   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh7,'String'));
+   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh7,'Value');%add to others
+   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh7,'String'));%add to others
    %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodecy5,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgaincy5,'String'));
+   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh7,'Value');
+   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh7,'String'));
    if isempty(handles.acquisition.channels(nChannels+1,7))
        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
    end
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltcy5,'String')));
+      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh7,'String')));
    %update the points list (if there is one) - add a column for exposure times for this channel
    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
    end
 else
-    set(handles.cy5exp,'Enable','off');
-    set(handles.skipCy5,'Enable','off');
-    set(handles.cy5Zsect,'Enable','off');%add to others
-    set(handles.cy5starttp,'Enable','off');%add to others
-    set(handles.snapcy5,'Enable','off');
-    set(handles.cammodecy5,'Enable','off');
-    set(handles.startgaincy5,'Enable','off');%%%%%
-    set(handles.voltcy5,'Enable','off');%%%%%
+    set(handles.expCh7,'Enable','off');
+    set(handles.skipCh7,'Enable','off');
+    set(handles.ZsectCh7,'Enable','off');%add to others
+    set(handles.starttpCh7,'Enable','off');%add to others
+    set(handles.snapCh7,'Enable','off');
+    set(handles.cammodeCh7,'Enable','off');
+    set(handles.startgainCh7,'Enable','off');%%%%%
+    set(handles.voltCh7,'Enable','off');%%%%%
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         anyZ=0;
@@ -4116,13 +4144,16 @@ guidata(hObject,handles);
 
 
 
-function skipDIC2_Callback(hObject, eventdata, handles)
+function skipChannel_Callback(hObject, eventdata, handles)
+
+[chName tagEnd]=getChannel(hObject,handles);
+
 skip=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
-        if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+        if strcmp(handles.acquisition.channels(n,1),chName)==1
         handles.acquisition.channels{n,3}=skip;
         end
     end
@@ -4130,8 +4161,8 @@ end
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function skipDIC2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to skipDIC2 (see GCBO)
+function skipCh1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to skipCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4143,7 +4174,7 @@ end
 
 
 
-function skipCFP_Callback(hObject, eventdata, handles)
+function skipCh2_Callback(hObject, eventdata, handles)
 skip=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -4157,8 +4188,8 @@ end
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function skipCFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to skipCFP (see GCBO)
+function skipCh2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to skipCh2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4170,7 +4201,7 @@ end
 
 
 
-function skipGFP_Callback(hObject, eventdata, handles)
+function skipCh3_Callback(hObject, eventdata, handles)
 skip=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -4185,8 +4216,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function skipGFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to skipGFP (see GCBO)
+function skipCh3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to skipCh3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4198,7 +4229,7 @@ end
 
 
 
-function skipYFP_Callback(hObject, eventdata, handles)
+function skipCh4_Callback(hObject, eventdata, handles)
 skip=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -4213,8 +4244,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function skipYFP_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to skipYFP (see GCBO)
+function skipCh4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to skipCh4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4226,7 +4257,7 @@ end
 
 
 
-function skipmCh_Callback(hObject, eventdata, handles)
+function skipCh5_Callback(hObject, eventdata, handles)
 skip=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -4241,8 +4272,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function skipmCh_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to skipmCh (see GCBO)
+function skipCh5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to skipCh5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4254,7 +4285,7 @@ end
 
 
 
-function skiptd_Callback(hObject, eventdata, handles)
+function skipCh6_Callback(hObject, eventdata, handles)
 skip=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -4269,8 +4300,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function skiptd_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to skiptd (see GCBO)
+function skipCh6_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to skipCh6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4282,7 +4313,7 @@ end
 
 
 
-function skipCy5_Callback(hObject, eventdata, handles)
+function skipCh7_Callback(hObject, eventdata, handles)
 skip=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
@@ -4297,8 +4328,8 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function skipCy5_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to skipCy5 (see GCBO)
+function skipCh7_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to skipCh7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4770,13 +4801,13 @@ guidata(hObject, handles);
 
 
 
-function GFPAutoFLexp_Callback(hObject, eventdata, handles)
-% hObject    handle to GFPAutoFLexp (see GCBO)
+function expCh8_Callback(hObject, eventdata, handles)
+% hObject    handle to expCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of GFPAutoFLexp as text
-%        str2double(get(hObject,'String')) returns contents of GFPAutoFLexp as a double
+% Hints: get(hObject,'String') returns contents of expCh8 as text
+%        str2double(get(hObject,'String')) returns contents of expCh8 as a double
 
 
 %This callback has been written to allow it to be used with any channel
@@ -4797,8 +4828,8 @@ end
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function GFPAutoFLexp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to GFPAutoFLexp (see GCBO)
+function expCh8_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to expCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4809,14 +4840,14 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on selection change in cammodeGFPAutoFL.
-function cammodeGFPAutoFL_Callback(hObject, eventdata, handles)
-% hObject    handle to cammodeGFPAutoFL (see GCBO)
+% --- Executes on selection change in cammodeCh8.
+function cammodeCh8_Callback(hObject, eventdata, handles)
+% hObject    handle to cammodeCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns cammodeGFPAutoFL contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from cammodeGFPAutoFL
+% Hints: contents = cellstr(get(hObject,'String')) returns cammodeCh8 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from cammodeCh8
 
 
 controlName=get(hObject,'Tag');
@@ -4878,8 +4909,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function cammodeGFPAutoFL_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to cammodeGFPAutoFL (see GCBO)
+function cammodeCh8_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cammodeCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4891,13 +4922,13 @@ end
 
 
 
-function startgainGFPAutoFL_Callback(hObject, eventdata, handles)
-% hObject    handle to startgainGFPAutoFL (see GCBO)
+function startgainCh8_Callback(hObject, eventdata, handles)
+% hObject    handle to startgainCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of startgainGFPAutoFL as text
-%        str2double(get(hObject,'String')) returns contents of startgainGFPAutoFL as a double
+% Hints: get(hObject,'String') returns contents of startgainCh8 as text
+%        str2double(get(hObject,'String')) returns contents of startgainCh8 as a double
 
 controlName=get(hObject,'Tag');
 channelName=controlName(10:end);
@@ -4917,8 +4948,8 @@ guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function startgainGFPAutoFL_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to startgainGFPAutoFL (see GCBO)
+function startgainCh8_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to startgainCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4930,18 +4961,18 @@ end
 
 
 
-function voltGFPAutoFL_Callback(hObject, eventdata, handles)
-% hObject    handle to voltGFPAutoFL (see GCBO)
+function voltCh8_Callback(hObject, eventdata, handles)
+% hObject    handle to voltCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of voltGFPAutoFL as text
-%        str2double(get(hObject,'String')) returns contents of voltGFPAutoFL as a double
+% Hints: get(hObject,'String') returns contents of voltCh8 as text
+%        str2double(get(hObject,'String')) returns contents of voltCh8 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function voltGFPAutoFL_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to voltGFPAutoFL (see GCBO)
+function voltCh8_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to voltCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -4952,13 +4983,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in GFPAutoFLZsect.
-function GFPAutoFLZsect_Callback(hObject, eventdata, handles)
-% hObject    handle to GFPAutoFLZsect (see GCBO)
+% --- Executes on button press in ZsectCh8.
+function ZsectCh8_Callback(hObject, eventdata, handles)
+% hObject    handle to ZsectCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of GFPAutoFLZsect
+% Hint: get(hObject,'Value') returns toggle state of ZsectCh8
 
 
 controlName=get(hObject,'Tag');
@@ -5011,18 +5042,18 @@ else%if this button has been deselected
 end
   guidata(hObject, handles);
 
-function GFPAutoFLstarttp_Callback(hObject, eventdata, handles)
-% hObject    handle to GFPAutoFLstarttp (see GCBO)
+function starttpCh8_Callback(hObject, eventdata, handles)
+% hObject    handle to starttpCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of GFPAutoFLstarttp as text
-%        str2double(get(hObject,'String')) returns contents of GFPAutoFLstarttp as a double
+% Hints: get(hObject,'String') returns contents of starttpCh8 as text
+%        str2double(get(hObject,'String')) returns contents of starttpCh8 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function GFPAutoFLstarttp_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to GFPAutoFLstarttp (see GCBO)
+function starttpCh8_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to starttpCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -5033,13 +5064,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in snapGFPAutoFL.
-function snapGFPAutoFL_Callback(hObject, eventdata, handles)
-% hObject    handle to snapGFPAutoFL (see GCBO)
+% --- Executes on button press in snapCh8.
+function snapCh8_Callback(hObject, eventdata, handles)
+% hObject    handle to snapCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of snapGFPAutoFL
+% Hint: get(hObject,'Value') returns toggle state of snapCh8
 controlName=get(hObject,'Tag');
 channelName=controlName(5:end);
 %Define names of the tags for the other controls for this channel
@@ -5067,9 +5098,9 @@ set(handles.(controlName),'Value',0);
 
 
 
-% --- Executes on button press in useGFPAutoFL.
-function useGFPAutoFL_Callback(hObject, eventdata, handles)
-% hObject    handle to useGFPAutoFL (see GCBO)
+% --- Executes on button press in useCh8.
+function useCh8_Callback(hObject, eventdata, handles)
+% hObject    handle to useCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -5163,13 +5194,13 @@ guidata(hObject, handles);
 
 
 
-function skipGFPAutoFL_Callback(hObject, eventdata, handles)
-% hObject    handle to skipGFPAutoFL (see GCBO)
+function skipCh8_Callback(hObject, eventdata, handles)
+% hObject    handle to skipCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of skipGFPAutoFL as text
-%        str2double(get(hObject,'String')) returns contents of skipGFPAutoFL as a double
+% Hints: get(hObject,'String') returns contents of skipCh8 as text
+%        str2double(get(hObject,'String')) returns contents of skipCh8 as a double
 
 controlName=get(hObject,'Tag');
 channelName=controlName(5:end);
@@ -5187,8 +5218,8 @@ end
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function skipGFPAutoFL_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to skipGFPAutoFL (see GCBO)
+function skipCh8_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to skipCh8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -5291,10 +5322,11 @@ end
 function changeVoltage_Callback (hObject, eventdata, handles)
 %Callback for all edit boxes changing the voltage applied across the
 %relevant LED for a channel
-tag=get(hObject,'Tag');
+
+[chanName tagEnd]=getChannel(hObject,handles);
+tag=get(hObject,'tag');
 %Find which row represents the current channel
 %cell array
-chanName=tag(5:end);%The name of the channel
 channelRow=strcmp(handles.acquisition.channels,chanName);
 channelRow=channelRow(:,1);
 %Get the old value for the voltage - can then reset if the input is not
@@ -5359,3 +5391,19 @@ gui.enableLiveMode(1);
 set(handles.live,'String','Stop Live');
 set(handles.liveDIC,'BackgroundColor',[0.2 .9 0.2]);
 end
+
+
+
+function voltCh1_Callback(hObject, eventdata, handles)
+% hObject    handle to voltCh1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of voltCh1 as text
+%        str2double(get(hObject,'String')) returns contents of voltCh1 as a double
+
+
+% --- Executes on button press in selectChannels.
+function selectChannels_Callback(hObject, eventdata, handles)
+%Code to select channels to include when there are too many valid ones to
+%fit on the screen

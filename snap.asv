@@ -12,7 +12,7 @@
 %Column 7 - Starting EM gain (not used if camera in CCD mode, default 270).
 %Column 8 - LED voltage
 %mode, default 1).
-function [image]=snap(channel)
+function [image]=snap(channel, microscope)
 satFactor=729531;
 satPower=-1.001;
 
@@ -22,43 +22,14 @@ mmc.stopSequenceAcquisition;
 mmc.setExposure(cell2mat((channel(2))));
 mmc.setConfig('Channel', char(channel(1)));
 mmc.waitForConfig('Channel', char(channel(1)));
-mmc.setProperty('TILightPath', 'Label','2-Left100');%send light to the camera
+microscope.lightToCamera;
 title=strcat(char(channel(1)),'.  ',num2str(cell2mat(channel(2))),'ms');
 
 %Also set LED voltage based on information in acqData.channels
-LED=mmc.getProperty('DTOL-Switch','State');
-switch(LED)
-    case 1
-        dac=[];
-    case 2%The CFP LED - adjust DAC-1
-        dac='DTOL-DAC-1';
-    case 4%The GFP/YFP LED - adjust DAC-1
-        dac='DTOL-DAC-2';
-    case 8%The mCherry/cy5/tdTomato LED - adjust DAC-1
-        dac='DTOL-DAC-3';
-end
-mmc.setProperty(dac,'Volts', acqData.channels{ch,8});
+microscope.setLEDVoltage(channel{8});
+%Camera mode
+microscope.setCamMode(channel{6});
 
-switch cell2mat(channel(6))
-    case 1
-        mmc.setProperty ('Evolve','Port','Multiplication Gain');
-        gain=cell2mat(channel(7));
-        epg=cell2mat(channel(8));
-        mmc.setProperty ('Evolve','MultiplierGain',num2str(gain));
-%        mmc.setProperty('Evolve', 'PP2 QUANT-VIEW (E)',num2str(epg));
-        title=strcat(title,'. EMCCD, gain:',num2str(gain),'. EPG:',num2str(epg));
-    case 3
-         mmc.setProperty ('Evolve','Port','Multiplication Gain');
-        gain=cell2mat(channel(7));
-        epg=cell2mat(channel(8));
-        mmc.setProperty ('Evolve','MultiplierGain',num2str(gain));
-%        mmc.setProperty('Evolve', 'PP2 QUANT-VIEW (E)',num2str(epg));
-        title=strcat(title,'. EMCCD, gain:',num2str(gain),'. EPG:',num2str(epg));
-    case 2
-        mmc.setProperty ('Evolve','Port','Normal');
-        title=strcat(title,'. CCD');
-end
-mmc.waitForDevice('Evolve');
 mmc.snapImage; 
 img=mmc.getImage; 
 width=mmc.getImageWidth; 
