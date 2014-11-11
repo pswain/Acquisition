@@ -30,7 +30,7 @@ classdef pump
        end
        
        function updatePumps(obj)
-           %Sets pump parameters accorging to the properties of the pump
+           %Sets pump parameters according to the properties of the pump
            %object
            %             global mmc;
            %             if str2num(mmc.getProperty(obj.pumpName,'Run'))
