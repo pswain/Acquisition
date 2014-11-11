@@ -56,18 +56,13 @@ for ch=1:numChannels%loop through the channels
         mmc.waitForConfig('Channel', chName);       
         %Set LED voltage based on information in acqData.channels
         LED=mmc.getProperty('DTOL-Switch','State');
-<<<<<<< HEAD
+
         if ~isnumeric(LED)
             LED=str2num(LED);
         end
         switch LED
             case 1
                 dac=[];%The bright field LED cannot have its voltage adjusted - not wired to the DAC card
-=======
-        switch(str2num(LED))
-            case 1
-                dac=[];
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
             case 2%The CFP LED - adjust DAC-1
                 dac='DTOL-DAC-1';
             case 4%The GFP/YFP LED - adjust DAC-1

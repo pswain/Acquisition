@@ -10,12 +10,9 @@ x=mmc.getXPosition('XYStage');
 y=mmc.getYPosition('XYStage');
 z=mmc.getPosition('TIZDrive');
 PFS=mmc.getProperty('TIPFSOffset','Position');
-<<<<<<< HEAD
 if ~isnumeric(PFS)
     PFS=str2double(char(PFS));
 end
-=======
 PFS=str2double(char(PFS));
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
 
 

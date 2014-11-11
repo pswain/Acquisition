@@ -148,11 +148,7 @@ for t=1:numTimepoints%start of timepoint loop.
           break%This leaves the position loop
        end
 
-<<<<<<< HEAD
-=======
-            
-            
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
+
        
        %Run pump changing function if necessary
        acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60,logfile);
@@ -179,15 +175,12 @@ for t=1:numTimepoints%start of timepoint loop.
                %marked.
                logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
                acqData.z(5)=correctDrift(logfile,acqData.points(pos,4),acqData.z(5),acqData.points(pos,5));
-<<<<<<< HEAD
                %
                %
                %CALL TO VISITZ ADDED HERE
                startingZ=visitZ(logfile,acqData.z,acqData.points(pos,:)); % This has been (re)added 4_4_14 - needs to be tested
                %
                %
-=======
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
                mmc.setProperty('TIPFSStatus','State','Off');
                pause(0.4);%Gives it time to switch off - is pretty slow
                %Does any channel at this position do z sectioning?
@@ -244,10 +237,6 @@ for t=1:numTimepoints%start of timepoint loop.
        else
            posFolder=exptFolder;
        end
-<<<<<<< HEAD
-=======
-       
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
        positionData=captureChannels(acqData,logfile,posFolder,pos,t,CHsets);%data for all channels stored for this position in the position variable
        
        %Record the maximum value measured for each channel - if it is the highest of

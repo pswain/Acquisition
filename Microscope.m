@@ -213,23 +213,19 @@ classdef Microscope
            end
         end
             
-        function setCamMode(obj, mode,figTitle)
+        function figTitle=setCamMode(obj, mode,figTitle,EMgain)
         global mmc
         switch (obj.Name)
             case('Batman')
                 switch mode
                     case 1
                         mmc.setProperty ('Evolve','Port','Multiplication Gain');
-                        gain=cell2mat(channel(7));
-                        epg=cell2mat(channel(8));
-                        mmc.setProperty ('Evolve','MultiplierGain',num2str(gain));
-                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(gain),'. EPG:',num2str(epg));
+                        mmc.setProperty ('Evolve','MultiplierGain',num2str(EMgain));
+                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(EMgain));
                     case 3
                         mmc.setProperty ('Evolve','Port','Multiplication Gain');
-                        gain=cell2mat(channel(7));
-                        epg=cell2mat(channel(8));
-                        mmc.setProperty ('Evolve','MultiplierGain',num2str(gain));
-                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(gain),'. EPG:',num2str(epg));
+                        mmc.setProperty ('Evolve','MultiplierGain',num2str(EMgain));
+                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(EMgain));
                     case 2
                         mmc.setProperty ('Evolve','Port','Normal');
                         figTitle=strcat(figTitle,'. CCD');

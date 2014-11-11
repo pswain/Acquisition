@@ -1,10 +1,8 @@
 %Should be called with the PFS off.
 %Uses the PFS to calculate the drift that has occured from an input
 %reference z position.
-<<<<<<< HEAD
 %This will also set the Z drive to the input zref position.
-=======
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
+
 
 function drift=correctDrift(logfile,zref,drift,PFSOffset)
 global mmc;

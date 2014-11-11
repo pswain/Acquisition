@@ -20,6 +20,8 @@ switch name
         name='Alejandro';
     case 's1476779'
         name='Andy';
+    case 'v1jtraet'
+        name='Joleen';
         
 end
 [swain tyers millar]=getUsers;

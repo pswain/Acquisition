@@ -30,7 +30,7 @@ classdef pump
        end
        
        function updatePumps(obj)
-           %Sets pump parameters accorging to the properties of the pump
+           %Sets pump parameters according to the properties of the pump
            %object
            %             global mmc;
            %             if str2num(mmc.getProperty(obj.pumpName,'Run'))
@@ -83,7 +83,17 @@ classdef pump
            obj.running=str2num(pumpDetails{5});
            obj.contents=pumpDetails{6};
        end
-       
+       function openPump(obj)
+           %Opens the pump for sending and receiving commands
+           [idum,hostname]= system('hostname');
+           if strfind(hostname,'SCE-BIO-C02471')>0                
+                fopen(obj.serial);
+           else
+               %Not running on the microscope computer - create a false
+               %open command - to allow the software to run.
+               obj.serial='Pump open';
+           end
+        end
    end
    methods (Static)
        function diameter=getDiameter(volString) 
@@ -151,10 +161,10 @@ classdef pump
            end
        end
        
-       
-   end
+
    
    
    
     
+   end
 end

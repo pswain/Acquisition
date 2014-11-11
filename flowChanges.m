@@ -168,11 +168,8 @@ classdef flowChanges
                     fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
                     fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);
                     fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-<<<<<<< HEAD
                     fprintf(p1,['RAT' num2str(obj.flowPostSwitch(1,ind)) 'UM']);fprintf(p2,['RAT' num2str(obj.flowPostSwitch(2,ind)) 'UM']);pause(.05);
-=======
-                    fprintf(p1,['RAT' num2str(obj.flowPostSwitch(1,ind))]);fprintf(p2,['RAT' num2str(obj.flowPostSwitch(2,ind))]);pause(.05);
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
+
 %                     fprintf(p1,['RAT' num2str(flowrates(1))]);
 %                     fprintf(p2,['RAT' num2str(flowrates(2))]);pause(.05);
                     
@@ -227,39 +224,26 @@ classdef flowChanges
             fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
             fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);
             fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-<<<<<<< HEAD
             fprintf(p1,['RAT' num2str(obj.switchParams.rate)  'UM']);fprintf(p2,['RAT' num2str(obj.switchParams.rate)  'UM']);pause(.05);
-=======
-            fprintf(p1,['RAT' num2str(obj.switchParams.rate)]);fprintf(p2,['RAT' num2str(obj.switchParams.rate)]);pause(.05);
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
+ %           fprintf(p1,['RAT' num2str(obj.switchParams.rate)]);fprintf(p2,['RAT' num2str(obj.switchParams.rate)]);pause(.05);
             fprintf(p1,['VOL' wVol1]);fprintf(p2,['VOL' wVol2]);pause(.05);
             fprintf(p1,'DIRINF');fprintf(p2,'DIRINF');pause(.05);
             fprintf(p1,'PHN3');fprintf(p2,'PHN3');pause(.05);
             fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-<<<<<<< HEAD
+
             fprintf(p1,['RAT' num2str(max(obj.flowPostSwitch(:))) 'UM']);fprintf(p2,['RAT' num2str(max(obj.flowPostSwitch(:))) 'UM']);pause(.05);
-=======
-            fprintf(p1,['RAT' num2str(max(obj.flowPostSwitch(:)))]);fprintf(p2,['RAT' num2str(max(obj.flowPostSwitch(:)))]);pause(.05);
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
+
             fprintf(p1,'VOL0');fprintf(p2,'VOL0');pause(.05);
             fprintf(p1,'DIRINF');fprintf(p2,'DIRINF');pause(.05);
             
             fprintf(p1,'PHN4');fprintf(p2,'PHN4');pause(.05);
             fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-<<<<<<< HEAD
             fprintf(p1,['RAT' num2str(obj.switchParams.rate) 'UM']);fprintf(p2,['RAT' num2str(obj.switchParams.rate) 'UM']);pause(.05);
-=======
-            fprintf(p1,['RAT' num2str(obj.switchParams.rate)]);fprintf(p2,['RAT' num2str(obj.switchParams.rate)]);pause(.05);
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
             fprintf(p1,['VOL' wVol1]);fprintf(p2,['VOL' wVol2]);pause(.05);
             fprintf(p1,'DIRWDR');fprintf(p2,'DIRWDR');pause(.05);
             fprintf(p1,'PHN5');fprintf(p2,'PHN5');pause(.05);
             fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-<<<<<<< HEAD
             fprintf(p1,['RAT' num2str(min(obj.flowPostSwitch(:)))  'UM']);fprintf(p2,['RAT' num2str(min(obj.flowPostSwitch(:))) 'UM']);pause(.05);
-=======
-            fprintf(p1,['RAT' num2str(min(obj.flowPostSwitch(:)))]);fprintf(p2,['RAT' num2str(min(obj.flowPostSwitch(:)))]);pause(.05);
->>>>>>> 43bb71a4dd5b0c39ea1b88c44d8b0b5bbd1c57ff
             fprintf(p1,'VOL0');fprintf(p2,'VOL0');pause(.05);
             fprintf(p1,'DIRINF');fprintf(p2,'DIRINF');pause(.05);
         end

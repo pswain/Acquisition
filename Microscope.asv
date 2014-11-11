@@ -4,6 +4,8 @@ classdef Microscope
         nameImage%Icon to display in GUI
         Config%String, path of micromanager config file
         InitialChannel%To be set when starting up
+        Filters%Structure - will hold information on the filters installed
+        Channels%Structure - holds information on the microscope configuration for each channel
     end
     
     methods
@@ -82,73 +84,91 @@ classdef Microscope
         function setGUI(obj, handles)
                %Modifies the multiDGUI for use with this microscope
                %Show the microscope name icon (Batman or Robin)
+               %Also records the configurations used for each channel in
+               %obj.Channels
                axes(handles.micNameIcon)
                imshow(handles.acquisition.microscope.nameImage);
                %Get channel names
                global mmc;
                chList=mmc.getAvailableConfigs('Channel');
                %Loop through the channels - applying each to a set of
-               %controls
+               %controls               
+               chControl=1;
                
-               
-               for ch=0:min(chList.size-1,7)
-                  chName=chList.get(ch);
-                  chName=char(chName);
-                  if ~strcmp(chName,'Kill') && ~strcmp(chName,'Picogreen')
-                      useTagName=['useCh' num2str(ch)];
-                      set(handles.(useTagName),'String',chName);
-                      %Activate controls for this channel
-                      expTagName=['expCh' num2str(ch)];
-                      skipTagName=['skipCh' num2str(ch)];
-                      camModeTagName=['cammodeCh' num2str(ch)];
-                      startGainTagName=['startgainCh' num2str(ch)];
-                      voltTagName=['voltCh' num2str(ch)];
-                      zTagName=['ZsectCh' num2str(ch)];
-                      startTpTagName=['starttpCh' num2str(ch)];
-                      snapTagName=['snapCh' num2str(ch)]; 
-                      set(handles.(useTagName),'Enable','On');            
-                      set(handles.(expTagName),'Enable','On');            
-                      set(handles.(skipTagName),'Enable','On');
-                      set(handles.(zTagName),'Enable','On');
-                      set(handles.(startTpTagName),'Enable','On');
-                      set(handles.(snapTagName),'Enable','On');
-                      set(handles.(startGainTagName),'Enable','Off');
-                      set(handles.(camModeTagName),'Value',2);
-                      switch(obj.Name)
-                          case 'Batman'
-                              set(handles.(camModeTagName),'Enable','On');
-                          case 'Robin'
-                              set(handles.(camModeTagName),'Enable','Off');
+               for ch=0:chList.size-1
+                      chName=chList.get(ch);
+                      chName=char(chName);
+                  if chControl<9 %Only 8 slots for channels in the GUI
+                      if ~strcmp(chName,'Kill') && ~strcmp(chName,'Picogreen')
+                          useTagName=['useCh' num2str(chControl)];
+                          set(handles.(useTagName),'String',chName);
+                          %Activate controls for this channel
+                          expTagName=['expCh' num2str(chControl)];
+                          skipTagName=['skipCh' num2str(chControl)];
+                          camModeTagName=['cammodeCh' num2str(chControl)];
+                          startGainTagName=['startgainCh' num2str(chControl)];
+                          voltTagName=['voltCh' num2str(chControl)];
+                          zTagName=['ZsectCh' num2str(chControl)];
+                          startTpTagName=['starttpCh' num2str(chControl)];
+                          snapTagName=['snapCh' num2str(chControl)]; 
+                          set(handles.(useTagName),'Enable','On');            
+                          set(handles.(expTagName),'Enable','On');            
+                          set(handles.(skipTagName),'Enable','On');
+                          set(handles.(zTagName),'Enable','On');
+                          set(handles.(startTpTagName),'Enable','On');
+                          set(handles.(snapTagName),'Enable','On');
+                          set(handles.(startGainTagName),'Enable','Off');
+                          set(handles.(camModeTagName),'Value',2);
+                          switch(obj.Name)
+                              case 'Batman'
+                                  set(handles.(camModeTagName),'Enable','On');
+                              case 'Robin'
+                                  set(handles.(camModeTagName),'Enable','Off');
+                          end
+                          %Set button colours based on the channel names
+                          chColour=getChColour(chName);
+                          set(handles.(useTagName),'BackgroundColor',chColour);
+                          set(handles.(snapTagName),'BackgroundColor',chColour);
+                          chControl=chControl+1;
                       end
-                      %Set button colours based on the channel names
-                      chColour=getChColour(chName);
-                      set(handles.(useTagName),'BackgroundColor',chColour);
-                      set(handles.(snapTagName),'BackgroundColor',chColour);
+                  else
+                      disp (['Channel ' chName ' not added - no room in GUI']);
                   end
-                  ch=ch+1;
                end
-               %Deactivate the controls for unused channels
-               for ch=length(chList)+1:7
-                  useTagName=['useCh' num2str(ch+1)];
-                  %Deactivate controls for this channel
-                  expTagName=['expCh' num2str(ch+1)];
-                  skipTagName=['skipCh' num2str(ch+1)];
-                  camModeTagName=['cammodeCh' num2str(ch+1)];
-                  startGainTagName=['startgainCh' num2str(ch+1)];
-                  voltTagName=['voltCh' num2str(ch+1)];
-                  zTagName=['ZsectCh' num2str(ch+1)];
-                  startTpTagName=['starttpCh' num2str(ch+1)];
-                  snapTagName=['snapCh' num2str(ch+1)];
-                  set(handles.(useTagName),'Enable','Off');            
-                  set(handles.(expTagName),'Enable','Off');            
-                  set(handles.(skipTagName),'Enable','Off');
-                  set(handles.(zTagName),'Enable','Off');
-                  set(handles.(startTpTagName),'Enable','Off');
-                  set(handles.(snapTagName),'Enable','Off');
-                  set(handles.(startGainTagName),'Enable','Off');
-                  set(handles.(camModeTagName),'Enable','Off');             
+               numChannels=chControl-1;
+               %Deactivate the controls for any unused channels
+               if chControl<9
+                   for chControl=chControl:8
+                      useTagName=['useCh' num2str(chControl)];
+                      %Deactivate controls for this channel
+                      expTagName=['expCh' num2str(chControl)];
+                      skipTagName=['skipCh' num2str(chControl)];
+                      camModeTagName=['cammodeCh' num2str(chControl)];
+                      startGainTagName=['startgainCh' num2str(chControl)];
+                      voltTagName=['voltCh' num2str(chControl)];
+                      zTagName=['ZsectCh' num2str(chControl)];
+                      startTpTagName=['starttpCh' num2str(chControl)];
+                      snapTagName=['snapCh' num2str(chControl)];
+                      set(handles.(useTagName),'Enable','Off');            
+                      set(handles.(expTagName),'Enable','Off');            
+                      set(handles.(skipTagName),'Enable','Off');
+                      set(handles.(zTagName),'Enable','Off');
+                      set(handles.(startTpTagName),'Enable','Off');
+                      set(handles.(snapTagName),'Enable','Off');
+                      set(handles.(startGainTagName),'Enable','Off');
+                      set(handles.(camModeTagName),'Enable','Off');             
+                   end
                end
-               
+               %Set the tooltipstrings - based on the info in the channel
+               %configurations
+               for ch=1:numChannels
+                   chName=get(handles.(['useCh' num2str(ch)]),'String');
+                   conf=mmc.getConfigData('Channel', chName);
+                   conf=Serialize(conf);
+                   set(handles.(['useCh' num2str(ch)]),'TooltipString',char(conf));
+                   obj.Channels(ch).name=chName;
+                   obj.Channels(ch).config=conf;
+               end
                
                
                switch obj.Name
@@ -193,22 +213,19 @@ classdef Microscope
            end
         end
             
-        function setCamMode(obj, mode,figTitle)
+        function setCamMode(obj, mode,figTitle,EMgain)
         global mmc
         switch (obj.Name)
             case('Batman')
                 switch mode
                     case 1
                         mmc.setProperty ('Evolve','Port','Multiplication Gain');
-                        gain=cell2mat(channel(7));
-                        epg=cell2mat(channel(8));
-                        mmc.setProperty ('Evolve','MultiplierGain',num2str(gain));
-                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(gain),'. EPG:',num2str(epg));
+                        mmc.setProperty ('Evolve','MultiplierGain',num2str(EMgain));
+                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(EMgain));
                     case 3
                         mmc.setProperty ('Evolve','Port','Multiplication Gain');
                         gain=cell2mat(channel(7));
-                        epg=cell2mat(channel(8));
-                        mmc.setProperty ('Evolve','MultiplierGain',num2str(gain));
+                        mmc.setProperty ('Evolve','MultiplierGain',num2str(EMgain));
                         figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(gain),'. EPG:',num2str(epg));
                     case 2
                         mmc.setProperty ('Evolve','Port','Normal');
@@ -216,6 +233,14 @@ classdef Microscope
                 end
                 mmc.waitForDevice('Evolve');
             end
+        end
+        function obj=getFilters(obj)
+        %Parses the config file to extract filter information
+        confFile=fopen(obj.Config);
+        confData=textscan(confFile,'%s','BufSize',20000,'Delimiter','#');
+        confData=confData{:};
+        
+        
         end
     end
 end

@@ -28,7 +28,7 @@ title=strcat(char(channel(1)),'.  ',num2str(cell2mat(channel(2))),'ms');
 %Also set LED voltage based on information in acqData.channels
 microscope.setLEDVoltage(channel{8});
 %Camera mode
-microscope.setCamMode(channel{6},title);
+title=microscope.setCamMode(channel{6},title,channel{7});
 
 mmc.snapImage;
 img=mmc.getImage; 
@@ -41,13 +41,15 @@ image=reshape(img2,[height,width]);
 %Work out the saturation value
 switch cell2mat(channel(6))
     case 1 %EM port
+        EMgain=channel{7};
         image=flipud(image);
-        satLevelE1=satFactor.*(gain.^satPower);%saturation level for this gain if electrons per grey level is set to 1
+        satLevelE1=satFactor.*(EMgain.^satPower);%saturation level for this gain if electrons per grey level is set to 1
         %saturation=floor(1/epg*satLevelE1);%Saturation level taking EPG into account
         saturation=satLevelE1;
     case 3
+        EMgain=channel{7};
         image=flipud(image);
-        satLevelE1=satFactor.*(gain.^satPower);%saturation level for this gain if electrons per grey level is set to 1
+        satLevelE1=satFactor.*(EMgain.^satPower);%saturation level for this gain if electrons per grey level is set to 1
         %saturation=floor(1/epg*satLevelE1);%Saturation level taking EPG into account
         saturation=satLevelE1;
     case 2%normal port - saturation level is the 16 bit limit
