@@ -166,8 +166,8 @@ classdef Microscope
                    conf=mmc.getConfigData('Channel', chName);
                    conf=Serialize(conf);
                    set(handles.(['useCh' num2str(ch)]),'TooltipString',char(conf));
-                   obj(ch).Channels.name=chName;
-                   obj(ch).Channels.config=conf;
+                   obj.Channels(ch).name=chName;
+                   obj.Channels(ch).config=conf;
                end
                
                
