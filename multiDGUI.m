@@ -23,7 +23,7 @@ function varargout = multiDGUI(varargin)
 
 % Edit the above text to modify the response to help multiDGUI
 
-% Last Modified by GUIDE v2.5 29-Oct-2014 16:18:55
+% Last Modified by GUIDE v2.5 12-Nov-2014 14:32:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -77,6 +77,8 @@ handles.output = hObject;
 %3. PFS on (1 or 0 - only added on start of experiment)
 %4. anyZ (1 if any channel does z sectioning, 0 if not, only added at start of experiment
 %5. drift - the drift in the z plane, recorded during a timlapse by querying the position of the z drive after the pfs has corrected it.
+%6. method - method of z sectioning. 1. 'PIFOC' or 2. 'PIFOC_PFSON' or 3. 'PFS'
+
 
 %Timelapse settings
 %time. double array
@@ -131,6 +133,15 @@ handles.acquisition.microscope=Microscope;
 
 
 
+ 
+%Show warning if running from the shared, public folder
+if strcmp(pwd,'C:\Users\Public\Microscope Control');
+    msgbox('MultiDGUI is running from the shared Microscope Control folder - please do not edit this version of the software!','Running shared software','Warn');
+end
+
+%Get free disk space
+handles.freeDisk=checkDiskSpace;
+set(handles.GbFree,'String',num2str(handles.freeDisk));
 
 %If there is a last saved acquisition file then load the acquisition
 %settings from that. Points are not loaded.
@@ -154,7 +165,7 @@ lastSavedFilename=char(acqFilePath);
     guidata(hObject, handles);
     else%If there is no last saved acquisition initialise with defaults
         handles.acquisition.channels={};
-        handles.acquisition.z=[1 0]; 
+        handles.acquisition.z=[1 0 0 0 0 2]; 
         handles.acquisition.time=[1 300 180 54000];
         p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
         handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
@@ -162,7 +173,7 @@ lastSavedFilename=char(acqFilePath);
     end
 else%If there is no file containing the path of a last saved acquisition the initialise with defaults
 handles.acquisition.channels={};
-handles.acquisition.z=[1 0]; 
+handles.acquisition.z=[1 0 0 0 0 2]; 
 handles.acquisition.time=[1 300 180 54000];
 p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
 handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
@@ -197,6 +208,7 @@ else
 end
 handles.aquisition.omero=struct('project',{}, 'tags',{}, 'object',{});
 handles.acquisition.omero.object=obj2;
+
 
 %Display the projects
 proj=handles.acquisition.omero.object.getProjectNames;
@@ -278,15 +290,18 @@ set(handles.pointsTable,'Data',handles.acquisition.points);
 %activate the eyepiece and camera buttons and inactivate the launch
 %micromanager button
 isthereagui=exist ('gui','var');
-
+global gui;
 if isthereagui~=1
     if ismac%Don't initialize the gui if working on the software on a mac - won't necessarily have micromanager on the path
         disp('Initializing micromanager path for mac');
         macMMPath;
+        %use dummy gui class to create a virtual gui - just to allow the
+        %software to run - this only because I have so far failed to start
+        %the gui from a mac
+        gui=DemoGUI;
     end
  guiconfig;
 end
-global gui;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -767,7 +782,7 @@ else
     end
     end
 end
-  
+updateDiskSpace(handles);
      
         
         
@@ -850,6 +865,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 % --- Executes on button press in text7. Use YFP button
 function useCh4_Callback(hObject, eventdata, handles)
@@ -926,6 +942,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 % --- Executes on button press in text8. mCherry use button
@@ -1004,6 +1021,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 % --- Executes on button press in text9. tdTomato use button
@@ -1080,6 +1098,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -1163,6 +1182,7 @@ else%this channel has been deselected
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -1285,7 +1305,10 @@ nFlowTimepoints=sizeFlow(1);
 %        handles.acquisition.flow{4}(nFlowTimepoints+1:timepoints)=0;
 %    end
 % end
+updateDiskSpace(handles);
+
 guidata(hObject, handles);
+
 updateFlowDisplay(handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -1361,6 +1384,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
+    set(handles.zMethod,'Enable','on');
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
     handles.acquisition.z(2)=str2double(get(handles.zspacing,'String'));
     sizeChannels=size(handles.acquisition.channels);
@@ -1392,12 +1416,14 @@ else%if this button has been deselected
     if anyZ==0
        set(handles.nZsections,'Enable','off');
        set(handles.zspacing,'Enable','off');
+       set(handles.zMethod,'Enable','off');
 %        set(handles.nZsections,'String','1');
 %        set(handles.zspacing,'String','0');
        handles.acquisition.z(1)=1;
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1447,6 +1473,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1496,6 +1523,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
   
 % --- Executes on button press in ZsectCh5.
@@ -1544,6 +1572,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 % --- Executes on button press in ZsectCh6.
@@ -1592,6 +1621,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1641,6 +1671,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1860,6 +1891,7 @@ else
          end
      end   
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -1881,6 +1913,7 @@ end
 
 function nZsections_Callback(hObject, eventdata, handles)
 handles.acquisition.z(1)=str2double(get(hObject,'String'));
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -1988,6 +2021,7 @@ set(handles.totaltime,'Enable','off');
 set(handles.unitsTotal,'Enable','off');
 handles.acquisition.time(1)=0;
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -2185,6 +2219,7 @@ end
 
 set(hObject,'Data',table);
 handles.acquisition.points=table;
+updateDiskSpace(handles);
 guidata(hObject, handles);
 % hObject    handle to pointsTable (see GCBO)
 % eventdata  structure with the following fields (see UITABLE)
@@ -2820,7 +2855,7 @@ case 'Design flow transition'
     d=transitionGUI;
   % handles.acquisition.flow{5}.times=d(:,1);
   % handles.acquisition.flow{5}.flowPostSwitch=d(:,[2 3]);
-    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setTimes(d(:,1)', d(:,[2 3])');
+    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setFlowTimes(d(:,1)', d(:,[2 3])');
     handles.acquisition.flow{5}.switchedTo=0;
     handles.acquisition.flow{5}.switchedFrom=0;
 
@@ -2969,7 +3004,7 @@ set(handles.CCD,'Enable','on');
 
 for i=1:length(handles.acquisition.flow{5}.pumps)
     try
-    fopen(handles.acquisition.flow{5}.pumps{i}.serial);
+            handles.acquisition.flow{5}.pumps{i}.openPump;   
     catch
        warndlg(['Failed to connect to pump number ' num2str(i)]);
     end
@@ -3912,6 +3947,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -3933,6 +3969,7 @@ else
             end
      end   
 end
+updateDiskSpace(handles);
    guidata(hObject, handles);
 
 
@@ -4038,6 +4075,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -4158,6 +4196,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -4185,6 +4224,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -4212,6 +4252,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4240,6 +4281,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4268,6 +4310,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4296,6 +4339,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4324,6 +4368,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -5040,6 +5085,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 function starttpCh8_Callback(hObject, eventdata, handles)
@@ -5190,6 +5236,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -5215,6 +5262,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -5407,3 +5455,36 @@ function voltCh1_Callback(hObject, eventdata, handles)
 function selectChannels_Callback(hObject, eventdata, handles)
 %Code to select channels to include when there are too many valid ones to
 %fit on the screen
+
+
+% --- Executes on selection change in zMethod.
+function zMethod_Callback(hObject, eventdata, handles)
+% hObject    handle to zMethod (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+contents = cellstr(get(hObject,'String'));
+input=contents{get(hObject,'Value')};
+
+switch input
+    case 'PIFOC'
+        handles.acquisition.z(6)=1;
+    case 'PIFOC with PFS on'
+         handles.acquisition.z(6)=2;
+    case 'PFS'
+         handles.acquisition.z(6)=3;
+end
+guidata(hObject,handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function zMethod_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to zMethod (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

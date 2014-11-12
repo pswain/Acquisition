@@ -3,6 +3,8 @@
 %1. Imaging configuration (LED, exposure time, filter positions etc) must
 %   be set
 %2. If any channel in the acquisition does z sectioning the z position
+%should be moved to the top of the stack before calling this.
+%If not the focus should be positioned at the desired focal position
 %should be moved to the top of the stack. If not the focus should be
 %positioned at the desired focal position
 

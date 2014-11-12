@@ -22,7 +22,6 @@ global mmc;
         status=mmc.getProperty('TIPFSStatus','Status');
         fprintf(logfile,'%s',strcat('PFS status:',char(status),'- will not be used'));
         fprintf(logfile,'\r\n');
-
     end
 
     %Do any channels do z sectioning - affects a lot of how things run so

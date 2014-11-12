@@ -56,9 +56,13 @@ for ch=1:numChannels%loop through the channels
         mmc.waitForConfig('Channel', chName);       
         %Set LED voltage based on information in acqData.channels
         LED=mmc.getProperty('DTOL-Switch','State');
-        switch(str2num(LED))
+
+        if ~isnumeric(LED)
+            LED=str2num(LED);
+        end
+        switch LED
             case 1
-                dac=[];
+                dac=[];%The bright field LED cannot have its voltage adjusted - not wired to the DAC card
             case 2%The CFP LED - adjust DAC-1
                 dac='DTOL-DAC-1';
             case 4%The GFP/YFP LED - adjust DAC-1
@@ -117,9 +121,14 @@ for ch=1:numChannels%loop through the channels
         else
             E=1;
         end
-        %Dummy exposure - to fix first exposure long problem
-%         dummy;
-        [stack maxvalue]=captureStack(filename,zsect,acqData.z,0,EM,E);%z stack capture
+        switch acqData.z(6)
+            case 1
+                [stack maxvalue]=captureStack(filename,zsect,acqData.z,0,EM,E);%z stack capture
+            case 2
+                [stack maxvalue]=captureStack_PFS_ON(filename,zsect, acqData.z, 0, EM, E);
+            case 3
+                [stack maxvalue]=captureStack_PFS(filename,zsect,acqData.z,0,EM,E);
+        end
 
         if strcmp(acqData.points(pos,ch+6),'double')==1%This position needs a double exposure - to monitor bleaching
             filename2=strcat(filename,'_2ndexposure');

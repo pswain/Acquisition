@@ -148,8 +148,7 @@ for t=1:numTimepoints%start of timepoint loop.
           break%This leaves the position loop
        end
 
-            
-            
+
        
        %Run pump changing function if necessary
        acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60,logfile);
@@ -174,10 +173,18 @@ for t=1:numTimepoints%start of timepoint loop.
                %the input reference position - will calculate drift
                %relative to where the lens was when the point was
                %marked.
-               logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-               acqData.z(5)=correctDrift(logfile,acqData.points(pos,4),acqData.z(5),acqData.points(pos,5));
-               mmc.setProperty('TIPFSStatus','State','Off');
-               pause(0.4);%Gives it time to switch off - is pretty slow
+               if acqData.z(6)==1
+                   logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+                   acqData.z(5)=correctDrift(logfile,acqData.points(pos,4),acqData.z(5),acqData.points(pos,5));
+                   %
+                   %
+                   %CALL TO VISITZ ADDED HERE
+                   %startingZ=visitZ(logfile,acqData.z,acqData.points(pos,:)); % This has been (re)added 4_4_14 - needs to be tested
+                   %
+                   %               
+                   mmc.setProperty('TIPFSStatus','State','Off');
+                   pause(0.4);%Gives it time to switch off - is pretty slow
+               end
                %Does any channel at this position do z sectioning?
                anyZThisPos=false;
                for n=1:size(acqData.channels,1)
@@ -232,7 +239,6 @@ for t=1:numTimepoints%start of timepoint loop.
        else
            posFolder=exptFolder;
        end
-       
        positionData=captureChannels(acqData,logfile,posFolder,pos,t,CHsets);%data for all channels stored for this position in the position variable
        
        %Record the maximum value measured for each channel - if it is the highest of

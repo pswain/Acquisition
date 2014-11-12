@@ -23,7 +23,7 @@ function varargout = multiDGUI(varargin)
 
 % Edit the above text to modify the response to help multiDGUI
 
-% Last Modified by GUIDE v2.5 12-Aug-2014 15:21:37
+% Last Modified by GUIDE v2.5 12-Nov-2014 14:19:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -66,8 +66,7 @@ handles.output = hObject;
 %Column 3 - skip number - eg if 2 only take an image every 2nd time point in this channel, if 3 only every 3rd etc.
 %Column 4 - 1 if using Z sectioning, 0 if not
 %Column 5 - starting timepoint - no images will be captured in this channel until this timepoint
-%Column 6 - Camera mode. 1 if EM with gain+exposure correction, 2 if CCD, 3
-%if EM with constant gain and exposure
+%Column 6 - Camera mode. 1 if EM with gain+exposure correction, 2 if CCD, 3 if EM with constant gain and exposure
 %Column 7 - Starting EM gain (not used if camera in CCD mode, default 270).
 %Column 8 - LED voltage - number between 0 and 4 - the voltage applied across the LED during the exposure
 
@@ -78,6 +77,8 @@ handles.output = hObject;
 %3. PFS on (1 or 0 - only added on start of experiment)
 %4. anyZ (1 if any channel does z sectioning, 0 if not, only added at start of experiment
 %5. drift - the drift in the z plane, recorded during a timlapse by querying the position of the z drive after the pfs has corrected it.
+%6. method - method of z sectioning. 'PIFOC' or 'PIFOC_PFSON'
+
 
 %Timelapse settings
 %time. double array
@@ -125,12 +126,22 @@ addpath(genpath('C:\AcquisitionData\Swain Lab\OmeroCode'));
 addpath(['.' filesep 'transitionGUI']);
 %Get computer name
 [idum,hostname]= system('hostname');
-%Establish which computer is running this, and therefore which microscope
+%Create microscope object - details will depend on which computer is
+%running this
 handles.acquisition.microscope=Microscope;
 
 
 
 
+ 
+%Show warning if running from the shared, public folder
+if strcmp(pwd,'C:\Users\Public\Microscope Control');
+    msgbox('MultiDGUI is running from the shared Microscope Control folder - please do not edit this version of the software!','Running shared software','Warn');
+end
+
+%Get free disk space
+handles.freeDisk=checkDiskSpace;
+set(handles.GbFree,'String',num2str(handles.freeDisk));
 
 %If there is a last saved acquisition file then load the acquisition
 %settings from that. Points are not loaded.
@@ -164,7 +175,7 @@ else%If there is no file containing the path of a last saved acquisition the ini
 handles.acquisition.channels={};
 handles.acquisition.z=[1 0]; 
 handles.acquisition.time=[1 300 180 54000];
-p1=pump('COM1',19200);p2=pump('COM2',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
+p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
 handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
 %info entry is already initialised above
 end
@@ -183,19 +194,21 @@ users=[swain tyers millar];
 %Initialize the Omero projects and tags lists
 if ismac
    addpath(genpath('/Volumes/AcquisitionData2/Swain Lab/OmeroCode'));
-   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfo.mat');
+   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfoSkye.mat');
    addpath('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\OmeroCode');
+   macMMPath;
 else
     [idum,hostname]= system('hostname');
     if strcmp(hostname(1:end-1),'SCE-BIO-C03727')
         addpath(genpath('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\OmeroCode'));
-        load('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfo.mat');
+        load('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
     else
-        load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfo.mat');
+        load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
     end
 end
 handles.aquisition.omero=struct('project',{}, 'tags',{}, 'object',{});
 handles.acquisition.omero.object=obj2;
+
 
 %Display the projects
 proj=handles.acquisition.omero.object.getProjectNames;
@@ -277,13 +290,18 @@ set(handles.pointsTable,'Data',handles.acquisition.points);
 %activate the eyepiece and camera buttons and inactivate the launch
 %micromanager button
 isthereagui=exist ('gui','var');
-
-if isthereagui~=1
-    if ~ismac%Don't initialize the gui if working on the software on a mac - won't necessarily have micromanager on the path
-        guiconfig;
-    end
-end
 global gui;
+if isthereagui~=1
+    if ismac%Don't initialize the gui if working on the software on a mac - won't necessarily have micromanager on the path
+        disp('Initializing micromanager path for mac');
+        macMMPath;
+        %use dummy gui class to create a virtual gui - just to allow the
+        %software to run - this only because I have so far failed to start
+        %the gui from a mac
+        gui=DemoGUI;
+    end
+ guiconfig;
+end
 
 % Update handles structure
 guidata(hObject, handles);
@@ -337,19 +355,22 @@ function radiobutton1_ButtonDownFcn(hObject, eventdata, handles)
 
 
 
-function expCh1_Callback(hObject, eventdata, handles)
+function expChannel_Callback(hObject, eventdata, handles)
 % hObject    handle to expCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hints: get(hObject,'String') returns contents of expCh1 as text
 %        str2double(get(hObject,'String')) returns contents of expCh1 as a double
+[chName tagEnd]=getChannel(hObject,handles);
+
+
 expos=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
-        if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+        if strcmp(handles.acquisition.channels(n,1),chName)==1
         handles.acquisition.channels{n,2}=expos;
         end
     end
@@ -761,7 +782,7 @@ else
     end
     end
 end
-  
+updateDiskSpace(handles);
      
         
         
@@ -844,6 +865,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 % --- Executes on button press in text7. Use YFP button
 function useCh4_Callback(hObject, eventdata, handles)
@@ -920,6 +942,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 % --- Executes on button press in text8. mCherry use button
@@ -998,6 +1021,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 % --- Executes on button press in text9. tdTomato use button
@@ -1074,11 +1098,12 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
 % --- Executes on button press in useCh1.
-function useCh1_Callback(hObject, eventdata, handles)
+function useChannel_Callback(hObject, eventdata, handles)
 % hObject    handle to useCh1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1086,60 +1111,59 @@ function useCh1_Callback(hObject, eventdata, handles)
 %Callback to be used for all "Use" channel buttons
 %First determine which one has called it.
 
-
+[chName tagEnd]=getChannel(hObject,handles);
 
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-   if get(handles.ZsectCh1,'Value')==1
+   if get(handles.(['Zsect' tagEnd]),'Value')==1
        set(handles.nZsections,'Enable','on');
        set(handles.zspacing,'Enable','on');
    end
-   set(handles.skipCh1,'Enable','on');
-   set(handles.ZsectCh1,'Enable','on');
-   set(handles.starttpCh1,'Enable','on');
-   set(handles.snapCh1,'Enable','on');
-   set(handles.cammodeCh1,'Enable','on');
-   set(handles.skipCh1,'Enable','on');
+   set(handles.(['skip' tagEnd]),'Enable','on');
+   set(handles.(['Zsect' tagEnd]),'Enable','on');
+   set(handles.(['starttp' tagEnd]),'Enable','on');
+   set(handles.(['snap' tagEnd]),'Enable','on');
+   set(handles.(['cammode' tagEnd]),'Enable','on');
+   set(handles.(['skip' tagEnd]),'Enable','on');
    %camera settings - enable controls
-   set(handles.cammodeCh1,'Enable','on');%%%%%
-   if get(handles.cammodeCh1,'Value')==1%channel set to camera EM mode
-       set (handles.startgainCh1,'Enable','on');%%%%%
-       set (handles.voltCh1,'Enable','on');%%%%%
+   set(handles.(['cammode' tagEnd]),'Enable','on');%%%%%
+   if get(handles.(['cammode' tagEnd]),'Value')==1%channel set to camera EM mode
+       set (handles.(['startgain' tagEnd]),'Enable','on');%%%%%
+       set (handles.(['volt' tagEnd]),'Enable','on');%%%%%
    end   %%%%%
-   set(handles.expCh1,'Enable','on');
+   set(handles.(['exp' tagEnd]),'Enable','on');
    %initialise channels entry
-   handles.acquisition.channels{nChannels+1,1}='DIC';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh1,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh1,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh1,'Value');
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh1,'String'));
+   handles.acquisition.channels{nChannels+1,1}=chName;
+   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.(['exp' tagEnd]),'String'));
+   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.(['skip' tagEnd]),'String'));
+   handles.acquisition.channels{nChannels+1,4}=get(handles.(['Zsect' tagEnd]),'Value');
+   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.(['starttp' tagEnd]),'String'));
    %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh1,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh1,'String'));%%%%%
+   handles.acquisition.channels{nChannels+1,6}=get(handles.(['cammode' tagEnd]),'Value');
+   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.(['startgain' tagEnd]),'String'));%%%%%
    if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
    end%
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh1,'String')));
+      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.(['volt' tagEnd]),'String')));
    %update the points list (if there is one) - add a column for exposure times for this channel
    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
    end
 else%this channel has been deselected
-    set(handles.expCh1,'Enable','off');
-    set(handles.skipCh1,'Enable','off');
-    set(handles.ZsectCh1,'Enable','off');
-    set(handles.starttpCh1,'Enable','off');
-    set(handles.snapCh1,'Enable','off');
-    set(handles.cammodeCh1,'Enable','off');
-    set(handles.startgainCh1,'Enable','off')
-    set(handles.voltCh1,'Enable','off');
-    set(handles.skipCh1,'Enable','off');
+    set(handles.(['exp' tagEnd]),'Enable','off');
+    set(handles.(['skip' tagEnd]),'Enable','off');
+    set(handles.(['Zsect' tagEnd]),'Enable','off');
+    set(handles.(['starttp' tagEnd]),'Enable','off');
+    set(handles.(['snap' tagEnd]),'Enable','off');
+    set(handles.(['cammode' tagEnd]),'Enable','off');
+    set(handles.(['startgain' tagEnd]),'Enable','off')
+    set(handles.(['volt' tagEnd]),'Enable','off');
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it
-            if strcmp(char(handles.acquisition.channels(n,1)),'DIC')==1
+            if strcmp(char(handles.acquisition.channels(n,1)),chName)==1
             delnumber=n;%mark this channel for deletion
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
@@ -1158,6 +1182,7 @@ else%this channel has been deselected
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -1280,7 +1305,10 @@ nFlowTimepoints=sizeFlow(1);
 %        handles.acquisition.flow{4}(nFlowTimepoints+1:timepoints)=0;
 %    end
 % end
+updateDiskSpace(handles);
+
 guidata(hObject, handles);
+
 updateFlowDisplay(handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -1346,7 +1374,9 @@ end
 
 
 % --- Executes on button press in ZsectCh1.
-function ZsectCh1_Callback(hObject, eventdata, handles)
+function ZsectChannel_Callback(hObject, eventdata, handles)
+[chName tagEnd]=getChannel(hObject,handles);
+
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and record that z sectioning is being done for
                           %this channel in the handles.acquisition.channels cell array
@@ -1359,7 +1389,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'DIC')==1
+            if strcmp(char(handles.acquisition.channels(n,1)),chName)==1
             handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
@@ -1374,7 +1404,7 @@ else%if this button has been deselected
     anyZ=0;
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'DIC')==1
+            if strcmp(char(handles.acquisition.channels(n,1)),chName)==1
             handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
@@ -1391,6 +1421,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1440,6 +1471,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1489,6 +1521,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
   
 % --- Executes on button press in ZsectCh5.
@@ -1537,6 +1570,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 % --- Executes on button press in ZsectCh6.
@@ -1585,6 +1619,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1634,6 +1669,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -1836,24 +1872,9 @@ starttp=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 callingTag=get(hObject,'Tag');
 %Get the name of the channel
-switch callingTag
-    case 'DICstarttp'
-        channelName='DIC';
-    case 'CFPstarttp'
-        channelName='CFP';
-    case 'GFPstarttp'
-        channelName='GFP';
-    case 'YFPstarttp'
-        channelName='YFP';
-    case 'mChstarttp'
-        channelName='mCherry';
-    case 'tdstarttp'
-        channelName='tdTomato';
-    case 'cy5starttp'
-        channelName='cy5';
-    case 'GFPAutoFlstarttp'
-        channelName='GFPAutoFl';
-end
+[channelName tagEnd]=getChannel(hObject,handles);
+
+
 if isempty(get(hObject,'String'))~=1;
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
@@ -1868,6 +1889,7 @@ else
          end
      end   
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -1889,6 +1911,7 @@ end
 
 function nZsections_Callback(hObject, eventdata, handles)
 handles.acquisition.z(1)=str2double(get(hObject,'String'));
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -1996,6 +2019,7 @@ set(handles.totaltime,'Enable','off');
 set(handles.unitsTotal,'Enable','off');
 handles.acquisition.time(1)=0;
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -2193,6 +2217,7 @@ end
 
 set(hObject,'Data',table);
 handles.acquisition.points=table;
+updateDiskSpace(handles);
 guidata(hObject, handles);
 % hObject    handle to pointsTable (see GCBO)
 % eventdata  structure with the following fields (see UITABLE)
@@ -2828,7 +2853,7 @@ case 'Design flow transition'
     d=transitionGUI;
   % handles.acquisition.flow{5}.times=d(:,1);
   % handles.acquisition.flow{5}.flowPostSwitch=d(:,[2 3]);
-    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setTimes(d(:,1)', d(:,[2 3])');
+    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setFlowTimes(d(:,1)', d(:,[2 3])');
     handles.acquisition.flow{5}.switchedTo=0;
     handles.acquisition.flow{5}.switchedFrom=0;
 
@@ -2977,7 +3002,7 @@ set(handles.CCD,'Enable','on');
 
 for i=1:length(handles.acquisition.flow{5}.pumps)
     try
-    fopen(handles.acquisition.flow{5}.pumps{i}.serial);
+            handles.acquisition.flow{5}.pumps{i}.openPump;   
     catch
        warndlg(['Failed to connect to pump number ' num2str(i)]);
     end
@@ -3001,41 +3026,45 @@ set(handles.EM,'Value',0);
 
 
 % --- Executes on selection change in cammodeCh1.
-function cammodeCh1_Callback(hObject, eventdata, handles)
+function cammodeChannel_Callback(hObject, eventdata, handles)
+[chName tagEnd]=getChannel(hObject,handles);
+
+
+
 value=get(hObject,'Value');
 switch value
     case 1%EM_Smart mode selected
-        set(handles.startgainCh1,'Enable','on');
-        set(handles.voltCh1,'Enable','on');
+        set(handles.(['startgain' tagEnd]),'Enable','on');
+        set(handles.(['volt' tagEnd]),'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+            if strcmp(handles.acquisition.channels(n,1),chName)==1
                 handles.acquisition.channels{n,6}=value;%1=EM camera mode with correction
             end
             end
         end       
     case 2%CCD mode selected
-        set(handles.startgainCh1,'Enable','off');
-        set(handles.voltCh1,'Enable','off');
+        set(handles.(['startgain' tagEnd]),'Enable','off');
+        set(handles.(['volt' tagEnd]),'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+            if strcmp(handles.acquisition.channels(n,1),chName)==1
                 handles.acquisition.channels{n,6}=2;%2=CCD camera mode
             end
             end
         end
      case 3%EM_Constant mode selected
-        set(handles.startgainCh1,'Enable','on');
-        set(handles.voltCh1,'Enable','on');
+        set(handles.(['startgain' tagEnd]),'Enable','on');
+        set(handles.(['volt' tagEnd]),'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+            if strcmp(handles.acquisition.channels(n,1),chName)==1
                 handles.acquisition.channels{n,6}=value;%3=EM constant
             end
             end
@@ -3341,14 +3370,15 @@ end
 
 
 
-function startgainCh1_Callback(hObject, eventdata, handles)
+function startgainChannel_Callback(hObject, eventdata, handles)
+[chName tagEnd]=getChannel(hObject,handles);
 
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
    if nChannels~=0
       for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+           if strcmp(handles.acquisition.channels(n,1),chName)==1
                 handles.acquisition.channels{n,7}=startgain;
            end
       end
@@ -3531,7 +3561,7 @@ channel(7)=num2cell(str2double(get(handles.(startGainTag),'String')));
 channel(8)=num2cell(str2double(get(handles.(voltTag),'String')));
 
     snap(channel, handles.acquisition.microscope);
-set(handles.snapCh1,'Value',0);
+set(hObject,'Value',0);
 
 
 % --- Executes on button press in snapCh2.
@@ -3915,6 +3945,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 
@@ -3936,6 +3967,7 @@ else
             end
      end   
 end
+updateDiskSpace(handles);
    guidata(hObject, handles);
 
 
@@ -4041,6 +4073,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -4147,17 +4180,21 @@ guidata(hObject,handles);
 
 
 
-function skipCh1_Callback(hObject, eventdata, handles)
+function skipChannel_Callback(hObject, eventdata, handles)
+
+[chName tagEnd]=getChannel(hObject,handles);
+
 skip=str2double(get(hObject,'String'));   
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
-        if strcmp(handles.acquisition.channels(n,1),'DIC')==1
+        if strcmp(handles.acquisition.channels(n,1),chName)==1
         handles.acquisition.channels{n,3}=skip;
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -4185,6 +4222,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -4212,6 +4250,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4240,6 +4279,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4268,6 +4308,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4296,6 +4337,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -4324,6 +4366,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 
@@ -5040,6 +5083,7 @@ else%if this button has been deselected
        handles.acquisition.z(2)=0;
     end
 end
+updateDiskSpace(handles);
   guidata(hObject, handles);
 
 function starttpCh8_Callback(hObject, eventdata, handles)
@@ -5190,6 +5234,7 @@ else
     end
     end
 end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -5215,6 +5260,7 @@ if nChannels~=0
         end
     end
 end
+updateDiskSpace(handles);
  guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -5322,10 +5368,11 @@ end
 function changeVoltage_Callback (hObject, eventdata, handles)
 %Callback for all edit boxes changing the voltage applied across the
 %relevant LED for a channel
-tag=get(hObject,'Tag');
+
+[chanName tagEnd]=getChannel(hObject,handles);
+tag=get(hObject,'tag');
 %Find which row represents the current channel
 %cell array
-chanName=tag(5:end);%The name of the channel
 channelRow=strcmp(handles.acquisition.channels,chanName);
 channelRow=channelRow(:,1);
 %Get the old value for the voltage - can then reset if the input is not
@@ -5400,3 +5447,41 @@ function voltCh1_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of voltCh1 as text
 %        str2double(get(hObject,'String')) returns contents of voltCh1 as a double
+
+
+% --- Executes on button press in selectChannels.
+function selectChannels_Callback(hObject, eventdata, handles)
+%Code to select channels to include when there are too many valid ones to
+%fit on the screen
+
+
+% --- Executes on selection change in popupmenu20.
+function popupmenu20_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu20 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+contents = cellstr(get(hObject,'String'));
+input=contents{get(hObject,'Value')};
+
+switch input
+    case 'PIFOC'
+        handles.acquisition.z{6}='PIFOC';
+    case 'PIFOC with PFS on'
+         handles.acquisition.z{6}='PIFOC_PFSON';
+    case 'PFS'
+        
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu20_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu20 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

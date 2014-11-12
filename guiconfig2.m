@@ -6,7 +6,6 @@ global gui;
 mmc=gui.getCore;
 microscope.loadConfig;
 microscope.setInitialChannel;
-
 mmc.setConfig('Channel',microscope.InitialChannel);
 mmc.setExposure(10);
 %clear all previous acquisitions
