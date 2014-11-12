@@ -121,9 +121,14 @@ for ch=1:numChannels%loop through the channels
         else
             E=1;
         end
-        %Dummy exposure - to fix first exposure long problem
-%         dummy;
-        [stack maxvalue]=captureStack(filename,zsect,acqData.z,0,EM,E);%z stack capture
+        switch acqData.z(6)
+            case 1
+                [stack maxvalue]=captureStack(filename,zsect,acqData.z,0,EM,E);%z stack capture
+            case 2
+                [stack maxvalue]=captureStack_PFS_ON(filename,zsect, acqData.z, 0, EM, E);
+            case 3
+                [stack maxvalue]=captureStack_PFS(filename,zsect,acqData.z,0,EM,E);
+        end
 
         if strcmp(acqData.points(pos,ch+6),'double')==1%This position needs a double exposure - to monitor bleaching
             filename2=strcat(filename,'_2ndexposure');

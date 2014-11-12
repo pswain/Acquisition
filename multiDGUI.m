@@ -23,7 +23,7 @@ function varargout = multiDGUI(varargin)
 
 % Edit the above text to modify the response to help multiDGUI
 
-% Last Modified by GUIDE v2.5 29-Oct-2014 16:18:55
+% Last Modified by GUIDE v2.5 12-Nov-2014 14:32:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -77,6 +77,8 @@ handles.output = hObject;
 %3. PFS on (1 or 0 - only added on start of experiment)
 %4. anyZ (1 if any channel does z sectioning, 0 if not, only added at start of experiment
 %5. drift - the drift in the z plane, recorded during a timlapse by querying the position of the z drive after the pfs has corrected it.
+%6. method - method of z sectioning. 1. 'PIFOC' or 2. 'PIFOC_PFSON' or 3. 'PFS'
+
 
 %Timelapse settings
 %time. double array
@@ -163,7 +165,7 @@ lastSavedFilename=char(acqFilePath);
     guidata(hObject, handles);
     else%If there is no last saved acquisition initialise with defaults
         handles.acquisition.channels={};
-        handles.acquisition.z=[1 0]; 
+        handles.acquisition.z=[1 0 0 0 0 2]; 
         handles.acquisition.time=[1 300 180 54000];
         p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
         handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
@@ -171,7 +173,7 @@ lastSavedFilename=char(acqFilePath);
     end
 else%If there is no file containing the path of a last saved acquisition the initialise with defaults
 handles.acquisition.channels={};
-handles.acquisition.z=[1 0]; 
+handles.acquisition.z=[1 0 0 0 0 2]; 
 handles.acquisition.time=[1 300 180 54000];
 p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
 handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
@@ -1382,6 +1384,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
+    set(handles.zMethod,'Enable','on');
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
     handles.acquisition.z(2)=str2double(get(handles.zspacing,'String'));
     sizeChannels=size(handles.acquisition.channels);
@@ -1413,6 +1416,7 @@ else%if this button has been deselected
     if anyZ==0
        set(handles.nZsections,'Enable','off');
        set(handles.zspacing,'Enable','off');
+       set(handles.zMethod,'Enable','off');
 %        set(handles.nZsections,'String','1');
 %        set(handles.zspacing,'String','0');
        handles.acquisition.z(1)=1;
@@ -5451,3 +5455,36 @@ function voltCh1_Callback(hObject, eventdata, handles)
 function selectChannels_Callback(hObject, eventdata, handles)
 %Code to select channels to include when there are too many valid ones to
 %fit on the screen
+
+
+% --- Executes on selection change in zMethod.
+function zMethod_Callback(hObject, eventdata, handles)
+% hObject    handle to zMethod (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+contents = cellstr(get(hObject,'String'));
+input=contents{get(hObject,'Value')};
+
+switch input
+    case 'PIFOC'
+        handles.acquisition.z(6)=1;
+    case 'PIFOC with PFS on'
+         handles.acquisition.z(6)=2;
+    case 'PFS'
+         handles.acquisition.z(6)=3;
+end
+guidata(hObject,handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function zMethod_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to zMethod (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

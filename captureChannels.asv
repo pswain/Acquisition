@@ -53,9 +53,32 @@ for ch=1:numChannels%loop through the channels
         %set exposure and dye configuration (filters and LEDs)
         mmc.setExposure(expos);
         mmc.setConfig('Channel', chName);
-        pause(1);
-        mmc.waitForConfig('Channel', chName);
-        mmc.setProperty
+        mmc.waitForConfig('Channel', chName);       
+        %Set LED voltage based on information in acqData.channels
+        LED=mmc.getProperty('DTOL-Switch','State');
+
+        if ~isnumeric(LED)
+            LED=str2num(LED);
+        end
+        switch LED
+            case 1
+                dac=[];%The bright field LED cannot have its voltage adjusted - not wired to the DAC card
+            case 2%The CFP LED - adjust DAC-1
+                dac='DTOL-DAC-1';
+            case 4%The GFP/YFP LED - adjust DAC-1
+                dac='DTOL-DAC-2';
+            case 8%The mCherry/cy5/tdTomato LED - adjust DAC-1
+                dac='DTOL-DAC-3';
+        end
+        if ~isempty(dac)
+            mmc.setProperty(dac,'Volts', acqData.channels{ch,8});
+        end
+        
+        %Uncomment for taking dark field/camera noise images
+        %mmc.setProperty('EmissionFilterWheel','Label','Closed2');
+        %logstring=strcat('Emission filter wheel closed for dark field image');A=writelog(logfile,1,logstring);
+
+        
         logstring=strcat('Channel:',chName,' set at:',datestr(clock));A=writelog(logfile,1,logstring);
         logstring=strcat('Exposure time:',num2str(expos),'ms');A=writelog(logfile,1,logstring);
 
@@ -98,8 +121,12 @@ for ch=1:numChannels%loop through the channels
         else
             E=1;
         end
-        %Dummy exposure - to fix first exposure long problem
-%         dummy;
+        switch acqData.z(6)
+            case 1
+                [stack maxvalue]=captureStack(filename,zsect,acqData.z,0,EM,E);%z stack capture
+            case 2
+                [stack maxvalue]=captureStack(filename,thisZ, zinfo, offset, EM, E)
+            case 3
         [stack maxvalue]=captureStack(filename,zsect,acqData.z,0,EM,E);%z stack capture
 
         if strcmp(acqData.points(pos,ch+6),'double')==1%This position needs a double exposure - to monitor bleaching
