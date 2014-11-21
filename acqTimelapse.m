@@ -2,6 +2,12 @@ function []=acqTimelapse(acqData,logfile,exptFolder,posDirectories)
 global mmc;
 tic%start of timer - toc statement will give time since this tic
 
+%Warn if the PFS isn't on
+if ~strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked');
+    errordlg('Warning ... THE PFS IS OFF!!!!!!');
+end
+
+
 acqData.logtext=1;
 logstring=strcat('Experiment started at: ',datestr(clock));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
 
