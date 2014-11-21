@@ -23,7 +23,7 @@ function varargout = multiDGUI(varargin)
 
 % Edit the above text to modify the response to help multiDGUI
 
-% Last Modified by GUIDE v2.5 12-Nov-2014 14:32:01
+% Last Modified by GUIDE v2.5 21-Nov-2014 12:49:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1424,7 +1424,7 @@ else%if this button has been deselected
     end
 end
 updateDiskSpace(handles);
-  guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes on button press in ZsectCh3.
@@ -2106,6 +2106,7 @@ for ch=1:numChannels
 handles.acquisition.points(nPoints+1,6+ch)={num2str(cell2mat(handles.acquisition.channels(ch,2)))};%this has to be a string - will allow entries other than numbers - eg 'double' for a double exposure to test bleaching
 end
 set (handles.pointsTable,'Data',handles.acquisition.points);%update the table
+updateDiskSpace(handles);
 guidata(hObject, handles);
 
 
@@ -2243,6 +2244,7 @@ function deletePoint_Callback(hObject, eventdata, handles)
     set (handles.pointsTable,'Data',handles.acquisition.points);%update the table
     guidata(hObject, handles);
    end
+   updateDiskSpace(handles);
 guidata(hObject, handles);
 % --- Executes on button press in clearList.
 function clearList_Callback(hObject, eventdata, handles)
@@ -2253,7 +2255,9 @@ function clearList_Callback(hObject, eventdata, handles)
       handles.acquisition.points={};
 set (handles.pointsTable,'Data',handles.acquisition.points);%update the table
      case 'No',
-         end % switch
+   end % switch
+updateDiskSpace(handles);
+
 guidata(hObject, handles);
 
 
@@ -2306,6 +2310,8 @@ exptFolder=char(handles.acquisition.info{3});
 handles.acquisition.points=loadList(strcat(pathname,filename));
 set(handles.pointsTable,'Enable','On');
 set(handles.pointsTable,'Data',handles.acquisition.points);
+updateDiskSpace(handles);
+
 guidata(hObject, handles);
 
 % --- Executes when selected cell(s) is changed in pointsTable.
@@ -4593,7 +4599,7 @@ answers=inputdlg({'Number of rows (y)','Number of columns(x)','Space between row
 set(handles.pointsTable,'Data',tiles);
 handles.acquisition.points=tiles;
 set(handles.pointsTable,'Enable','on');%Make sure the table is activated (won't be if this is the first point to be defined)
-
+updateDiskSpace(handles);
 guidata(hObject,handles);
 
 
@@ -5488,3 +5494,18 @@ function zMethod_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in refreshDiskSpace.
+function refreshDiskSpace_Callback(hObject, eventdata, handles)
+% hObject    handle to refreshDiskSpace (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.freeDisk=checkDiskSpace;
+set(handles.GbFree,'String',num2str(handles.freeDisk));
+updateDiskSpace(handles);
+guidata(hObject,handles);
+
+
+
+

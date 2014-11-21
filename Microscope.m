@@ -31,7 +31,7 @@ classdef Microscope
                 %Batman
                 obj.Name='Batman';      
                 obj.nameImage=imread('Batman.jpg');
-                obj.Config='C:\Micromanager config files\MMConfig_2_pHluorin.cfg';
+                obj.Config='C:\Micromanager config files\MMConfig_NOFILTERWHEEL2.cfg';
                 obj.InitialChannel='DIC';
             else
                obj.Name='Demo';
@@ -165,9 +165,14 @@ classdef Microscope
                %Get the filter configurations for the current config file
                try
                    obj=obj.getFilters;
-                   for ch=1:numChannels
+                   for ch=1:min(numChannels,8)
                        chName=get(handles.(['useCh' num2str(ch)]),'String');
-                       filterConfig=obj.Filters.chName;
+                       filterConfig=obj.Filters.(chName);
+                       %Convert to a string
+                       res = cellfun(@(x) [x '. '], filterConfig, 'UniformOutput', false);
+                       res = cell2mat(res');
+                       res(end-1:end) = [];
+                       filterConfig=res;                     
                        set(handles.(['useCh' num2str(ch)]),'TooltipString',filterConfig);
                        obj.Channels(ch).name=chName;
                        obj.Channels(ch).config=filterConfig;

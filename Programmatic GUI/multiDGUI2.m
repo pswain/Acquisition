@@ -1,6 +1,6 @@
 function handles=multiDGUI2
 
-handles.gui=figure('Units','normalized','Position',[0.1    0.8    0.75    0.75]);
+handles.gui=figure('Units','normalized','Position',[0.1    0.2    0.75    0.75]);
 
 %Set the panels
 handles.experimentPanel=uipanel('Parent',handles.gui,'Title','Experiment','Position',[.019 .881 .967 .104],'FontWeight','Bold','FontSize',16);
@@ -144,6 +144,7 @@ handles.GbFree=uicontrol('Style','text','Parent',handles.timePanel,'Units','Norm
 handles.text55=uicontrol('Style','text','Parent',handles.timePanel,'Units','Normalized','Position',[.044 .187 .41 .057],'String','Free space (Gb)');
 handles.text56=uicontrol('Style','text','Parent',handles.timePanel,'Units','Normalized','Position',[.493 .187 .41 .057],'String','Space needed (Gb)');
 handles.GbReqd=uicontrol('Style','text','Parent',handles.timePanel,'Units','Normalized','Position',[.58 0.05 .254 .107],'String','Space needed','FontSize',12,'HorizontalAlignment','Left','FontWeight','Bold');
+handles.refreshDisk=uicontrol('Tag','useCh1','Style','pushbutton','Parent',handles.timePanel,'Units','Normalized','Position',[.5 .86 .4 .08],'String','Refresh free space','Callback',@(hObject,eventdata)multiDGUI('refreshDisk_Callback',hObject,eventdata,guidata(hObject)));
 
 
 
