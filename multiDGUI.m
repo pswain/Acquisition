@@ -4445,6 +4445,8 @@ if strcmp(answer,'Add a new project')
 else
     %The user has selected an existing project
     handles.acquisition.omero.project=answer;
+    set(handles.Project,'String',answer);
+
 end
 
 guidata(hObject, handles);
