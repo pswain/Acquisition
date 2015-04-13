@@ -35,7 +35,7 @@ img=mmc.getImage;
 width=mmc.getImageWidth; 
 height=mmc.getImageHeight; 
 img2=typecast(img,'uint16'); 
-image=reshape(img2,[height,width]);
+image=reshape(img2,[width,height]);
 %Process the image if it was read from the EM port
 %Flip vertically
 %Work out the saturation value

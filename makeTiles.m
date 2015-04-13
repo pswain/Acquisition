@@ -14,42 +14,43 @@ end
 set(handles.pointsTable,'ColumnName',headings);
 set(handles.pointsTable,'ColumnEditable',editable);
 number=0;
+%Get the starting X and Y positions from the microscope equipment
+[startX, startY, startZ, AF]=handles.acquisition.microscope.definePoint;
 global mmc;
-startX=mmc.getXPosition('XYStage');
-startY=mmc.getYPosition('XYStage');
 pause(.01);
 
-%If the PFS is on then we can determine and correct for any slope of the
+%If an autofocus device is on then we can determine and correct for any slope of the
 %cover slip
-if strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked')
+afStatus=handles.acquisition.microscope.getAutofocusStatus;
+if afStatus
    disp('Measuring sample slope');
    %Move the stage 100um to the right. If there's a slope then the PFS will
    %correct it - then read the z drive value to determine slope
-   startZ=mmc.getPosition('TIZDrive')
+
    %First any slope in X
-   mmc.setRelativeXYPosition('XYStage',100,0);
+   mmc.setRelativeXYPosition(handles.acquisition.microscope.XYStage,100,0);
    %Wait for the pfs to finish focusing
    status='Focusing';
    while ~strcmp(status,'Locked')
-      status=mmc.getProperty('TIPFSStatus','Status');
+      status=handles.acquisition.microscope.Autofocus.getStatus;
       pause (0.1);
    end
    pause (0.4);
 
-   newZ_x=mmc.getPosition('TIZDrive');
+   newZ_x=mmc.getPosition(handles.acquisition.microscope.ZStage);
    xSlope=newZ_x-startZ;
    %Then slope in Y
-   mmc.setRelativeXYPosition('XYStage',0,100);
+   mmc.setRelativeXYPosition(handles.acquisition.microscope.XYStage,0,100);
    status='Focusing';
    while ~strcmp(status,'Locked')
-      status=mmc.getProperty('TIPFSStatus','Status');
+      status=handles.acquisition.microscope.Autofocus.getStatus;
       pause (0.1);
    end
    pause (0.4);
-   newZ_y=mmc.getPosition('TIZDrive');
+   newZ_y=mmc.getPosition(handles.acquisition.microscope.ZStage);
    ySlope=newZ_y-newZ_x;
    %Return stage to original position
-   mmc.setRelativeXYPosition('XYStage',-100,-100);
+   mmc.setRelativeXYPosition(handles.acquisition.microscope.XYStage,-100,-100);
    while strcmp(status,'Focusing')
       status=mmc.getProperty('TIPFSStatus','Status');
       pause (0.1);
@@ -58,7 +59,7 @@ if strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked')
    disp(['Sample slopes by ' num2str(ySlope) 'microns per 100um movement in y']);
    disp(['Slope will be corrected when determining tiled positions']);
 else
-    disp('No correction for any sample slope - PFS is not on and locked');
+    disp('No correction for any sample slope - Autofocus device not on and locked');
     ySlope=0;
     xSlope=0;
 end
@@ -67,7 +68,6 @@ end
 xSlope=xSlope/100
 ySlope=ySlope/100
 
-startZ=mmc.getPosition('TIZDrive')
 for row=1:nRows
     for col=1:nColumns
         %Generate a default name and make sure this name hasn't already been taken
@@ -83,7 +83,7 @@ for row=1:nRows
         yDistance=(row-1)*rowSpacing;
         zDisplacementY=yDistance*ySlope;      
         tiles{number,4}=startZ+zDisplacementX+zDisplacementY;
-        tiles{number,5}=mmc.getPosition('TIPFSOffset');
+        tiles{number,5}=handles.acquisition.microscope.Autofocus.getOffset;
         tiles{number,6}=number;
         
         %The first 6 columns of the points table have been defined. The remaining

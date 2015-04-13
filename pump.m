@@ -61,7 +61,9 @@ classdef pump
            %valid, open text file. Used, eg., for writing details to a
            %microscope experiment Acq file.
            fprintf(file,'\r\n');
-           fprintf(file,[obj.pumpName ':,' num2str(obj.diameter) ','  num2str(obj.currentRate) ',' obj.direction ',' num2str(obj.running) ',' obj.contents]);         
+           fprintf(file,[obj.pumpName ':,' num2str(obj.diameter) ','  num2str(obj.currentRate) ',' obj.direction ',' num2str(obj.running) ',' obj.contents]); 
+           fprintf(file,'\r\n');
+
        end
        
        function loadPumpDetails(obj,file)

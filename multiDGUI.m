@@ -121,6 +121,10 @@ handles.output = hObject;
 %Column 4 - Experiment description/aims
 %Column 5 - object of class switches
 
+%Image size
+%.imagesize
+%2 element array. [height width]
+
 %Add necessary folders to path
 addpath(genpath('C:\AcquisitionData\Swain Lab\OmeroCode'));
 addpath(['.' filesep 'transitionGUI']);
@@ -193,15 +197,15 @@ users=[swain tyers millar];
 
 %Initialize the Omero projects and tags lists
 if ismac
-   addpath(genpath('/Volumes/AcquisitionData2/Swain Lab/OmeroCode'));
-   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfoSkye.mat');
-   addpath('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\OmeroCode');
+   addpath(genpath('/Volumes/AcquisitionData/Swain Lab/OmeroCode'));
+   load('/Volumes/AcquisitionData/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfoSkye.mat');
+   addpath('\\SCE-BIO-C02471\AcquisitionData\Swain Lab\OmeroCode');
    macMMPath;
 else
     [idum,hostname]= system('hostname');
     if strcmp(hostname(1:end-1),'SCE-BIO-C03727')
-        addpath(genpath('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\OmeroCode'));
-        load('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
+        addpath(genpath('\\SCE-BIO-C03982\AcquisitionData\Omero code master copy'));
+        load('\\SCE-BIO-C03982\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
     else
         load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
     end
@@ -1124,8 +1128,14 @@ if get(hObject,'Value')==1
    set(handles.(['Zsect' tagEnd]),'Enable','on');
    set(handles.(['starttp' tagEnd]),'Enable','on');
    set(handles.(['snap' tagEnd]),'Enable','on');
-   set(handles.(['cammode' tagEnd]),'Enable','on');
    set(handles.(['skip' tagEnd]),'Enable','on');
+
+   switch handles.acquisition.microscope.Name
+       case 'Batman'
+           set(handles.(['cammode' tagEnd]),'Enable','on');
+
+       case 'Robin'
+   end
    %camera settings - enable controls
    set(handles.(['cammode' tagEnd]),'Enable','on');%%%%%
    if get(handles.(['cammode' tagEnd]),'Value')==1%channel set to camera EM mode
@@ -1384,7 +1394,11 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
                           %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
-    set(handles.zMethod,'Enable','on');
+    switch handles.acquisition.microscope.Name
+        case 'Batman'
+            set(handles.zMethod,'Enable','on');
+        case 'Robin'
+    end
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
     handles.acquisition.z(2)=str2double(get(handles.zspacing,'String'));
     sizeChannels=size(handles.acquisition.channels);
@@ -2096,7 +2110,7 @@ while nameOK==0
     end
 end
 
-[x y z PFS]=definePoint;%call to function that gets position data from scope
+[x y z PFS]=handles.acquisition.microscope.definePoint;%call to function that gets position data from scope
 handles.acquisition.points((nPoints+1),1:6)={defName,x,y,z,PFS,group};%add data to acquisition data
 %The first 6 columns of the points table have been defined. The remaining
 %columns are exposure times, one for each channel. Need the channels
@@ -2277,23 +2291,25 @@ if nSelected==1
     z=table{row,4};
     pfs=table{row,5};
     %Is the PFS on
-    pfsOn=strcmp('Locked',mmc.getProperty('TIPFSStatus','Status'));
+    pfsOn=handles.acquisition.microscope.autofocus.isLocked;
     %if so switch it off for xy stage movement
     if pfsOn==1
-        mmc.setProperty('TIPFSStatus','State','Off');
-        pause (0.4);
+        handles.acquisition.microscope.autofocus.switchOff;
     end
+    %Prevent user interaction while things are moving
+    uiwait(gcf);
     %move the stage
     mmc.setXYPosition('XYStage',x,y);
     mmc.waitForDevice('XYStage');
     %move Z position to set value
-    mmc.setPosition('TIZDrive',z);
-    pause(0.4);
+    handles.acquisition.microscope.setZ(z);
+    %Switch autofocus device back on if in use
     if pfsOn==1
-        mmc.setProperty('TIPFSStatus','State','On');
-        pause (0.4);
-        mmc.setPosition('TIPFSOffset',pfs);
+        handles.acquisition.microscope.Autofocus.switchOn;
+        handles.acquisition.microscope.Autofocus.setOffset(pfs);
     end
+    uiresume(gcbf);
+    
 else
     errordlg('Please select one point to visit','Visit point');
 end
@@ -3002,7 +3018,10 @@ camera;
 % --- Executes on button press in loadConfig.
 function loadConfig_Callback(hObject, eventdata, handles)
 guiconfig2(handles.acquisition.microscope);
-handles.acquisition.microscope.setGUI(handles);
+handles=handles.acquisition.microscope.setGUI(handles);
+binOptions=get(handles.bin,'String');
+bin=binOptions{get(handles.bin,'Value')};
+handles.acquisition.microscope.setBin(bin);
 set(handles.eye,'Enable','on');
 set(handles.camera,'Enable','on');
 set(handles.EM,'Enable','on');
@@ -4577,8 +4596,8 @@ set(handles.pointsTable,'Enable','on');%Make sure the table is activated (won't 
 
 correctLens=false;
 while ~correctLens
-    lens=inputdlg('Enter lens magnification (10, 60 or 100):','Tile creation: enter magnification',1,{'60'});
-    if any(strcmp(lens{:},{'60','100','10'}));
+    lens=inputdlg('Enter lens magnification (10, 40 (Robin only), 60 or 100):','Tile creation: enter magnification',1,{'60'});
+    if any(strcmp(lens{:},{'40', '60','100','10'}));
         correctLens=true;
     end
 end
@@ -4587,6 +4606,9 @@ switch lens{:}
     case '10'
         defaults{3}='824';
         defaults{4}='824';
+    case '40'
+        defaults{3}='220';
+        defaults{4}='167';
     case '60'
         defaults{3}='137';
         defaults{4}='137';
@@ -4814,7 +4836,7 @@ while nameOK==0
     end
 end
 
-[x y z PFS]=definePoint;%call to function that gets position data from scope
+[x y z PFS]=handles.acquisition.microscope.definePoint;%call to function that gets position data from scope
 handles.acquisition.points((nPoints+1),1:6)={defName,x,y,z,PFS,group};%add data to acquisition data
 %The first 6 columns of the points table have been defined. The remaining
 %columns are exposure times, one for each channel. Need the channels
@@ -5435,14 +5457,17 @@ function liveDIC_Callback(hObject, eventdata, handles)
 
 global gui;
 global mmc;
-mmc.setProperty('Evolve','Port','Normal');
+switch handles.acquisition.microscope.Name
+    case 'Batman'
+        mmc.setProperty('Evolve','Port','Normal');
+end
 if gui.isLiveModeOn
 gui.enableLiveMode(0);
 set(handles.liveDIC,'String','Live');
 set(handles.live,'BackgroundColor',[.15 0.23 0.37]);
 else
-mmc.setConfig('Channel', 'DIC');
-mmc.waitForConfig('Channel', 'DIC');
+mmc.setConfig('Channel', handles.acquisition.microscope.InitialChannel);
+mmc.waitForConfig('Channel', handles.acquisition.microscope.InitialChannel);
 gui.enableLiveMode(1);
 set(handles.live,'String','Stop Live');
 set(handles.liveDIC,'BackgroundColor',[0.2 .9 0.2]);

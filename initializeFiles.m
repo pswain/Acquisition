@@ -40,6 +40,8 @@ fprintf(logFile,'\r\n');
 today=date;
 fprintf(logFile,'%s',today);
 fprintf(logFile,'\r\n');
+fprintf(logFile,'%s',['Microscope name is: ' acqData.microscope.Name]);
+fprintf(logFile,'\r\n');
 fprintf(logFile,'%s','Acquisition settings are saved in:');
 fprintf(logFile,'\r\n');
 acqName=acqData.info(1);

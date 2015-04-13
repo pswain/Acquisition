@@ -24,11 +24,12 @@
 %returnData.images - 3d array - has an image for display (from middle of the stack if a stack) for each channel
 
 function [returnData]=captureChannels(acqData,logfile,folder,pos,t,CHsets)
+
 global mmc;
 numChannels=size(acqData.channels,1);
-returnData.images=zeros(numChannels,512,512);%(up to) 3d array holding the captured data
+returnData.images=zeros(numChannels,acqData.imagesize(1),acqData.imagesize(2));%(up to) 3d array holding the captured data
 returnData.max=zeros(numChannels,1);
-EMgain=str2double(mmc.getProperty('Evolve','MultiplierGain'));
+EMgain=acqData.microscope.getEMGain;
 expName=char(acqData.info(1));
 groupid=cell2mat(acqData.points(pos,6));%gives the group number
 groups=[acqData.points{:,6}];%the list of groups
@@ -55,24 +56,28 @@ for ch=1:numChannels%loop through the channels
         mmc.setConfig('Channel', chName);
         mmc.waitForConfig('Channel', chName);       
         %Set LED voltage based on information in acqData.channels
-        LED=mmc.getProperty('DTOL-Switch','State');
+        acqData.microscope.setLEDVoltage(acqData.channels{ch,8});
 
-        if ~isnumeric(LED)
-            LED=str2num(LED);
-        end
-        switch LED
-            case 1
-                dac=[];%The bright field LED cannot have its voltage adjusted - not wired to the DAC card
-            case 2%The CFP LED - adjust DAC-1
-                dac='DTOL-DAC-1';
-            case 4%The GFP/YFP LED - adjust DAC-1
-                dac='DTOL-DAC-2';
-            case 8%The mCherry/cy5/tdTomato LED - adjust DAC-1
-                dac='DTOL-DAC-3';
-        end
-        if ~isempty(dac)
-            mmc.setProperty(dac,'Volts', acqData.channels{ch,8});
-        end
+        
+%         LED=acqData.microscope.getLED;
+%         if ~isnumeric(LED)
+%             LED=str2num(LED);
+%         end
+%         switch LED
+%             case 0
+%                 dac=[];%A microscope is connected in which LED voltages can't be adjusted (eg Robin)
+%             case 1
+%                 dac=[];%The bright field LED cannot have its voltage adjusted - not wired to the DAC card
+%             case 2%The CFP LED - adjust DAC-1
+%                 dac='DTOL-DAC-1';
+%             case 4%The GFP/YFP LED - adjust DAC-1
+%                 dac='DTOL-DAC-2';
+%             case 8%The mCherry/cy5/tdTomato LED - adjust DAC-1
+%                 dac='DTOL-DAC-3';
+%         end
+%         if ~isempty(dac)
+%             mmc.setProperty(dac,'Volts', acqData.channels{ch,8});
+%         end
         
         %Uncomment for taking dark field/camera noise images
         %mmc.setProperty('EmissionFilterWheel','Label','Closed2');
@@ -85,28 +90,9 @@ for ch=1:numChannels%loop through the channels
         %set the camera read mode - based on the information in CHsets.
         %Don't set if the port is already right - setting the port makes
         %the next LED exposure (not camera exposure) longer.
-
-        port=mmc.getProperty('Evolve','Port');
-        if cell2mat(acqData.channels(ch,6))==2%if this channel uses the normal (CCD) port
-            if strcmp(port,'Normal')~=1%set port to normal if it's not set already
-                mmc.setProperty('Evolve','Port','Normal');
-                logstring=strcat('Camera port changed to normal:',datestr(clock));A=writelog(logfile,1,logstring);
-            end
-        else%if this channel doesn't use the normal port
-            if strcmp(port,'EM')~=1%if it isn't EM already then set port to EM 
-                mmc.setProperty('Evolve','Port','Multiplication Gain');
-                logstring=strcat('Camera port changed to EM:',datestr(clock));A=writelog(logfile,1,logstring);
-            end
-
-            %EM camera mode only - do camera settings need to be changed?
-            if CHsets.values(ch,1,gp)~=EMgain %check if gain for this channel needs to be changed
-               %change the camera settings here - if altering E don't forget to multiply the data by this number. 
-               mmc.setProperty('Evolve','MultiplierGain',num2str(CHsets.values(ch,1,gp)));
-               logstring=strcat('EM gain changed to:',num2str(CHsets.values(ch,1,gp)),datestr(clock));A=writelog(logfile,1,logstring);
-               EMgain=CHsets.values(ch,1,gp);
-
-            end
-        end
+        
+        acqData.microscope.setPort(acqData.channels(ch,:),CHsets);
+        
 
 
         %does this channel do z sectioning?
@@ -121,28 +107,23 @@ for ch=1:numChannels%loop through the channels
         else
             E=1;
         end
-        switch acqData.z(6)
-            case 1
-                [stack maxvalue]=captureStack(filename,zsect,acqData.z,0,EM,E);%z stack capture
-            case 2
-                [stack maxvalue]=captureStack_PFS_ON(filename,zsect, acqData.z, 0, EM, E);
-            case 3
-                [stack maxvalue]=captureStack_PFS(filename,zsect,acqData.z,0,EM,E);
-        end
+        
+        [resultStack,maxValue]=acqData.microscope.captureStack(filename,zsect,acqData.z,0,EM,E,acqData.imagesize(1),acqData.imagesize(2));
+        
 
         if strcmp(acqData.points(pos,ch+6),'double')==1%This position needs a double exposure - to monitor bleaching
             filename2=strcat(filename,'_2ndexposure');
-            [stack maxvalue]=captureStack(filename2,zsect,acqData.z,0,EM,E);%z stack capture
+            [resultStack maxValue]=acqData.microscope.captureStack(filename2,zsect,acqData.z,0,EM,E,acqData.imagesize(1),acqData.imagesize(2));%z stack capture
         end
 
         %assign data to the positionData array - gets returned to calling program
-        if size(stack,3)==1
-            returnData.images(ch,:,:)=stack;
+        if size(resultStack,3)==1
+            returnData.images(ch,:,:)=resultStack;
         else
             midsection=floor(acqData.z(1)/2);
-            returnData.images(ch,:,:)=stack(512,512,midsection);
+            returnData.images(ch,:,:)=resultStack(acqData.imagesize(1),acqData.imagesize(2),midsection);
         end
-        returnData.max(ch)=maxvalue;%the maximum recorded value for each channel (before applying any corrections based on E)
+        returnData.max(ch)=maxValue;%the maximum recorded value for each channel (before applying any corrections based on E)
 
         end%end of if statement - exposure time zero or not
     else %this time point is to be skipped

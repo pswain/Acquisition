@@ -1,5 +1,5 @@
 %Decides root folder to save files in based on name of user
-function [root name]=makeRoot(name)
+function [root name]=makeRoot(name,microscope)
 today=date;
 if isempty(name)
     name='Ivan';
@@ -32,18 +32,18 @@ isSwain=any(testSwain);
 isTyers=any(testTyers);
 isMillar=any(testMillar);
 if isSwain==1
-lab='C:/AcquisitionData/Swain Lab/';
+    lab=[microscope.DataPath filesep 'Swain Lab/'];
 stringtoadd='/RAW DATA/';
 end
 
 if isMillar==1
-lab='C:/AcquisitionData/Millar Lab/';
-stringtoadd='/RAW DATA/';
+    lab=[microscope.DataPath filesep 'Millar/'];
+    stringtoadd='/RAW DATA/';
 end
 
 if isTyers==1
-lab='C:/AcquisitionData/Tyers Lab/';
-stringtoadd='/RAW DATA/';
+    lab=[microscope.DataPath filesep 'Tyers Lab/'];
+    stringtoadd='/RAW DATA/';
 end
 
 root=strcat(lab,name,stringtoadd,today(8:11),'/',today(4:6),'/', date);

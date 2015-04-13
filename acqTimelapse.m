@@ -2,10 +2,11 @@ function []=acqTimelapse(acqData,logfile,exptFolder,posDirectories)
 global mmc;
 tic%start of timer - toc statement will give time since this tic
 
-%Warn if the PFS isn't on
-if ~strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked');
-    errordlg('Warning ... THE PFS IS OFF!!!!!!');
+%Warn if autofocus device isn't on
+if acqData.time(1)==1
+    acqData.microscope.Autofocus.timelapseWarning;
 end
+
 
 
 acqData.logtext=1;
@@ -25,10 +26,10 @@ numPositions=size(acqData.points,1);%number of positions to visit - will be zero
 %If only one position is defined then go there before starting the
 %timepoint loop - then no need to revisit
  if numPositions==1
-     visitXY(logfile,acqData.points(1,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
+     handles.acquisition.microscope.visitXY(logfile,acqData.points(1,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
      startingZ=visitZ(logfile,acqData.z,acqData.logtext,acqData.points(1,:));
      if acqData.z(3)==1;
-        mmc.setProperty('TIPFSStatus','State','On');
+        acqData.Microscope.Autofocus.switchOn;
      end
  end
  
@@ -37,7 +38,7 @@ numChannels=size(acqData.channels,1);
 if numPositions==0
     %need to define a position here - so that the measured z drift can be
     %corrected for by moving the z drive
-    [x y z PFS]=definePoint;%call to function that gets position data from scope
+    [x y z PFS]=acqData.microscope.definePoint;%call to function that gets position data from scope
     acqData.points(1,1:6)={'pos1',x,y,z,PFS,1};%add data to acquisition data
     numChannels=size(acqData.channels,1);
     for ch=1:numChannels
@@ -124,7 +125,7 @@ for ch=1:numChannels
 end
 
 %Initialise timepoint image array for display
-timepointData=zeros(numPositions,numChannels,512,512);%WOULD NEED TO ALTER SIZE OF IMAGE HERE IF A CAMERA WITH DIFFERENT RESOLUTION IS USED
+timepointData=zeros(numPositions,numChannels,acqData.imagesize(1),acqData.imagesize(2));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -137,11 +138,6 @@ for t=1:numTimepoints%start of timepoint loop.
     startOfTimepoint=toc;
     endOfTimepoint=(startOfTimepoint+interval);
     disp(strcat('Start of timepoint:',num2str(t)));
-    
-   
-   %OT GROWTH EXPERIMENT
-   %LEDoff;
-       
     
    maxgroups=zeros(numGroups,numChannels);
    %loop through the positions
@@ -164,7 +160,7 @@ for t=1:numTimepoints%start of timepoint loop.
        gp=find(groups)==groupid;%gp is the (logical) index to the entry for this group in CHsets
        logstring=strcat('Position:',num2str(pos),', ',char(acqData.points(pos,1)));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
        logstring=strcat('Position group:',num2str(groupid)); acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-       %PFS handling is simpler if there's only one position and no
+       %Autofocus handling is simpler if there's only one position and no
        %z-sectioning -check if this is the case
        if numPositions==1 && acqData.z(4)==0;%1 position, no z sectioning
            single=1;
@@ -173,7 +169,7 @@ for t=1:numTimepoints%start of timepoint loop.
        end
        if acqData.z(3)==1 && single==0
            %using the PFS and things are moving (either in z or xy) - need to switch it off for capture - therefore need to correct for drift
-           visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
+           handles.acquisition.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
            if acqData.z(4)~=0% == 1 if any channel does z sectioning.
                %Call correct drift with the z position of this point as
                %the input reference position - will calculate drift
@@ -181,14 +177,14 @@ for t=1:numTimepoints%start of timepoint loop.
                %marked.
                if acqData.z(6)==1
                    logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-                   acqData.z(5)=correctDrift(logfile,acqData.points(pos,4),acqData.z(5),acqData.points(pos,5));
+                   handles.acquisition.microscope=handles.acquisition.microscope.correctDrift(logfile,acqData.points(pos,4),acqData.points(pos,5));
                    %
                    %
                    %CALL TO VISITZ ADDED HERE
                    %startingZ=visitZ(logfile,acqData.z,acqData.points(pos,:)); % This has been (re)added 4_4_14 - needs to be tested
                    %
                    %               
-                   mmc.setProperty('TIPFSStatus','State','Off');
+                   handles.acquisition.microscope.Autofocus.switchOff;
                    pause(0.4);%Gives it time to switch off - is pretty slow
                end
                %Does any channel at this position do z sectioning?
@@ -218,7 +214,7 @@ for t=1:numTimepoints%start of timepoint loop.
            %can stay on all the time and do all the drift
            %correcting itself.
            logstring=strcat('Single position and Z section. No call to correctDrift');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-           visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
+           acqData.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
            
            if acqData.z(4)~=0%anyZ = 1 if any channel does z sectioning.
                %At least one channel does z sectioning.
@@ -376,9 +372,7 @@ for t=1:numTimepoints%start of timepoint loop.
    currTime=toc;
    logstring=strcat('Timepoint: ',num2str(t),' completed at:',datestr(clock));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
    logstring=strcat('Time since start of timelapse: ',num2str(currTime));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-   %logstring=strcat('Flowing medium:',flowing);acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-   status=mmc.getProperty('TIPFSStatus', 'Status');
-   logstring=strcat('TIPFS status:',char(status));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+   [~]=acqData.microscope.getAutofocusStatus(logfile);%This method will write the status to the logfile
    
    clear timepointData;
    %Timer while statement to wait for the correct time to start the

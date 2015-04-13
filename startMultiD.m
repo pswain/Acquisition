@@ -82,8 +82,6 @@ addpath(['.' filesep 'transitionGUI']);
 handles.acquisition.microscope=Microscope;
 
 
-
-
  
 %Show warning if running from the shared, public folder
 if strcmp(pwd,'C:\Users\Public\Microscope Control');
@@ -98,7 +96,7 @@ set(handles.GbFree,'String',num2str(handles.freeDisk));
 %settings from that. Points are not loaded.
 %First get the file name of the last saved acquisition:
 user=getenv('USERNAME');
-[root user]=makeRoot(user);%this provides a root directory based on the name and date
+[root user]=makeRoot(user, handles.acquisition.microscope);%this provides a root directory based on the name and date
 handles.acquisition.info={'exp' user root 'Aim:   Strain:  Comments:'};%Initialise the experimental info - exp name and details may be altered later when refreshGUI is called but root and user stay the same
 lastSavedPath=strcat('C:\Documents and Settings\All Users\multiDGUIfiles\',user,'lastSaved.txt');
 if exist (lastSavedPath,'file')==2
@@ -118,23 +116,34 @@ lastSavedFilename=char(acqFilePath);
         handles.acquisition.channels={};
         handles.acquisition.z=[1 0 0 0 0 2]; 
         handles.acquisition.time=[1 300 180 54000];
-        p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
+        p1=pump(handles.acquisition.microscope.pumpComs(1).com,handles.acquisition.microscope.pumpComs(1).baud);p2=pump(handles.acquisition.microscope.pumpComs(2).com,handles.acquisition.microscope.pumpComs(2).baud);
         handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
         %info entry is already initialised above
     end
 else%If there is no file containing the path of a last saved acquisition the initialise with defaults
 handles.acquisition.channels={};
 handles.acquisition.z=[1 0 0 0 0 2]; 
-handles.acquisition.time=[1 300 180 54000];
-p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
+handles.acquisition.time=[0 300 180 54000];
+p1=pump(handles.acquisition.microscope.pumpComs(1).com,handles.acquisition.microscope.pumpComs(1).baud);p2=pump(handles.acquisition.microscope.pumpComs(2).com,handles.acquisition.microscope.pumpComs(2).baud);
 handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
 %info entry is already initialised above
 end
 set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
-
+%Open serial ports of the pumps
+for i=1:length(handles.acquisition.flow{5}.pumps)
+    %fopen(handles.acquisition.flow{5}.pumps{i}.serial);
+end
 %Initialise the list of points. This is not retrieved from the last saved
 %acquisition
 handles.acquisition.points={};
+
+%Make sure micromanager files are on the path
+if ismac
+   macMMPath;
+else
+   pcMMPath;
+end
+
 
 %Initialise the user list - only need to edit the getUsers.m function when
 %a new user is added
@@ -142,20 +151,10 @@ handles.acquisition.points={};
 users=[swain tyers millar];
 
 %Initialize the Omero projects and tags lists
-if ismac
-   addpath(genpath('/Volumes/AcquisitionData2/Swain Lab/OmeroCode'));
-   load('/Volumes/AcquisitionData2/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfoSkye.mat');
-   addpath('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\OmeroCode');
-   macMMPath;
-else
-    [idum,hostname]= system('hostname');
-    if strcmp(hostname(1:end-1),'SCE-BIO-C03727')
-        addpath(genpath('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\OmeroCode'));
-        load('\\SCE-BIO-C02471\AcquisitionData2\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
-    else
-        load('C:\AcquisitionData\Swain Lab\Ivan\software in progress\omeroinfo_donottouch\dbInfoSkye.mat');
-    end
-end
+%First get Omero info and set path
+addpath(genpath(handles.acquisition.microscope.OmeroCodePath));
+load([handles.acquisition.microscope.OmeroInfoPath 'dbInfoSkye.mat']);
+
 handles.aquisition.omero=struct('project',{}, 'tags',{}, 'object',{});
 handles.acquisition.omero.object=obj2;
 
@@ -249,6 +248,9 @@ if isthereagui~=1
         %software to run - this only because I have so far failed to start
         %the gui from a mac
         gui=DemoGUI;
+    else
+        disp('Initializing micromanager path for pc');
+        pcMMPath;
     end
  guiconfig;
 end

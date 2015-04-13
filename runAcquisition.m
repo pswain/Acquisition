@@ -7,22 +7,13 @@ global mmc;
 
 
     %Microscope initialization script
-    initializeScope;
+    acqData.microscope.Initialize;
 
     %Is the PFS on - affects a lot of the z sectioning processes later on - add
     %this info to acqData and record initial (reference) position of the Z
     %drive
-
-    if strcmp('Locked',mmc.getProperty('TIPFSStatus','Status'))==1
-        acqData.z(3)=1;
-        fprintf(logfile,'%s','PFS is locked');
-        fprintf(logfile,'\r\n');
-    else
-        acqData.z(3)=0;
-        status=mmc.getProperty('TIPFSStatus','Status');
-        fprintf(logfile,'%s',strcat('PFS status:',char(status),'- will not be used'));
-        fprintf(logfile,'\r\n');
-    end
+    acqData.z(3)=acqData.microscope.getAutofocusStatus(logfile);
+   
 
     %Do any channels do z sectioning - affects a lot of how things run so
     %recorded now to make it easier to keep track
