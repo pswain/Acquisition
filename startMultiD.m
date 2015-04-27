@@ -131,7 +131,11 @@ end
 set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
 %Open serial ports of the pumps
 for i=1:length(handles.acquisition.flow{5}.pumps)
+<<<<<<< HEAD
     fopen(handles.acquisition.flow{5}.pumps{i}.serial);
+=======
+    %fopen(handles.acquisition.flow{5}.pumps{i}.serial);
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38
 end
 %Initialise the list of points. This is not retrieved from the last saved
 %acquisition

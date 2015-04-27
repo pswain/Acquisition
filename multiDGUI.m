@@ -1,5 +1,8 @@
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38
 function varargout = multiDGUI(varargin)
 % MULTIDGUI M-file for multiDGUI.fig
 %      MULTIDGUI, by itself, creates a new MULTIDGUI or raises the existing
@@ -1134,7 +1137,10 @@ if get(hObject,'Value')==1
    switch handles.acquisition.microscope.Name
        case 'Batman'
            set(handles.(['cammode' tagEnd]),'Enable','on');
+<<<<<<< HEAD
            set(handles.(['volt' tagEnd]),'Enable','on');
+=======
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38
 
        case 'Robin'
    end

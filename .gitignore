@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.asv
 *.m~
 CoreLog*.txt
@@ -9,3 +10,15 @@ multiDGUI.m.BASE.1924.m
 multiDGUI.m.LOCAL.1924.m
 multiDGUI.m.REMOTE.1924.m
 multiDGUI.m.orig
+=======
+*.m~
+CoreLog*.txt
+*.log
+getUsers.m.orig
+guiconfig2.m.orig
+multiDGUI.m.BACKUP.1924.m
+multiDGUI.m.BASE.1924.m
+multiDGUI.m.LOCAL.1924.m
+multiDGUI.m.REMOTE.1924.m
+multiDGUI.m.orig
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38

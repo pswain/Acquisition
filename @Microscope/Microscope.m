@@ -60,6 +60,7 @@ classdef Microscope
                 obj.pumpComs(1).baud=19200;
                 obj.pumpComs(2).baud=19200;
                 obj.OmeroInfoPath='C:/AcquisitionData/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/';
+<<<<<<< HEAD
                 obj.OmeroCodePath='C:/AcquisitionData/Omero code';
                 obj.DataPath='C:/AcquisitionData';
                 obj.XYStage='XYStage';
@@ -83,6 +84,13 @@ classdef Microscope
                 obj.DataPath='C:/AcquisitionData';
                 obj.XYStage='XYStage';
                 obj.ZStage='TIZDrive';
+=======
+                obj.OmeroCodePath='C:/AcquisitionData/Omero code master copy';
+                obj.DataPath='C:/AcquisitionData';
+                obj.XYStage='XYStage';
+                obj.ZStage='TIZDrive';
+
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38
             else
                obj.Name='Demo';
                obj.nameImage=imread('Joker.jpg');
@@ -288,7 +296,11 @@ classdef Microscope
                             dac=[];
                         case 2%The CFP LED - adjust DAC-1
                             dac='DTOL-DAC-1';
+<<<<<<< HEAD
                         case 4%The GFP/YFP LED - adjust DAC-2
+=======
+                        case 4%The GFP/YFP LED - adjust DAC-1
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38
                             dac='DTOL-DAC-2';
                         case 8%The mCherry/cy5/tdTomato LED - adjust DAC-1
                             dac='DTOL-DAC-3';
@@ -364,7 +376,11 @@ classdef Microscope
                 deviceLine=find(~cellfun(@isempty,deviceLine));
                 if ~isempty(deviceLine)
                     deviceLine=confData{deviceLine};
+<<<<<<< HEAD
                     deviceLine=textscan(deviceLine,'%s','Delimiter','"');
+=======
+                    deviceLine=textscan(deviceLine,'%s','BufSize',20000,'Delimiter','"');
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38
                     deviceLine=deviceLine{:};
                     %Find the lines with the current property and value
                     target=['@' device ',' property ',' value];
@@ -372,7 +388,11 @@ classdef Microscope
                     valueLine=find(~cellfun(@isempty,valueLine));
                     if ~isempty(valueLine)
                         valueLine=confData{valueLine};
+<<<<<<< HEAD
                         valueLine=textscan(valueLine,'%s','Delimiter','"');
+=======
+                        valueLine=textscan(valueLine,'%s','BufSize',20000,'Delimiter','"');
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38
                         valueLine=valueLine{:};
                         obj.Filters.(chName){n,1}=[deviceLine{2} valueLine{2}];
                     end
