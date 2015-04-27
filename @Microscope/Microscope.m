@@ -64,7 +64,25 @@ classdef Microscope
                 obj.DataPath='C:/AcquisitionData';
                 obj.XYStage='XYStage';
                 obj.ZStage='TIZDrive';
-
+            else
+                
+            l=strfind(hostname,'SCE-BIO-C04978');
+            if ~isempty(l)
+                %Alfred
+                obj.Name='Alfred';      
+                obj.nameImage=imread('Batman.jpg');
+                obj.Config='C:\Micromanager config files\NewNikon.cfg';
+                obj.InitialChannel='DIC';
+                obj.Autofocus=Autofocus('PFS');
+                obj.pumpComs(1).com='COM8';%pump1
+                obj.pumpComs(2).com='COM7';%pump2
+                obj.pumpComs(1).baud=19200;
+                obj.pumpComs(2).baud=19200;
+                obj.OmeroInfoPath='C:/AcquisitionData/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/';
+                obj.OmeroCodePath='C:/AcquisitionData/Omero code';
+                obj.DataPath='C:/AcquisitionData';
+                obj.XYStage='XYStage';
+                obj.ZStage='TIZDrive';
             else
                obj.Name='Demo';
                obj.nameImage=imread('Joker.jpg');
