@@ -27,7 +27,7 @@ switch obj.Autofocus.Type
         %adjustments by the PFS)
         if pfsOn==1
             status=mmc.getProperty('TIPFSStatus','Status');
-            while strcmp(status,'Focusing')==1;
+            while strcmp(status,'Focusing')
                 pause(.2);
                 status=mmc.getProperty('TIPFSStatus','Status');
             end

@@ -2,7 +2,8 @@ function updateDiskSpace(handles)
 %Checks the amount of free disk space and how much is required for the
 %current experiment - updates the gui accordingly
 disp('Updating required disk space');
-GbFree=handles.freeDisk;
+GbFree=checkDiskSpace(handles.acquisition.microscope.DataPath(1:2));
+handles.freeDisk=GbFree;
 set(handles.GbFree,'String',num2str(GbFree));
 imageSizeKb=407;%When adapting for Robin - make this dependent on a field of handles.microscope
 imageSizeGb=imageSizeKb/1000000;
@@ -56,6 +57,8 @@ set(handles.GbReqd,'String',num2str(GbReqd));
 if GbReqd>=GbFree
     set(handles.GbReqd,'ForegroundColor','r');
     warndlg('Not enough disk space for this experiment!');
+else
+    set(handles.GbReqd,'ForegroundColor',[0 0 0]);
 end
 
 

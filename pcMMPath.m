@@ -1,12 +1,11 @@
-javaaddpath('C:\Program Files\Micro-Manager-1.4.16/ij.jar');
-javaaddpath('C:\Program Files\Micro-Manager-1.4.16/plugins/Micro-Manager/MMCoreJ.jar');
-javaaddpath('C:\Program Files\Micro-Manager-1.4.16/plugins/Micro-Manager/MMJ_.jar');
-javaaddpath('C:\Program Files\Micro-Manager-1.4.16/plugins/Micro-Manager/bsh-2.0b4.jar');
-javaaddpath('C:\Program Files\Micro-Manager-1.4.16/plugins/Micro-Manager/swingx-0.9.5.jar');
-javaaddpath('C:\Program Files\Micro-Manager-1.4.16/plugins/Micro-Manager/swing-layout-1.0.4.jar');
+disp('Adding micromanager to the Matlab path');
+javaaddpath('C:\Program Files\Micro-Manager-1.4.21/ij.jar');
+%Add all jars in the plugins directory
+a=dir (fullfile('C:\Program Files\Micro-Manager-1.4.21/plugins/Micro-Manager'));
+for n=3:length(a)
+    if strcmp(a(n).name(end-3:end),'.jar')
+        %['C:\Program Files\Micro-Manager-1.4.21/plugins/Micro-Manager/' a(n).name]
+        javaaddpath(['C:\Program Files\Micro-Manager-1.4.21/plugins/Micro-Manager/' a(n).name]);
+    end
+end
 
-
-javaaddpath('C:/Program Files/Micro-Manager-1.4.16/plugins/Micro-Manager/ome-xml.jar');
-javaaddpath('C:/Program Files/Micro-Manager-1.4.16/plugins/Micro-Manager/loci-common.jar');
-javaaddpath('C:/Program Files/Micro-Manager-1.4.16/plugins/Micro-Manager/scifio.jar');
-javaaddpath('C:/Program Files/Micro-Manager-1.4.16/plugins/Micro-Manager/slf4j-api-1.7.1.jar');
