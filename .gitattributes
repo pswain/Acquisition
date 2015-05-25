@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 *.txt text
 
 *.m text
@@ -23,3 +24,29 @@
 
 *.tif binary
 *.fig binary
+=======
+*.txt text
+
+*.m text
+
+*.m~ text
+*.log text
+*.asv text
+
+
+
+*.png binary
+
+*.mat binary
+
+*.jpeg binary
+
+*.jpg binary
+
+*.pdf binary
+
+*.tiff binary
+
+*.tif binary
+*.fig binary
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38

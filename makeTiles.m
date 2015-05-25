@@ -31,7 +31,7 @@ if afStatus
    mmc.setRelativeXYPosition(handles.acquisition.microscope.XYStage,100,0);
    %Wait for the pfs to finish focusing
    status='Focusing';
-   while ~strcmp(status,'Locked')
+   while ~strcmp(status,'Locked in focus')
       status=handles.acquisition.microscope.Autofocus.getStatus;
       pause (0.1);
    end
@@ -42,7 +42,7 @@ if afStatus
    %Then slope in Y
    mmc.setRelativeXYPosition(handles.acquisition.microscope.XYStage,0,100);
    status='Focusing';
-   while ~strcmp(status,'Locked')
+   while ~strcmp(status,'Locked in focus')
       status=handles.acquisition.microscope.Autofocus.getStatus;
       pause (0.1);
    end

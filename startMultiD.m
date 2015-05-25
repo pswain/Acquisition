@@ -131,7 +131,11 @@ end
 set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
 %Open serial ports of the pumps
 for i=1:length(handles.acquisition.flow{5}.pumps)
-    %fopen(handles.acquisition.flow{5}.pumps{i}.serial);
+    try
+    fopen(handles.acquisition.flow{5}.pumps{i}.serial);
+    catch
+        errordlg(['Failed to connect to pump' num2str(i)],'Pump connection');
+    end
 end
 %Initialise the list of points. This is not retrieved from the last saved
 %acquisition

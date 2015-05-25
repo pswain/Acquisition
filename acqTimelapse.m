@@ -26,7 +26,7 @@ numPositions=size(acqData.points,1);%number of positions to visit - will be zero
 %If only one position is defined then go there before starting the
 %timepoint loop - then no need to revisit
  if numPositions==1
-     handles.acquisition.microscope.visitXY(logfile,acqData.points(1,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
+     acqData.microscope.visitXY(logfile,acqData.points(1,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
      startingZ=visitZ(logfile,acqData.z,acqData.logtext,acqData.points(1,:));
      if acqData.z(3)==1;
         acqData.Microscope.Autofocus.switchOn;
@@ -169,7 +169,7 @@ for t=1:numTimepoints%start of timepoint loop.
        end
        if acqData.z(3)==1 && single==0
            %using the PFS and things are moving (either in z or xy) - need to switch it off for capture - therefore need to correct for drift
-           handles.acquisition.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
+           acqData.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
            if acqData.z(4)~=0% == 1 if any channel does z sectioning.
                %Call correct drift with the z position of this point as
                %the input reference position - will calculate drift
@@ -177,14 +177,16 @@ for t=1:numTimepoints%start of timepoint loop.
                %marked.
                if acqData.z(6)==1
                    logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-                   handles.acquisition.microscope=handles.acquisition.microscope.correctDrift(logfile,acqData.points(pos,4),acqData.points(pos,5));
+                   acqData.microscope=acqData.microscope.correctDrift(logfile,acqData.points(pos,4),acqData.points(pos,5));
+
                    %
                    %
                    %CALL TO VISITZ ADDED HERE
                    %startingZ=visitZ(logfile,acqData.z,acqData.points(pos,:)); % This has been (re)added 4_4_14 - needs to be tested
                    %
                    %               
-                   handles.acquisition.microscope.Autofocus.switchOff;
+                   acqData.microscope.Autofocus.switchOff;
+
                    pause(0.4);%Gives it time to switch off - is pretty slow
                end
                %Does any channel at this position do z sectioning?

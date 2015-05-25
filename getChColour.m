@@ -27,6 +27,8 @@ switch chName
         colour=[.7 0 .7];
     case 'pHluorin488'
         colour=[0.3078    0.8863    0.3745];
+    case {'mKo2', 'mKO2'}
+        colour=[1 .5 .2];
         
         
 end

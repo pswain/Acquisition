@@ -1133,7 +1133,7 @@ if get(hObject,'Value')==1
    switch handles.acquisition.microscope.Name
        case 'Batman'
            set(handles.(['cammode' tagEnd]),'Enable','on');
-
+           set(handles.(['volt' tagEnd]),'Enable','on');
        case 'Robin'
    end
    %camera settings - enable controls
@@ -1401,6 +1401,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     end
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
     handles.acquisition.z(2)=str2double(get(handles.zspacing,'String'));
+    handles.acquisition.z(4)=1;
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
@@ -1435,6 +1436,7 @@ else%if this button has been deselected
 %        set(handles.zspacing,'String','0');
        handles.acquisition.z(1)=1;
        handles.acquisition.z(2)=0;
+       handles.acquisition.z(4)=0;
     end
 end
 updateDiskSpace(handles);
@@ -2291,18 +2293,16 @@ if nSelected==1
     z=table{row,4};
     pfs=table{row,5};
     %Is the PFS on
-    pfsOn=handles.acquisition.microscope.autofocus.isLocked;
+    pfsOn=handles.acquisition.microscope.Autofocus.isLocked;
     %if so switch it off for xy stage movement
     if pfsOn==1
-        handles.acquisition.microscope.autofocus.switchOff;
+        handles.acquisition.microscope.Autofocus.switchOff;
     end
-    %Prevent user interaction while things are moving
-    uiwait(gcf);
     %move the stage
     mmc.setXYPosition('XYStage',x,y);
     mmc.waitForDevice('XYStage');
     %move Z position to set value
-    handles.acquisition.microscope.setZ(z);
+    mmc.setPosition(handles.acquisition.microscope.ZStage,z);
     %Switch autofocus device back on if in use
     if pfsOn==1
         handles.acquisition.microscope.Autofocus.switchOn;

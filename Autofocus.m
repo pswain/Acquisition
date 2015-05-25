@@ -22,9 +22,8 @@ classdef Autofocus
            global mmc;
            switch obj.Type
                case 'PFS'
-                   if ~strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked');
-                       mode = struct('WindowStyle','modal');
-                       errordlg('Warning ... The PFS is off',    'PFS is off', mode);                                           
+                   if ~strcmp(mmc.getProperty('TIPFSStatus','Status'),'Locked in focus');
+                       errordlg('Warning ... The PFS is off','Autofocus off warning','Modal');                                           
                    end
            end
         end
@@ -52,16 +51,18 @@ classdef Autofocus
             global mmc;
             switch obj.Type
                case 'PFS'
+
                     mmc.setProperty('TIPFSStatus','State','Off');
                     pause (0.4);
             end
+            
         end
         
         function locked=isLocked(obj)
             global mmc;
             switch obj.Type
                 case 'PFS'
-                    locked=strcmp('Locked',mmc.getProperty('TIPFSStatus','Status'));
+                    locked=strcmp('Locked in focus',mmc.getProperty('TIPFSStatus','Status'));
                 case 'none'
                     locked=false;
             end
