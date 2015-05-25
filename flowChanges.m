@@ -215,11 +215,11 @@ classdef flowChanges
                  wVol1=num2str(obj.switchParams.withdrawVol);
 %             end
             
-            if obj.pumps{2}.diameter>=14.43
-                wVol2=num2str(obj.switchParams.withdrawVol/1e3);
-            else
+            %if obj.pumps{2}.diameter>=14.43
+             %   wVol2=num2str(obj.switchParams.withdrawVol/1e3);
+            %else
                 wVol2=num2str(obj.switchParams.withdrawVol);
-            end
+            %end
             
             fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
             fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);

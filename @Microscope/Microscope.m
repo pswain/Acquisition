@@ -52,7 +52,7 @@ classdef Microscope
                 %Batman
                 obj.Name='Batman';      
                 obj.nameImage=imread('Batman.jpg');
-                obj.Config='C:\Micromanager config files\MMConfig_NOFILTERWHEEL2.cfg';
+                obj.Config='C:\Micromanager config files\MMConfig_2_3_15.cfg';
                 obj.InitialChannel='DIC';
                 obj.Autofocus=Autofocus('PFS');
                 obj.pumpComs(1).com='COM8';%pump1
@@ -61,7 +61,26 @@ classdef Microscope
                 obj.pumpComs(2).baud=19200;
                 obj.OmeroInfoPath='C:/AcquisitionData/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/';
                 obj.OmeroCodePath='C:/AcquisitionData/Omero code';
-                obj.DataPath='C:/AcquisitionData';
+                obj.DataPath='D:/AcquisitionDataBatman';
+                obj.XYStage='XYStage';
+                obj.ZStage='TIZDrive';
+            else
+                
+            l=strfind(hostname,'SCE-BIO-C04078');
+            if ~isempty(l)
+                %Batgirl
+                obj.Name='Batgirl';      
+                obj.nameImage=imread('Batgirl.jpg');
+                obj.Config='C:\Micromanager config files\Batgirl14_5_15.cfg';
+                obj.InitialChannel='DIC';
+                obj.Autofocus=Autofocus('PFS');
+                obj.pumpComs(1).com='COM5';%pump1
+                obj.pumpComs(2).com='COM6';%pump2
+                obj.pumpComs(1).baud=19200;
+                obj.pumpComs(2).baud=19200;
+                obj.OmeroInfoPath='C:/AcquisitionDataBatgirl/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/';
+                obj.OmeroCodePath='C:/AcquisitionDataBatgirl/Omero code';
+                obj.DataPath='D:/AcquisitionDataBatgirl';
                 obj.XYStage='XYStage';
                 obj.ZStage='TIZDrive';
             else
@@ -138,6 +157,7 @@ classdef Microscope
                 %next 2 lines are specific for QUANT version of scripts
                 mmc.setProperty('Evolve','PP  2   ENABLED','Yes');%Enable quant view - output in photoelectrons
                 mmc.setProperty('Evolve','PP  2   (E)','1');%one grey level per pixel
+                mmc.setProperty('Evolve','Port','Normal');
                 mmc.setProperty('TILightPath','Label','2-Left100');%all light should go to the camera
                 mmc.setAutoShutter(1);
         end
@@ -275,8 +295,10 @@ classdef Microscope
                        set(handles.bin,'enable','on');
                        set(handles.zMethod,'Enable','off');
 
-
                end
+               %Set the disk size text
+               set(set(handles.freeSpaceText,'String',['Free space (Gb, drive ' obj.DataPath(1:2) ')']));
+               
                set(handles.TagList,'String', handles.acquisition.omero.tags);
                %Define the correct image size
                %Get the image size and set in handles.imageSize
@@ -338,10 +360,13 @@ classdef Microscope
                 mmc.waitForDevice('Evolve');
             end
         end
+        
+        
+        
         function obj=getFilters(obj)
         %Parses the config file to extract filter information
         confFile=fopen(obj.Config);
-        confData=textscan(confFile,'%s','BufSize',20000,'Delimiter','#');
+        confData=textscan(confFile,'%s','Delimiter','#');
         confData=confData{:};
         %Find the channel presets:
         presets=strfind(confData,'Preset: ');
@@ -710,4 +735,5 @@ classdef Microscope
       end
             
         
+    end
 end

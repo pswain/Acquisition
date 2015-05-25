@@ -1,6 +1,6 @@
 function handles=multiDGUI2
 
-handles.gui=figure('Units','normalized','Position',[0.10    0.1455    0.7500    0.7510],'Color',[0.8 0.8 0.8],'NumberTitle','off','Name','Swain lab multi dimensional acquisition software');
+handles.gui=figure('Units','normalized','Position',[0.10    0.1455    0.7500    0.7510],'CloseRequestFcn',@closeGUIFunction,'Color',[0.8 0.8 0.8],'NumberTitle','off','Name','Swain lab multi dimensional acquisition software');
 
 %Set the panels
 handles.experimentPanel=uipanel('Parent',handles.gui,'BackgroundColor',[0.8 0.8 0.8],'Title','Experiment','Position',[.005 .881 .967 .104],'FontWeight','Bold','FontSize',16);
@@ -142,7 +142,7 @@ handles.text21=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundCo
 handles.totaltime=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.088 .297 .332 .081],'String','1','FontSize',10,'HorizontalAlignment','Left','BackgroundColor','w');
 handles.unitsTotal=uicontrol('Style','popupmenu','Parent',handles.timePanel,'Units','Normalized','Position',[.429 .297 .3 .081],'String',{'s';'min';'hr'},'FontSize',10,'Callback',@(hObject,eventdata)multiDGUI('unitsTotal_Callback',hObject,eventdata,guidata(hObject)),'TooltipString','Set units for time interval');
 handles.GbFree=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.15 0.05 .254 .107],'String','Free space','FontSize',10,'HorizontalAlignment','Left','FontWeight','Bold');
-handles.text55=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.044 .187 .41 .057],'String','Free space (Gb)');
+handles.freeSpaceText=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.044 .187 .41 .057],'String','Free space (Gb)');
 handles.text56=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.493 .187 .41 .057],'String','Space needed (Gb)');
 handles.GbReqd=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[0.520 0.0500 0.4 0.1070],'String','Space needed','FontSize',10,'HorizontalAlignment','Left','FontWeight','Bold');
 handles.refreshDisk=uicontrol('Tag','useCh1','Style','pushbutton','Parent',handles.timePanel,'Units','Normalized','Position',[.5 .86 .4 .08],'String','Refresh free space','Callback',@(hObject,eventdata)multiDGUI('refreshDisk_Callback',hObject,eventdata,guidata(hObject)));

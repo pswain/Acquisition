@@ -1,8 +1,0 @@
-function points=loadAcquisition(filename)
-fid=fopen(filename);
-rawdata = textscan(fid,'%s');
-rawdata=rawdata{:};
-for pos=1:size(rawdata,1);
-    
-    
-end
