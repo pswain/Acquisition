@@ -151,7 +151,7 @@ set(handles.GbFree,'String',num2str(handles.freeDisk));
 %settings from that. Points are not loaded.
 %First get the file name of the last saved acquisition:
 user=getenv('USERNAME');
-[root user]=makeRoot(user);%this provides a root directory based on the name and date
+[root user]=makeRoot(user,handles.acquisition.microscope);%this provides a root directory based on the name and date
 handles.acquisition.info={'exp' user root 'Aim:   Strain:  Comments:'};%Initialise the experimental info - exp name and details may be altered later when refreshGUI is called but root and user stay the same
 lastSavedPath=strcat('C:\Documents and Settings\All Users\multiDGUIfiles\',user,'lastSaved.txt');
 if exist (lastSavedPath,'file')==2
@@ -1883,7 +1883,7 @@ end
 
 
 
-function starttp_Callback(hObject, eventdata, handles)
+function starttpChannel_Callback(hObject, eventdata, handles)
 %Sets the starting timepoint for the appropriate channel - there will be no
 %imaging before this timepoint.
 starttp=str2double(get(hObject,'String'));
@@ -2362,7 +2362,7 @@ userID=get(hObject,'Value');
 users=[swain tyers millar];
 userName=users(userID);
 handles.acquisition.info(2)=userName;
-handles.acquisition.info(3)=makeRoot(userName);
+handles.acquisition.info(3)=makeRoot(userName,handles.acquisition.microscope);
 set(handles.rootName,'String',cellstr(handles.acquisition.info(3)));
 guidata(hObject, handles);
 
@@ -2401,7 +2401,7 @@ handles.acquisition=loadAcquisition(strcat(pathname,filename));
 %need to initialise the experimental info here - not loaded from the
 %acquisition file
 user=getenv('USERNAME');
-root=makeRoot(user);%this provides a root directory based on the name and date
+root=makeRoot(user, handles.acquisition.microscope);%this provides a root directory based on the name and date
 handles.acquisition.info={'exp' user root 'Aim:   Strain:  Comments:'};%Initialise the experimental info - exp name and details may be altered later when refreshGUI is called but root and user stay the same
 
 %then import the data from the handles.acquisition structure into the GUI:
