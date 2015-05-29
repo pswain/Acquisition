@@ -91,8 +91,19 @@ for ch=1:numChannels%loop through the channels
         %Don't set if the port is already right - setting the port makes
         %the next LED exposure (not camera exposure) longer.
         
-        acqData.microscope.setPort(acqData.channels(ch,:),CHsets);
+        acqData.microscope.setPort(acqData.channels(ch,:),CHsets,logfile);
+       
         
+         %EM camera mode only - do camera settings need to be changed?
+         if cell2mat(acqData.channels(ch,6))~=2
+             if CHsets.values(ch,1,gp)~=EMgain %check if gain for this channel needs to be changed
+                %change the camera settings here - if altering E don't forget to multiply the data by this number. 
+                mmc.setProperty('Evolve','MultiplierGain',num2str(CHsets.values(ch,1,gp)));
+                logstring=strcat('EM gain changed to:',num2str(CHsets.values(ch,1,gp)),datestr(clock));A=writelog(logfile,1,logstring);
+                EMgain=CHsets.values(ch,1,gp);
+
+             end
+         end
 
 
         %does this channel do z sectioning?

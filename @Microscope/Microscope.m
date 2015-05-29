@@ -123,6 +123,7 @@ classdef Microscope
         end
 
         end
+        end
         function loadConfig(obj)
            global mmc;
            mmc.loadSystemConfiguration(obj.Config);
@@ -207,6 +208,9 @@ classdef Microscope
                           set(handles.(camModeTagName),'Value',2);
                           switch(obj.Name)
                               case 'Batman'
+                                  set(handles.(camModeTagName),'Enable','On');
+                                  set(handles.(voltTagName),'Enable','off');
+                              case 'Batgirl'
                                   set(handles.(camModeTagName),'Enable','On');
                                   set(handles.(voltTagName),'Enable','off');
                               case 'Robin'
@@ -502,7 +506,7 @@ classdef Microscope
         end
         end
         
-        function setPort(obj, channel,CHsets)
+        function setPort(obj, channel,CHsets, logfile)
            %Sets the appropriate camera port (or any other channel-specific camera setting) for the input channel
            global mmc;
            switch obj.Name
@@ -519,15 +523,21 @@ classdef Microscope
                             logstring=strcat('Camera port changed to EM:',datestr(clock));A=writelog(logfile,1,logstring);
                         end
 
-                        %EM camera mode only - do camera settings need to be changed?
-                        if CHsets.values(ch,1,gp)~=EMgain %check if gain for this channel needs to be changed
-                           %change the camera settings here - if altering E don't forget to multiply the data by this number. 
-                           mmc.setProperty('Evolve','MultiplierGain',num2str(CHsets.values(ch,1,gp)));
-                           logstring=strcat('EM gain changed to:',num2str(CHsets.values(ch,1,gp)),datestr(clock));A=writelog(logfile,1,logstring);
-                           EMgain=CHsets.values(ch,1,gp);
-
+                       
+                   end
+               case 'Batgirl'
+                   port=mmc.getProperty('Evolve','Port');
+                   if cell2mat(channel(6))==2%if this channel uses the normal (CCD) port
+                        if strcmp(port,'Normal')~=1%set port to normal if it's not set already
+                            mmc.setProperty('Evolve','Port','Normal');
+                            logstring=strcat('Camera port changed to normal:',datestr(clock));A=writelog(logfile,1,logstring);
                         end
-               end
+                   else%if this channel doesn't use the normal port
+                        if strcmp(port,'EM')~=1%if it isn't EM already then set port to EM 
+                            mmc.setProperty('Evolve','Port','Multiplication Gain');
+                            logstring=strcat('Camera port changed to EM:',datestr(clock));A=writelog(logfile,1,logstring);
+                        end
+                    end
            end
         end
         
@@ -700,7 +710,7 @@ classdef Microscope
                         case '4x4'
                             imageSize=[128 128];
                     end
-                    case 'Batgirl'
+                 case 'Batgirl'
                     switch bin
                         case '1'
                             imageSize=[512 512];
@@ -735,5 +745,4 @@ classdef Microscope
       end
             
         
-    end
 end
