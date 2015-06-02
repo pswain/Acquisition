@@ -300,8 +300,21 @@ classdef Microscope
                        set(handles.zMethod,'Enable','off');
 
                end
+               
+               %Set the News text
+               
+               switch obj.Name
+                   case 'Batman'
+                       batText='You are running the new programmatic GUI. This is not fully tested on Batman. Z sectioning will not work. You should go to the folder: Users/Public/Microscope control_old_multiDGUI and run multiDGUI to run the old version.';
+                   case 'Robin'
+                       batText='New programmatic GUI running on Robin. Ask Ivan (07748450511, ivan.clark@ed.ac.uk) if there are any problems.';
+                   case 'Batgirl'
+                       batText='New programmatic GUI running on Batgirl. Ask Ivan (07748450511, ivan.clark@ed.ac.uk) if there are any problems. Recent bug fixes: Camera mode should be set properly when snapping, and EM images should be flipped to the correct orientation.';
+               end
+               set(handles.news,'String',batText);
+               
                %Set the disk size text
-               set(set(handles.freeSpaceText,'String',['Free space (Gb, drive ' obj.DataPath(1:2) ')']));
+               set(set(handles.freeSpaceText,'String',['Free space (Gb, drive ' obj.DataPath(1) ')']));
                
                set(handles.TagList,'String', handles.acquisition.omero.tags);
                %Define the correct image size
@@ -315,7 +328,7 @@ classdef Microscope
         end
         function lightToCamera(obj)
            switch obj.Name 
-               case('Batman')
+               case {'Batman','Batgirl'}
                    global mmc
                    mmc.setProperty('TILightPath', 'Label','2-Left100');%send light to the camera
            end
@@ -347,7 +360,22 @@ classdef Microscope
         function figTitle=setCamMode(obj, mode,figTitle,EMgain)
         global mmc
         switch (obj.Name)
-            case('Batman')
+            case 'Batman'
+                switch mode
+                    case 1
+                        mmc.setProperty ('Evolve','Port','Multiplication Gain');
+                        mmc.setProperty ('Evolve','MultiplierGain',num2str(EMgain));
+                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(EMgain));
+                    case 3
+                        mmc.setProperty ('Evolve','Port','Multiplication Gain');
+                        mmc.setProperty ('Evolve','MultiplierGain',num2str(EMgain));
+                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(EMgain));
+                    case 2
+                        mmc.setProperty ('Evolve','Port','Normal');
+                        figTitle=strcat(figTitle,'. CCD');
+                end
+                mmc.waitForDevice('Evolve');
+            case 'Batgirl'
                 switch mode
                     case 1
                         mmc.setProperty ('Evolve','Port','Multiplication Gain');
@@ -731,7 +759,7 @@ classdef Microscope
            switch obj.Name
                case 'Robin'
                    mmc.setProperty('Myo','Binning',bin);
-               case 'Batman'
+               case {'Batman','Batgirl'}
                    mmc.setProperty('Evolve','Binning',bin);
            end
             

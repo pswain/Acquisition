@@ -3017,7 +3017,10 @@ camera;
 
 % --- Executes on button press in loadConfig.
 function loadConfig_Callback(hObject, eventdata, handles)
+
+fprintf('<a href=""> Loading micromanager configuration... </a>\n')
 guiconfig2(handles.acquisition.microscope);
+fprintf('<a href=""> Setting the GUI for your microscope... </a>\n')
 handles=handles.acquisition.microscope.setGUI(handles);
 binOptions=get(handles.bin,'String');
 bin=binOptions{get(handles.bin,'Value')};

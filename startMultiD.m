@@ -82,7 +82,7 @@ if ismac
    disp('Initializing micromanager path for mac');
    macMMPath;
 else
-   disp('Initializing micromanager path for pc');
+   fprintf('<a href=""> Initializing micromanager path for pc... </a>\n')
    pcMMPath;
 end
 
@@ -99,12 +99,13 @@ end
 isthereagui=exist ('gui','var');
 global gui;
 if isthereagui~=1
-    disp('Starting Micro-manager. Ignore TextCanvas error message');
-    disp('Select (none) when asked to choose configuration file.');
+    fprintf('<a href=""> Starting Micro-manager. Ignore TextCanvas error message </a>\n')
+    fprintf('<a href=""> Select (none) when asked to choose configuration file </a>\n')
+
 
     guiconfig;
 end
-disp('Creating the GUI');
+    fprintf('<a href=""> Creating the GUI... </a>\n')
 %Create the GUI
 handles=multiDGUI2;
 %Get computer name
