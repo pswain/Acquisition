@@ -52,7 +52,7 @@ classdef Microscope
                 %Batman
                 obj.Name='Batman';      
                 obj.nameImage=imread('Batman.jpg');
-                obj.Config='C:\Micromanager config files\MMConfig_2_3_15.cfg';
+                obj.Config='C:\Micromanager config files\MMConfig_2_3_15.txt';
                 obj.InitialChannel='DIC';
                 obj.Autofocus=Autofocus('PFS');
                 obj.pumpComs(1).com='COM8';%pump1
@@ -123,6 +123,7 @@ classdef Microscope
         end
 
         end
+        end
         function loadConfig(obj)
            global mmc;
            mmc.loadSystemConfiguration(obj.Config);
@@ -144,7 +145,7 @@ classdef Microscope
                 mmc.setProperty('Evolve','MultiplierGain','270');%starting gain
                 %next 2 lines are specific for QUANT version of scripts
                 mmc.setProperty('Evolve','PP  2   ENABLED','Yes');%Enable quant view - output in photoelectrons
-                mmc.setProperty('Evolve','PP  2   (e)','1');%one grey level per pixel
+                mmc.setProperty('Evolve','PP  4   (e)','1');%one grey level per pixel
                 mmc.setProperty('TILightPath','Label','2-Left100');%all light should go to the camera
                 mmc.setAutoShutter(1);
             case 'Robin'
@@ -502,7 +503,7 @@ classdef Microscope
         end
         end
         
-        function setPort(obj, channel,CHsets)
+        function setPort(obj, channel,CHsets,logfile)
            %Sets the appropriate camera port (or any other channel-specific camera setting) for the input channel
            global mmc;
            switch obj.Name
@@ -736,4 +737,4 @@ classdef Microscope
             
         
     end
-end
+
