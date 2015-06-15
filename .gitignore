@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+*.asv
+*.m~
 CoreLog*.txt
 *.log
 getUsers.m.orig
@@ -7,4 +10,28 @@ multiDGUI.m.BASE.1924.m
 multiDGUI.m.LOCAL.1924.m
 multiDGUI.m.REMOTE.1924.m
 multiDGUI.m.orig
-*.asv
+=======
+<<<<<<< HEAD
+*.m~
+CoreLog*.txt
+*.log
+getUsers.m.orig
+guiconfig2.m.orig
+multiDGUI.m.BACKUP.1924.m
+multiDGUI.m.BASE.1924.m
+multiDGUI.m.LOCAL.1924.m
+multiDGUI.m.REMOTE.1924.m
+multiDGUI.m.orig
+=======
+*.m~
+CoreLog*.txt
+*.log
+getUsers.m.orig
+guiconfig2.m.orig
+multiDGUI.m.BACKUP.1924.m
+multiDGUI.m.BASE.1924.m
+multiDGUI.m.LOCAL.1924.m
+multiDGUI.m.REMOTE.1924.m
+multiDGUI.m.orig
+>>>>>>> 0e85e78f4ab5cbe43143cad9bf53e637b0421fe5
+>>>>>>> 99b71d10973adc7c05959beae8447fe7e4351b38

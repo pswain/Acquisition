@@ -2,8 +2,6 @@
 
 addpath(genpath('./Programmatic GUI'));
 
-%Create the GUI
-handles=multiDGUI2;
 
 
 
@@ -76,11 +74,17 @@ handles=multiDGUI2;
 %Add necessary folders to path
 addpath(genpath('C:\AcquisitionData\Swain Lab\OmeroCode'));
 addpath(['.' filesep 'transitionGUI']);
-%Get computer name
-[idum,hostname]= system('hostname');
-%Create microscope object - details will depend on which computer is
-%running this
-handles.acquisition.microscope=Microscope;
+
+
+
+%Make sure micromanager files are on the path
+if ismac
+   disp('Initializing micromanager path for mac');
+   macMMPath;
+else
+   fprintf('<a href=""> Initializing micromanager path for pc... </a>\n')
+   pcMMPath;
+end
 
 
  
@@ -89,8 +93,29 @@ if strcmp(pwd,'C:\Users\Public\Microscope Control');
     msgbox('MultiDGUI is running from the shared Microscope Control folder - please do not edit this version of the software!','Running shared software','Warn');
 end
 
+%Find out if an mmc and gui object have been initialised - if so can
+%activate the eyepiece and camera buttons and inactivate the launch
+%micromanager button
+isthereagui=exist ('gui','var');
+global gui;
+if isthereagui~=1
+    fprintf('<a href=""> Starting Micro-manager. Ignore TextCanvas error message </a>\n')
+    fprintf('<a href=""> Select (none) when asked to choose configuration file </a>\n')
+
+
+    guiconfig;
+end
+    fprintf('<a href=""> Creating the GUI... </a>\n')
+%Create the GUI
+handles=multiDGUI2;
+%Get computer name
+[idum,hostname]= system('hostname');
+%Create microscope object - details will depend on which computer is
+%running this
+handles.acquisition.microscope=Microscope;
+
 %Get free disk space
-handles.freeDisk=checkDiskSpace;
+handles.freeDisk=checkDiskSpace(handles.acquisition.microscope.DataPath(1:2));
 set(handles.GbFree,'String',num2str(handles.freeDisk));
 
 %If there is a last saved acquisition file then load the acquisition
@@ -135,19 +160,13 @@ for i=1:length(handles.acquisition.flow{5}.pumps)
     try
     fopen(handles.acquisition.flow{5}.pumps{i}.serial);
     catch
-        errordlg(['Failed to connect to pump' num2str(i)],'Pump connection');
+        errordlg(['Failed to connect to pump' num2str(i) '. This pump must be manually controlled if in use'],'Pump connection');
     end
 end
 %Initialise the list of points. This is not retrieved from the last saved
 %acquisition
 handles.acquisition.points={};
 
-%Make sure micromanager files are on the path
-if ismac
-   macMMPath;
-else
-   pcMMPath;
-end
 
 
 %Initialise the user list - only need to edit the getUsers.m function when
@@ -239,26 +258,7 @@ set(handles.gui, 'NumberTitle','off');
 set(handles.rootName,'String',handles.acquisition.info(3));
 set(handles.pointsTable,'Data',handles.acquisition.points);
 
-%microscope control
-%Find out if an mmc and gui object have been initialised - if so can
-%activate the eyepiece and camera buttons and inactivate the launch
-%micromanager button
-isthereagui=exist ('gui','var');
-global gui;
-if isthereagui~=1
-    if ismac%Don't initialize the gui if working on the software on a mac - won't necessarily have micromanager on the path
-        disp('Initializing micromanager path for mac');
-        macMMPath;
-        %use dummy gui class to create a virtual gui - just to allow the
-        %software to run - this only because I have so far failed to start
-        %the gui from a mac
-        gui=DemoGUI;
-    else
-        disp('Initializing micromanager path for pc');
-        pcMMPath;
-    end
- guiconfig;
-end
+
 
 % Update handles structure
 guidata(handles.gui, handles);

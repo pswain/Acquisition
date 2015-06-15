@@ -1,6 +1,6 @@
 function handles=multiDGUI2
 
-handles.gui=figure('Units','normalized','Position',[0.10    0.1455    0.7500    0.7510],'Color',[0.8 0.8 0.8],'NumberTitle','off','Name','Swain lab multi dimensional acquisition software');
+handles.gui=figure('Units','normalized','Position',[0.10    0.1455    0.7500    0.7510],'CloseRequestFcn',@closeGUIFunction,'Color',[0.8 0.8 0.8],'NumberTitle','off','Name','Swain lab multi dimensional acquisition software');
 
 %Set the panels
 handles.experimentPanel=uipanel('Parent',handles.gui,'BackgroundColor',[0.8 0.8 0.8],'Title','Experiment','Position',[.005 .881 .967 .104],'FontWeight','Bold','FontSize',16);
@@ -142,7 +142,7 @@ handles.text21=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundCo
 handles.totaltime=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.088 .297 .332 .081],'String','1','FontSize',10,'HorizontalAlignment','Left','BackgroundColor','w');
 handles.unitsTotal=uicontrol('Style','popupmenu','Parent',handles.timePanel,'Units','Normalized','Position',[.429 .297 .3 .081],'String',{'s';'min';'hr'},'FontSize',10,'Callback',@(hObject,eventdata)multiDGUI('unitsTotal_Callback',hObject,eventdata,guidata(hObject)),'TooltipString','Set units for time interval');
 handles.GbFree=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.15 0.05 .254 .107],'String','Free space','FontSize',10,'HorizontalAlignment','Left','FontWeight','Bold');
-handles.text55=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.044 .187 .41 .057],'String','Free space (Gb)');
+handles.freeSpaceText=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[0.014 0.187 0.45 0.057],'String','Free space (Gb)');
 handles.text56=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.493 .187 .41 .057],'String','Space needed (Gb)');
 handles.GbReqd=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[0.520 0.0500 0.4 0.1070],'String','Space needed','FontSize',10,'HorizontalAlignment','Left','FontWeight','Bold');
 handles.refreshDisk=uicontrol('Tag','useCh1','Style','pushbutton','Parent',handles.timePanel,'Units','Normalized','Position',[.5 .86 .4 .08],'String','Refresh free space','Callback',@(hObject,eventdata)multiDGUI('refreshDisk_Callback',hObject,eventdata,guidata(hObject)));
@@ -150,7 +150,7 @@ handles.refreshDisk=uicontrol('Tag','useCh1','Style','pushbutton','Parent',handl
 
 
 %News panel
-news='This is the new programmatic GUI!';
+news='Check microscope-specific news after you click Start microscope.';
 handles.news=uicontrol('Style','text','Parent',handles.newsPanel,'Units','Normalized','Position',[.056 .024 .872 .956],'String',news,'FontSize',10,'HorizontalAlignment','Center','BackgroundColor','w');
 
 %Point visiting panel
@@ -173,7 +173,7 @@ handles.camera=uicontrol('Style','pushbutton','Parent',handles.micPanel,'Units',
 handles.EM=uicontrol('Style','pushbutton','Parent',handles.micPanel,'Units','Normalized','Position',[.752 .5 .076 .35],'String','EM','TooltipString','Set Evolve camera to EM mode','Callback',@(hObject,eventdata)multiDGUI('EM_Callback',hObject,eventdata,guidata(hObject)));
 handles.CCD=uicontrol('Style','pushbutton','Parent',handles.micPanel,'Units','Normalized','Position',[.852 .5 .076 .35],'String','CCD','TooltipString','Set Evolve camera to CCD mode','Callback',@(hObject,eventdata)multiDGUI('CCD_Callback',hObject,eventdata,guidata(hObject)));
 handles.shiftLeft=uicontrol('Style','pushbutton','Tag','shiftLeft','Parent',handles.micPanel,'Units','Normalized','Position',[.019 .1 .076 .35],'String','Left','TooltipString','Move stage to the left','Callback',@(hObject,eventdata)multiDGUI('nudge_Callback',hObject,eventdata,guidata(hObject)));
-handles.shiftRight=uicontrol('Style','pushbutton','Tag','shiftRigh','Parent',handles.micPanel,'Units','Normalized','Position',[.119 .1 .076 .35],'String','Right','TooltipString','Move stage to the right','Callback',@(hObject,eventdata)multiDGUI('nudge_Callback',hObject,eventdata,guidata(hObject)));
+handles.shiftRight=uicontrol('Style','pushbutton','Tag','shiftRight','Parent',handles.micPanel,'Units','Normalized','Position',[.119 .1 .076 .35],'String','Right','TooltipString','Move stage to the right','Callback',@(hObject,eventdata)multiDGUI('nudge_Callback',hObject,eventdata,guidata(hObject)));
 handles.shiftUp=uicontrol('Style','pushbutton','Tag','shiftUp','Parent',handles.micPanel,'Units','Normalized','Position',[.219 .1 .076 .35],'String','Up','TooltipString','Move stage up','Callback',@(hObject,eventdata)multiDGUI('nudge_Callback',hObject,eventdata,guidata(hObject)));
 handles.shiftDown=uicontrol('Style','pushbutton','Tag','shiftDown','Parent',handles.micPanel,'Units','Normalized','Position',[.319 .1 .076 .35],'String','Down','TooltipString','Move stage down','Callback',@(hObject,eventdata)multiDGUI('nudge_Callback',hObject,eventdata,guidata(hObject)));
 handles.distanceBox=uicontrol('Style','edit','Parent',handles.micPanel,'Units','Normalized','Position',[.419 .1 .076 .35],'String','10','BackgroundColor','w','Callback',@(hObject,eventdata)multiDGUI('distanceBox_Callback',hObject,eventdata,guidata(hObject)),'TooltipString','Distance to shift in microns');
@@ -192,8 +192,8 @@ handles.contentsP1=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','
 handles.contentsP2=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.021 .629 .223 .098],'String','2% raffinose in SC','BackgroundColor','w','Callback',@(hObject,eventdata)multiDGUI('updateFlowData',hObject,eventdata,guidata(hObject)),'TooltipString','Enter details of pump 2 media. Will be recorded in experiment log file');
 handles.directionP1=uicontrol('Style','popupmenu','Parent',handles.flowPanel,'Units','Normalized','Position',[.274 .776 .174 .089],'String',{'INF';'WDR'},'FontSize',10,'Callback',@(hObject,eventdata)multiDGUI('directionP1_Callback',hObject,eventdata,guidata(hObject)),'TooltipString','Direction of pump. INF=infuse WDR=withdraw');
 handles.directionP2=uicontrol('Style','popupmenu','Parent',handles.flowPanel,'Units','Normalized','Position',[.274 .638 .174 .089],'String',{'INF';'WDR'},'FontSize',10,'Callback',@(hObject,eventdata)multiDGUI('directionP2_Callback',hObject,eventdata,guidata(hObject)),'TooltipString','Direction of pump. INF=infuse WDR=withdraw');
-handles.diameterP1=uicontrol('Style','popupmenu','Tag','diameterP1','Parent',handles.flowPanel,'Units','Normalized','Position',[.472 .776 .116 .089],'String',{'3ml';'5ml';'10ml';'20ml'},'FontSize',10,'Callback',@(hObject,eventdata)diameter_Callback(hObject,guidata(gcf)),'TooltipString','Select syringe volume. This is essential to ensure the correct flow rate');
-handles.diameterP2=uicontrol('Style','popupmenu','Tag','diameterP2','Parent',handles.flowPanel,'Units','Normalized','Position',[.472 .638 .116 .089],'String',{'3ml';'5ml';'10ml';'20ml'},'FontSize',10,'Callback',@(hObject,eventdata)diameter_Callback(hObject,guidata(gcf)),'TooltipString','Select syringe volume. This is essential to ensure the correct flow rate');
+handles.diameterP1=uicontrol('Style','popupmenu','Parent',handles.flowPanel,'Units','Normalized','Position',[.472 .776 .116 .089],'String',{'3ml';'5ml';'10ml';'20ml'},'FontSize',10,'Callback',@(hObject,eventdata)multiDGUI('diameterP1_Callback',hObject,eventdata,guidata(hObject)),'TooltipString','Select syringe volume. This is essential to ensure the correct flow rate');
+handles.diameterP2=uicontrol('Style','popupmenu','Parent',handles.flowPanel,'Units','Normalized','Position',[.472 .638 .116 .089],'String',{'3ml';'5ml';'10ml';'20ml'},'FontSize',10,'Callback',@(hObject,eventdata)multiDGUI('diameterP2_Callback',hObject,eventdata,guidata(hObject)),'TooltipString','Select syringe volume. This is essential to ensure the correct flow rate');
 handles.flowRateP1=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.64 .771 .119 .098],'String','4','BackgroundColor','w','Callback',@(hObject,eventdata)multiDGUI('updateFlowData',hObject,eventdata,guidata(hObject)),'TooltipString','Rate of infusion or withdrawal from pump 1');
 handles.flowRateP2=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.64 .629 .119 .098],'String','4','BackgroundColor','w','Callback',@(hObject,eventdata)multiDGUI('updateFlowData',hObject,eventdata,guidata(hObject)),'TooltipString','Rate of infusion or withdrawal from pump 2');
 handles.runP1=uicontrol('Style','radiobutton','BackgroundColor',[0.8 0.8 0.8],'Parent',handles.flowPanel,'Units','Normalized','Position',[.82 .767 .149 .103],'String','Pump 1','FontSize',10,'HorizontalAlignment','Center','Callback',@(hObject,eventdata)multiDGUI('updateFlowData',hObject,eventdata,guidata(hObject)),'TooltipString','Start or stop pump 1');

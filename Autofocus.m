@@ -31,19 +31,19 @@ classdef Autofocus
         function switchOn(obj,wait)
             global mmc;
             switch obj.Type
-                case 'PFS'
-                    mmc.setProperty('TIPFSStatus','State','On');
-                    if nargin==2
-                        if wait
-                            %Wait until the PFS is no longer activating before continuing
-                            pause(.5);
-                            obj.Status=mmc.getProperty('TIPFSStatus','Status');
-                            while strcmp(obj.Status,'Focusing')==1 || strcmp(obj.Status,'Activating');
-                                pause(.5);
-                                obj.Status=mmc.getProperty('TIPFSStatus','Status');
-                            end
-                        end
-                    end
+               case 'PFS'
+                   mmc.setProperty('TIPFSStatus','State','On');
+            end
+            if nargin==2
+                if wait
+                    %Wait until the PFS is no longer activating before continuing
+                   pause(.5);
+                   obj.Status=mmc.getProperty('TIPFSStatus','Status');
+                   while strcmp(obj.Status,'Focusing')==1 || strcmp(obj.Status,'Activating');
+                        pause(.5);
+                        obj.Status=mmc.getProperty('TIPFSStatus','Status');
+                   end 
+                end
             end
             
         end

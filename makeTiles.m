@@ -72,7 +72,7 @@ for row=1:nRows
     for col=1:nColumns
         %Generate a default name and make sure this name hasn't already been taken
         number=number+1;
-        defName=strcat('pos',num2str(number,'%02d'));%generate default point name       
+        defName=strcat('pos',num2str(number,'%03d'));%generate default point name       
         tiles{number,1}=defName;
         tiles{number,2}=(col-1)*colSpacing+startX;
         tiles{number,3}=(row-1)*rowSpacing+startY;

@@ -151,7 +151,7 @@ set(handles.GbFree,'String',num2str(handles.freeDisk));
 %settings from that. Points are not loaded.
 %First get the file name of the last saved acquisition:
 user=getenv('USERNAME');
-[root user]=makeRoot(user);%this provides a root directory based on the name and date
+[root user]=makeRoot(user,handles.acquisition.microscope);%this provides a root directory based on the name and date
 handles.acquisition.info={'exp' user root 'Aim:   Strain:  Comments:'};%Initialise the experimental info - exp name and details may be altered later when refreshGUI is called but root and user stay the same
 lastSavedPath=strcat('C:\Documents and Settings\All Users\multiDGUIfiles\',user,'lastSaved.txt');
 if exist (lastSavedPath,'file')==2
@@ -1881,9 +1881,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function starttp_Callback(hObject, eventdata, handles)
+function starttpChannel_Callback(hObject, eventdata, handles)
 %Sets the starting timepoint for the appropriate channel - there will be no
 %imaging before this timepoint.
 starttp=str2double(get(hObject,'String'));
@@ -2095,6 +2093,7 @@ end
 %Generate a default name and make sure this name hasn't already been taken
 number=nPoints+1;
 defName=strcat('pos',num2str(number,'%02d'));%generate default point name
+
 nameOK=0;
 while nameOK==0
     usename=1;
@@ -2362,7 +2361,8 @@ userID=get(hObject,'Value');
 users=[swain tyers millar];
 userName=users(userID);
 handles.acquisition.info(2)=userName;
-handles.acquisition.info(3)=makeRoot(userName);
+
+handles.acquisition.info(3)=makeRoot(userName,handles.acquisition.microscope);
 set(handles.rootName,'String',cellstr(handles.acquisition.info(3)));
 guidata(hObject, handles);
 
@@ -2401,7 +2401,7 @@ handles.acquisition=loadAcquisition(strcat(pathname,filename));
 %need to initialise the experimental info here - not loaded from the
 %acquisition file
 user=getenv('USERNAME');
-root=makeRoot(user);%this provides a root directory based on the name and date
+root=makeRoot(user, handles.acquisition.microscope);%this provides a root directory based on the name and date
 handles.acquisition.info={'exp' user root 'Aim:   Strain:  Comments:'};%Initialise the experimental info - exp name and details may be altered later when refreshGUI is called but root and user stay the same
 
 %then import the data from the handles.acquisition structure into the GUI:
@@ -3014,9 +3014,13 @@ function camera_Callback(hObject, eventdata, handles)
 camera;
 
 
+
 % --- Executes on button press in loadConfig.
 function loadConfig_Callback(hObject, eventdata, handles)
+
+fprintf('<a href=""> Loading micromanager configuration... </a>\n')
 guiconfig2(handles.acquisition.microscope);
+fprintf('<a href=""> Setting the GUI for your microscope... </a>\n')
 handles=handles.acquisition.microscope.setGUI(handles);
 binOptions=get(handles.bin,'String');
 bin=binOptions{get(handles.bin,'Value')};
@@ -3042,9 +3046,6 @@ guidata(hObject, handles);
 function EM_Callback(hObject, eventdata, handles)
 EM;
 set(handles.CCD,'Value',0);
-
-
-
 
 
 
@@ -4766,6 +4767,7 @@ pumpSerial=handles.acquisition.flow{4}(2).serial;
 fprintf(pumpSerial,['DIA' num2str(diameter)]);pause(.05);
 
 
+
 % --- Executes during object creation, after setting all properties.
 function diameterP2_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to diameterP2 (see GCBO)
@@ -5559,5 +5561,6 @@ handles.acquisition.microscope.setBin(bin);
 
 
 guidata(hObject,handles);
+
 
 

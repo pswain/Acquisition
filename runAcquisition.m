@@ -1,8 +1,5 @@
 function []=runAcquisition(acqData)
-
-%fprintf('ghetto correction for binning on')
-%acqData.imagesize=acqData.imagesize/2;
-
+global mmc;
 
 %Run initialize files script - opens directories for saving data and log file
 %also saves acquisition settings
@@ -67,7 +64,7 @@ function []=runAcquisition(acqData)
     acqData.z(5)=0;
 
 
-    acqData.imagesize=acqData.microscope.ImageSize;
+
     acqTimelapse(acqData,logfile,exptFolder,posDirectories);
 %catch
  %   disp('Error in running of the experiment - may not have been completed');

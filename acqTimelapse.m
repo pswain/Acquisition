@@ -12,9 +12,6 @@ end
 acqData.logtext=1;
 logstring=strcat('Experiment started at: ',datestr(clock));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
 
-%%%%%%%%%%%%%%%
-% acqData.time(1)=1;
-%%%%%%%%%%%%%%%
 
 isTimelapse=acqData.time(1);
 if isTimelapse==1
@@ -189,7 +186,7 @@ for t=1:numTimepoints%start of timepoint loop.
                    %
                    %               
                    acqData.microscope.Autofocus.switchOff;
-
+                   pause(0.4);%Gives it time to switch off - is pretty slow
                end
                %Does any channel at this position do z sectioning?
                anyZThisPos=false;
