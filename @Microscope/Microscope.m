@@ -331,6 +331,7 @@ classdef Microscope
                case {'Batman','Batgirl'}
                    global mmc
                    mmc.setProperty('TILightPath', 'Label','2-Left100');%send light to the camera
+                   mmc.waitForDevice('TILightPath');
            end
             
         end
@@ -714,7 +715,7 @@ classdef Microscope
             
             end
         
-        
+            
         function imageSize=getImageSize(obj,bin)
             %Returns a 2-element vector specifying the size of the images
             %for a given camera bin setting. Input is a string, either 1,

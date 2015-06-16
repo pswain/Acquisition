@@ -4619,6 +4619,7 @@ switch lens{:}
         defaults{3}='82.4';
         defaults{4}='82.4';
 end
+%defaults{5}='pos';
 answers=inputdlg({'Number of rows (y)','Number of columns(x)','Space between rows (microns)','Space between columns (microns)'},'Tile creation: define dimensions',1,defaults);
 
 [tiles handles]=makeTiles(str2num(answers{1}),str2num(answers{2}),str2num(answers{3}),str2num(answers{4}), handles);
