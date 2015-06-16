@@ -8,3 +8,6 @@ for n=3:length(a)
     end
 end
 
+
+
+

@@ -186,7 +186,6 @@ for t=1:numTimepoints%start of timepoint loop.
                    %
                    %               
                    acqData.microscope.Autofocus.switchOff;
-
                    pause(0.4);%Gives it time to switch off - is pretty slow
                end
                %Does any channel at this position do z sectioning?
@@ -217,6 +216,19 @@ for t=1:numTimepoints%start of timepoint loop.
            %correcting itself.
            logstring=strcat('Single position and Z section. No call to correctDrift');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
            acqData.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
+
+           %visit z-position if on robin
+           if strcmp(acqData.microscope.Name,'Robin')      
+               zNow=acqData.points{pos,4};
+               if pos>1
+                   zOld=acqData.points{pos-1,4};
+               else
+                   zOld=1e9;
+               end
+               if zNow~=zOld
+                   mmc.setPosition(acqData.microscope.ZStage,acqData.points{pos,4});
+               end
+           end
            
            if acqData.z(4)~=0%anyZ = 1 if any channel does z sectioning.
                %At least one channel does z sectioning.

@@ -1881,8 +1881,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function starttpChannel_Callback(hObject, eventdata, handles)
 %Sets the starting timepoint for the appropriate channel - there will be no
 %imaging before this timepoint.
@@ -2094,7 +2092,8 @@ else%this is the first point defined. Set group to 1 and also initialise the col
 end
 %Generate a default name and make sure this name hasn't already been taken
 number=nPoints+1;
-defName=strcat('pos',num2str(number));%generate default point name
+defName=strcat('pos',num2str(number,'%02d'));%generate default point name
+
 nameOK=0;
 while nameOK==0
     usename=1;
@@ -2362,6 +2361,7 @@ userID=get(hObject,'Value');
 users=[swain tyers millar];
 userName=users(userID);
 handles.acquisition.info(2)=userName;
+
 handles.acquisition.info(3)=makeRoot(userName,handles.acquisition.microscope);
 set(handles.rootName,'String',cellstr(handles.acquisition.info(3)));
 guidata(hObject, handles);
@@ -4122,8 +4122,8 @@ if nSelected==1
     end
     table{row,2}=mmc.getXPosition('XYStage');
     table{row,3}=mmc.getYPosition('XYStage');
-    table{row,4}=mmc.getPosition('TIZDrive');
-    table{row,5}=mmc.getPosition('TIPFSOffset');
+    table{row,4}=mmc.getPosition(handles.acquisition.microscope.ZStage);
+    table{row,5}=handles.acquisition.microscope.Autofocus.getOffset;
     if strcmp(ans,'Yes')
         diff=table{row,4}-oldZ;
         for n=1:size(table,1)
@@ -4610,8 +4610,10 @@ switch lens{:}
         defaults{3}='824';
         defaults{4}='824';
     case '40'
-        defaults{3}='220';
-        defaults{4}='167';
+        defaults{1}='15';
+        defaults{2}='5';
+        defaults{3}='155'; %167 to be touching
+        defaults{4}='-200'; %220 to be adjacent
     case '60'
         defaults{3}='137';
         defaults{4}='137';
@@ -4622,8 +4624,9 @@ end
 %defaults{5}='pos';
 answers=inputdlg({'Number of rows (y)','Number of columns(x)','Space between rows (microns)','Space between columns (microns)'},'Tile creation: define dimensions',1,defaults);
 
+currPosList=handles.acquisition.points;
 [tiles handles]=makeTiles(str2num(answers{1}),str2num(answers{2}),str2num(answers{3}),str2num(answers{4}), handles);
-
+tiles(1:size(currPosList,1),:)=currPosList;
 set(handles.pointsTable,'Data',tiles);
 handles.acquisition.points=tiles;
 set(handles.pointsTable,'Enable','on');%Make sure the table is activated (won't be if this is the first point to be defined)
@@ -4758,6 +4761,12 @@ function diameterP2_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns diameterP2 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from diameterP2
+contents = cellstr(get(hObject,'String'));
+volString=contents{get(hObject,'Value')};
+diameter=pump.getDiameter(volString);
+pumpSerial=handles.acquisition.flow{4}(2).serial;
+fprintf(pumpSerial,['DIA' num2str(diameter)]);pause(.05);
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -5537,6 +5546,22 @@ set(handles.GbFree,'String',num2str(handles.freeDisk));
 updateDiskSpace(handles);
 guidata(hObject,handles);
 
+
+function bin_Callback(hObject, eventdata, handles)
+%Callback for user setting the camera bin
+
+% Hints: get(hObject,'String') returns contents of voltCh1 as text
+%        str2double(get(hObject,'String')) returns contents of voltCh1 as a double
+menu=get(hObject,'String');
+bin=menu{get(hObject,'Value')};
+handles.acquisition.imagesize=handles.acquisition.microscope.getImageSize(bin);
+imSizeString=[num2str(handles.acquisition.imagesize(1)) 'x' num2str(handles.acquisition.imagesize(2))];
+set(handles.imagesize,'String', imSizeString);
+
+handles.acquisition.microscope.setBin(bin);
+
+
+guidata(hObject,handles);
 
 
 

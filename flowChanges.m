@@ -195,37 +195,53 @@ classdef flowChanges
             
             fprintf(sFrom,'RUN4');
             fprintf(sTo,'RUN2');
+            
+            %Check that both pumps are set to the correct rate and
+            %direction
+            
         end
         
         function obj=setSwitchPhases(obj)
             p1=obj.pumps{1}.serial;
             p2=obj.pumps{2}.serial;
             
-            %The next part is necessary for NE100 pumps  becuase the pumps switch
-            %their units from ul to ml if using 10ml syringes (diam 14.43)
-            %or bigger. - commented for pump1 because it's now a different
-            %model (NE1002) that doesn't do this. You can manually change
+            %The next part is necessary because NE100 pumps pumps switch
+            %their vol units from ul to ml if using 10ml syringes (diam 14.43)
+            %or bigger. You can manually change
             %the units to nl on that pump - will be a disaster if someone
-            %does this...
+            %does this...            
             
+            %Correct volume for units on pump1(obj.switchParams.withdrawVol
+            %is in ul)
+            switch obj.pumps{1}.model
+                case 'AL-1000'
+                    if obj.pumps{1}.diameter>=14.4
+                        %Pump volume units will be ml.
+                        wVol1=num2str(obj.switchParams.withdrawVol/1e3);
+                    else
+                        wVol1=num2str(obj.switchParams.withdrawVol);
+                    end
+                case 'AL-1002X'
+                    wVol1=num2str(obj.switchParams.withdrawVol);
+            end
             
-%             if obj.pumps{1}.diameter>=14.43
-%                 wVol1=num2str(obj.switchParams.withdrawVol/1e3);
-%             else
-                 wVol1=num2str(obj.switchParams.withdrawVol);
-%             end
-            
-            %if obj.pumps{2}.diameter>=14.43
-             %   wVol2=num2str(obj.switchParams.withdrawVol/1e3);
-            %else
-                wVol2=num2str(obj.switchParams.withdrawVol);
-            %end
+            switch obj.pumps{2}.model
+                case 'AL-1000'
+                    if obj.pumps{2}.diameter>=14.4
+                        %Pump volume units will be ml.
+                        wVol2=num2str(obj.switchParams.withdrawVol/1e3);
+                    else
+                        wVol2=num2str(obj.switchParams.withdrawVol);
+                    end
+                case 'AL-1002X'
+                    wVol2=num2str(obj.switchParams.withdrawVol);
+            end
+
             
             fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
             fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);
             fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
             fprintf(p1,['RAT' num2str(obj.switchParams.rate)  'UM']);fprintf(p2,['RAT' num2str(obj.switchParams.rate)  'UM']);pause(.05);
- %           fprintf(p1,['RAT' num2str(obj.switchParams.rate)]);fprintf(p2,['RAT' num2str(obj.switchParams.rate)]);pause(.05);
             fprintf(p1,['VOL' wVol1]);fprintf(p2,['VOL' wVol2]);pause(.05);
             fprintf(p1,'DIRINF');fprintf(p2,'DIRINF');pause(.05);
             fprintf(p1,'PHN3');fprintf(p2,'PHN3');pause(.05);
