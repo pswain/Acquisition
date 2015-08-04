@@ -28,11 +28,11 @@ function varargout = multiDGUI(varargin)
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @multiDGUI_OpeningFcn, ...
-                   'gui_OutputFcn',  @multiDGUI_OutputFcn, ...
-                   'gui_LayoutFcn',  [] , ...
-                   'gui_Callback',   []);
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @multiDGUI_OpeningFcn, ...
+    'gui_OutputFcn',  @multiDGUI_OutputFcn, ...
+    'gui_LayoutFcn',  [] , ...
+    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
@@ -84,14 +84,14 @@ handles.output = hObject;
 %time. double array
 %Column 1 - use timelapse (1 for yes, 0 for no)
 %Column 2 - interval in s (300s (5min) default)
-%Column 3 - number of time points (180 default) 
+%Column 3 - number of time points (180 default)
 %Column 4 - total time (54000s (15hr) default)
 
 %Point visiting
 %points. cell array
 %Column 1 - name
 %Column 2 - x stage position (microns)
-%Column 3 - y stage position (microns) 
+%Column 3 - y stage position (microns)
 %Column 4 - microscope z drive position (microns)
 %Column 5 - PFS offset position (microns)
 %Column 6 - Group - all points that are members of a group should have the same exposure settings - eg - should all be the same genotype and media condition
@@ -108,7 +108,7 @@ handles.output = hObject;
 
 %Column 1 - Contents of syringe in pump 1 (string)
 %Column 2 - Contents of syringe in pump 2 (string)
-%Column 3 - 
+%Column 3 -
 %Column 4 - cell array of pump objects
 %Column 5 - switches object
 
@@ -137,7 +137,7 @@ handles.acquisition.microscope=Microscope;
 
 
 
- 
+
 %Show warning if running from the shared, public folder
 if strcmp(pwd,'C:\Users\Public\Microscope Control');
     msgbox('MultiDGUI is running from the shared Microscope Control folder - please do not edit this version of the software!','Running shared software','Warn');
@@ -155,33 +155,33 @@ user=getenv('USERNAME');
 handles.acquisition.info={'exp' user root 'Aim:   Strain:  Comments:'};%Initialise the experimental info - exp name and details may be altered later when refreshGUI is called but root and user stay the same
 lastSavedPath=strcat('C:\Documents and Settings\All Users\multiDGUIfiles\',user,'lastSaved.txt');
 if exist (lastSavedPath,'file')==2
-fileWithPath=fopen(lastSavedPath);
-acqFilePath=textscan(fileWithPath,'%s','Delimiter','');%read with empty delimiter,'' - prevents new line being started at spaces in the path name 
-fclose(fileWithPath);
-acqFilePath=acqFilePath{:};
-lastSavedFilename=char(acqFilePath);
-%then load that file into handles.acquisition if the file exists
+    fileWithPath=fopen(lastSavedPath);
+    acqFilePath=textscan(fileWithPath,'%s','Delimiter','');%read with empty delimiter,'' - prevents new line being started at spaces in the path name
+    fclose(fileWithPath);
+    acqFilePath=acqFilePath{:};
+    lastSavedFilename=char(acqFilePath);
+    %then load that file into handles.acquisition if the file exists
     if exist (lastSavedFilename,'file')==5
-    handles.acquisition=loadAcquisition(lastSavedFilename);
-    handles.acquisition.info={'exp' user root 'Aim:   Strain:  Comments:'};%Initialise the experimental info - not loaded from acquisition file
-    %then import the data from the handles.acquisition structure into the GUI:
-    refreshGUI(handles);
-    guidata(hObject, handles);
+        handles.acquisition=loadAcquisition(lastSavedFilename);
+        handles.acquisition.info={'exp' user root 'Aim:   Strain:  Comments:'};%Initialise the experimental info - not loaded from acquisition file
+        %then import the data from the handles.acquisition structure into the GUI:
+        refreshGUI(handles);
+        guidata(hObject, handles);
     else%If there is no last saved acquisition initialise with defaults
         handles.acquisition.channels={};
-        handles.acquisition.z=[1 0 0 0 0 2]; 
+        handles.acquisition.z=[1 0 0 0 0 2];
         handles.acquisition.time=[1 300 180 54000];
         p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
         handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
         %info entry is already initialised above
     end
 else%If there is no file containing the path of a last saved acquisition the initialise with defaults
-handles.acquisition.channels={};
-handles.acquisition.z=[1 0 0 0 0 2]; 
-handles.acquisition.time=[1 300 180 54000];
-p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
-handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
-%info entry is already initialised above
+    handles.acquisition.channels={};
+    handles.acquisition.z=[1 0 0 0 0 2];
+    handles.acquisition.time=[1 300 180 54000];
+    p1=pump('COM5',19200);p2=pump('COM6',19200);%CHANGE 2ND INPUT TO CORRECT BAUD RATE FOR THE RELEVANT PUMP
+    handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
+    %info entry is already initialised above
 end
 set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
 updateFlowDisplay(handles);%makes the graph from the flow settings
@@ -197,10 +197,10 @@ users=[swain tyers millar];
 
 %Initialize the Omero projects and tags lists
 if ismac
-   addpath(genpath('/Volumes/AcquisitionData/Swain Lab/OmeroCode'));
-   load('/Volumes/AcquisitionData/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfoSkye.mat');
-   addpath('\\SCE-BIO-C02471\AcquisitionData\Swain Lab\OmeroCode');
-   macMMPath;
+    addpath(genpath('/Volumes/AcquisitionData/Swain Lab/OmeroCode'));
+    load('/Volumes/AcquisitionData/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/dbInfoSkye.mat');
+    addpath('\\SCE-BIO-C02471\AcquisitionData\Swain Lab\OmeroCode');
+    macMMPath;
 else
     [idum,hostname]= system('hostname');
     if strcmp(hostname(1:end-1),'SCE-BIO-C03727')
@@ -218,11 +218,11 @@ handles.acquisition.omero.object=obj2;
 proj=handles.acquisition.omero.object.getProjectNames;
 %Make sure there is a 'Default project' entry
 if ~any(strcmp('Default project',proj))
-     proj{end+1}='Default project';
-     defaultValue=length(proj);
+    proj{end+1}='Default project';
+    defaultValue=length(proj);
 else
-     defaultValue=find(strcmp(proj,'Default project'));
-     defaultValue=defaultValue(1);
+    defaultValue=find(strcmp(proj,'Default project'));
+    defaultValue=defaultValue(1);
 end
 proj{end+1}='Add a new project';
 set(handles.OmeroProjects,'String',proj);
@@ -304,14 +304,14 @@ if isthereagui~=1
         %the gui from a mac
         gui=DemoGUI;
     end
- guiconfig;
+    guiconfig;
 end
 
 % Update handles structure
 guidata(hObject, handles);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = multiDGUI_OutputFcn(hObject, eventdata, handles) 
+function varargout = multiDGUI_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -369,17 +369,17 @@ function expChannel_Callback(hObject, eventdata, handles)
 [chName tagEnd]=getChannel(hObject,handles);
 
 
-expos=str2double(get(hObject,'String'));   
+expos=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),chName)==1
-        handles.acquisition.channels{n,2}=expos;
+            handles.acquisition.channels{n,2}=expos;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 
@@ -406,17 +406,17 @@ function expCh2_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of expCh2 as text
 %        str2double(get(hObject,'String')) returns contents of expCh2 as a double
-expos=str2double(get(hObject,'String'));   
+expos=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'CFP')==1
-        handles.acquisition.channels{n,2}=expos;
+            handles.acquisition.channels{n,2}=expos;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function expCh2_CreateFcn(hObject, eventdata, handles)
@@ -438,17 +438,17 @@ function expCh3_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of expCh3 as text
 %        str2double(get(hObject,'String')) returns contents of expCh3 as a double
-expos=str2double(get(hObject,'String'));   
+expos=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'GFP')==1
-        handles.acquisition.channels{n,2}=expos;
+            handles.acquisition.channels{n,2}=expos;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function expCh3_CreateFcn(hObject, eventdata, handles)
@@ -471,17 +471,17 @@ function expCh4_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of expCh4 as text
 %        str2double(get(hObject,'String')) returns contents of expCh4 as a double
-expos=str2double(get(hObject,'String'));   
+expos=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'YFP')==1
-        handles.acquisition.channels{n,2}=expos;
+            handles.acquisition.channels{n,2}=expos;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function expCh4_CreateFcn(hObject, eventdata, handles)
@@ -504,17 +504,17 @@ function expCh5_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of expCh5 as text
 %        str2double(get(hObject,'String')) returns contents of expCh5 as a double
-expos=str2double(get(hObject,'String'));   
+expos=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
-        handles.acquisition.channels{n,2}=expos;
+            handles.acquisition.channels{n,2}=expos;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function expCh5_CreateFcn(hObject, eventdata, handles)
@@ -537,17 +537,17 @@ function expCh6_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of expCh6 as text
 %        str2double(get(hObject,'String')) returns contents of expCh6 as a double
-expos=str2double(get(hObject,'String'));   
+expos=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
-        handles.acquisition.channels{n,2}=expos;
+            handles.acquisition.channels{n,2}=expos;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function expCh6_CreateFcn(hObject, eventdata, handles)
@@ -573,19 +573,19 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.expCh1,'Enable','off'); 
-
+    set(handles.expCh1,'Enable','off');
+    
 else
     set(handles.expCh1,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'DIC')==1
-        handles.acquisition.channels{n,3}=pointexpose;
+            handles.acquisition.channels{n,3}=pointexpose;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes on button press in CFPpointexp.
 function CFPpointexp_Callback(hObject, eventdata, handles)
@@ -598,19 +598,19 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.expCh2,'Enable','off'); 
-
+    set(handles.expCh2,'Enable','off');
+    
 else
     set(handles.expCh2,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'CFP')==1
-        handles.acquisition.channels{n,3}=pointexpose;
+            handles.acquisition.channels{n,3}=pointexpose;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes on button press in skipCh3.
 function GFPpointexp_Callback(hObject, eventdata, handles)
@@ -623,19 +623,19 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.expCh3,'Enable','off'); 
-
+    set(handles.expCh3,'Enable','off');
+    
 else
     set(handles.expCh3,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'GFP')==1
-        handles.acquisition.channels{n,3}=pointexpose;
+            handles.acquisition.channels{n,3}=pointexpose;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes on button press in YFPpointexp.
 function YFPpointexp_Callback(hObject, eventdata, handles)
@@ -648,19 +648,19 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.expCh4,'Enable','off'); 
-
+    set(handles.expCh4,'Enable','off');
+    
 else
     set(handles.expCh4,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'YFP')==1
-        handles.acquisition.channels{n,3}=pointexpose;
+            handles.acquisition.channels{n,3}=pointexpose;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes on button press in skipCh5.
 function mChpointexp_Callback(hObject, eventdata, handles)
@@ -673,19 +673,19 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.expCh5,'Enable','off'); 
-
+    set(handles.expCh5,'Enable','off');
+    
 else
     set(handles.expCh5,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
-        handles.acquisition.channels{n,3}=pointexpose;
+            handles.acquisition.channels{n,3}=pointexpose;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes on button press in tdpointexp.
 function tdpointexp_Callback(hObject, eventdata, handles)
@@ -698,19 +698,19 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.expCh6,'Enable','off'); 
-
+    set(handles.expCh6,'Enable','off');
+    
 else
     set(handles.expCh6,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
-        handles.acquisition.channels{n,3}=pointexpose;
+            handles.acquisition.channels{n,3}=pointexpose;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes on button press in text5. Use CFP
 function useCh2_Callback(hObject, eventdata, handles)
@@ -718,39 +718,39 @@ function useCh2_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.ZsectCh2,'Value')==1
-       set(handles.nZsections,'Enable','on');
-       set(handles.zspacing,'Enable','on');
-     end
-   set(handles.skipCh2,'Enable','on');
-   set(handles.ZsectCh2,'Enable','on');
-   set(handles.starttpCh2,'Enable','on');
-   set(handles.snapCh2,'Enable','on');
-   set(handles.cammodeCh2,'Enable','on');
-   set(handles.skipCh2,'Enable','on');
+    if get(handles.ZsectCh2,'Value')==1
+        set(handles.nZsections,'Enable','on');
+        set(handles.zspacing,'Enable','on');
+    end
+    set(handles.skipCh2,'Enable','on');
+    set(handles.ZsectCh2,'Enable','on');
+    set(handles.starttpCh2,'Enable','on');
+    set(handles.snapCh2,'Enable','on');
+    set(handles.cammodeCh2,'Enable','on');
+    set(handles.skipCh2,'Enable','on');
     %camera settings - enable controls
-   set(handles.cammodeCh2,'Enable','on');%%%%%
-   if get(handles.cammodeCh2,'Value')==1%channel set to camera EM mode
-       set (handles.startgainCh2,'Enable','on');%%%%%
-       set (handles.voltCh2,'Enable','on');%%%%%
-   end   %%%%%
-   set(handles.expCh2,'Enable','on');
-   handles.acquisition.channels{nChannels+1,1}='CFP';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh2,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh2,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh2,'String'));
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh2,'String'));%add to others
+    set(handles.cammodeCh2,'Enable','on');%%%%%
+    if get(handles.cammodeCh2,'Value')==1%channel set to camera EM mode
+        set (handles.startgainCh2,'Enable','on');%%%%%
+        set (handles.voltCh2,'Enable','on');%%%%%
+    end   %%%%%
+    set(handles.expCh2,'Enable','on');
+    handles.acquisition.channels{nChannels+1,1}='CFP';
+    handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh2,'String'));
+    handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh2,'Value');%add to others
+    handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh2,'String'));
+    handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh2,'String'));%add to others
     %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh2,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh2,'String'));
-   if isempty(handles.acquisition.channels(nChannels+1,7))
-       handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
-   end
-   handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh2,'String')));
-   %update the points list (if there is one) - add a column for exposure times for this channel
-   if size(handles.acquisition.points,1)>0
+    handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh2,'Value');
+    handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh2,'String'));
+    if isempty(handles.acquisition.channels(nChannels+1,7))
+        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
+    end
+    handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh2,'String')));
+    %update the points list (if there is one) - add a column for exposure times for this channel
+    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
-   end
+    end
 else
     set(handles.expCh2,'Enable','off');
     set(handles.skipCh2,'Enable','off');
@@ -761,17 +761,17 @@ else
     set(handles.startgainCh2,'Enable','off');%%%%%
     set(handles.voltCh2,'Enable','off');%%%%%
     set(handles.skipCh2,'Enable','off');
-
+    
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
         anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it. And also records if any channel does sectioning.
             if strcmp(char(handles.acquisition.channels(n,1)),'CFP')==1
-            delnumber=n;
+                delnumber=n;
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
                 if zChoice==1;
-                anyZ=1;
+                    anyZ=1;
                 end
             end
         end
@@ -779,17 +779,17 @@ else
             handles=updatePoints(handles,delnumber);%update the points list - remove the relevant column of exposure times
         end
         
-    handles.acquisition.channels(delnumber,:)=[];
-    if anyZ==0%deactivate z settings choices if no channel is using z
-        set(handles.nZsections,'Enable','off');
-        set(handles.zspacing,'Enable','off');
-    end
+        handles.acquisition.channels(delnumber,:)=[];
+        if anyZ==0%deactivate z settings choices if no channel is using z
+            set(handles.nZsections,'Enable','off');
+            set(handles.zspacing,'Enable','off');
+        end
     end
 end
 updateDiskSpace(handles);
-     
-        
-        
+
+
+
 guidata(hObject, handles);
 
 % --- Executes on button press in text6. Use GFP
@@ -803,39 +803,39 @@ function useCh3_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.ZsectCh3,'Value')==1
-       set(handles.nZsections,'Enable','on');
-   
-       set(handles.zspacing,'Enable','on');
-     end
-   set(handles.skipCh3,'Enable','on');
-   set(handles.ZsectCh3,'Enable','on');
-   set(handles.starttpCh3,'Enable','on');%add to others
-   set(handles.snapCh3,'Enable','on');%%%%%
-   set(handles.cammodeCh3,'Enable','on');%%%%%
-   %camera settings - enable controls
-   set(handles.cammodeCh3,'Enable','on');%%%%%
-   if get(handles.cammodeCh3,'Value')==1%channel set to camera EM mode
-       set (handles.startgainCh3,'Enable','on');%%%%%
-       set (handles.voltCh3,'Enable','on');%%%%%
-   end   %%%%%
-   set(handles.expCh3,'Enable','on');
-   handles.acquisition.channels{nChannels+1,1}='GFP';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh3,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh3,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh3,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh3,'String'));%add to others
-   %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh3,'Value');%%%%%
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh3,'String'));%%%%%
-   if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
-       handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
-   end%
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh3,'String')));
-   %update the points list (if there is one) - add a column for exposure times for this channel
-   if size(handles.acquisition.points,1)>0
+    if get(handles.ZsectCh3,'Value')==1
+        set(handles.nZsections,'Enable','on');
+        
+        set(handles.zspacing,'Enable','on');
+    end
+    set(handles.skipCh3,'Enable','on');
+    set(handles.ZsectCh3,'Enable','on');
+    set(handles.starttpCh3,'Enable','on');%add to others
+    set(handles.snapCh3,'Enable','on');%%%%%
+    set(handles.cammodeCh3,'Enable','on');%%%%%
+    %camera settings - enable controls
+    set(handles.cammodeCh3,'Enable','on');%%%%%
+    if get(handles.cammodeCh3,'Value')==1%channel set to camera EM mode
+        set (handles.startgainCh3,'Enable','on');%%%%%
+        set (handles.voltCh3,'Enable','on');%%%%%
+    end   %%%%%
+    set(handles.expCh3,'Enable','on');
+    handles.acquisition.channels{nChannels+1,1}='GFP';
+    handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh3,'String'));
+    handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh3,'String'));
+    handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh3,'Value');%add to others
+    handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh3,'String'));%add to others
+    %camera settings
+    handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh3,'Value');%%%%%
+    handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh3,'String'));%%%%%
+    if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
+        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
+    end%
+    handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh3,'String')));
+    %update the points list (if there is one) - add a column for exposure times for this channel
+    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
-   end
+    end
 else
     set(handles.expCh3,'Enable','off');
     set(handles.skipCh3,'Enable','off');
@@ -851,22 +851,22 @@ else
         anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it. And also records if any channel does sectioning.
             if strcmp(char(handles.acquisition.channels(n,1)),'GFP')==1
-            delnumber=n;
+                delnumber=n;
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
                 if zChoice==1;
-                anyZ=1;
+                    anyZ=1;
                 end
             end
         end
         if size(handles.acquisition.points,1)>0
             handles=updatePoints(handles,delnumber);%update the points list - remove the relevant column of exposure times
         end
-    handles.acquisition.channels(delnumber,:)=[];
-    if anyZ==0%deactivate z settings choices if no channel is using z
-        set(handles.nZsections,'Enable','off');
-        set(handles.zspacing,'Enable','off');
-    end
+        handles.acquisition.channels(delnumber,:)=[];
+        if anyZ==0%deactivate z settings choices if no channel is using z
+            set(handles.nZsections,'Enable','off');
+            set(handles.zspacing,'Enable','off');
+        end
     end
 end
 updateDiskSpace(handles);
@@ -881,38 +881,38 @@ function useCh4_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.ZsectCh4,'Value')==1
-      set(handles.nZsections,'Enable','on');
-      set(handles.zspacing,'Enable','on');
-     end
-   set(handles.skipCh4,'Enable','on');
-   set(handles.ZsectCh4,'Enable','on');
-   set(handles.starttpCh4,'Enable','on');%add to others
-   set(handles.snapCh4,'Enable','on');%%%%%
-   set(handles.cammodeCh4,'Enable','on');%%%%%
-   %camera settings - enable controls
-   set(handles.cammodeCh4,'Enable','on');%%%%%
-   if get(handles.cammodeCh4,'Value')==1%channel set to camera EM mode
-       set (handles.startgainCh4,'Enable','on');%%%%%
-       set (handles.voltCh4,'Enable','on');%%%%%
-   end   %%%%%
-   set(handles.expCh4,'Enable','on');
-   handles.acquisition.channels{nChannels+1,1}='YFP';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh4,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh4,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh4,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh4,'String'));%add to others
-   %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh4,'Value');%%%%%
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh4,'String'));%%%%%
-   if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
-       handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
-   end%
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh4,'String')));
+    if get(handles.ZsectCh4,'Value')==1
+        set(handles.nZsections,'Enable','on');
+        set(handles.zspacing,'Enable','on');
+    end
+    set(handles.skipCh4,'Enable','on');
+    set(handles.ZsectCh4,'Enable','on');
+    set(handles.starttpCh4,'Enable','on');%add to others
+    set(handles.snapCh4,'Enable','on');%%%%%
+    set(handles.cammodeCh4,'Enable','on');%%%%%
+    %camera settings - enable controls
+    set(handles.cammodeCh4,'Enable','on');%%%%%
+    if get(handles.cammodeCh4,'Value')==1%channel set to camera EM mode
+        set (handles.startgainCh4,'Enable','on');%%%%%
+        set (handles.voltCh4,'Enable','on');%%%%%
+    end   %%%%%
+    set(handles.expCh4,'Enable','on');
+    handles.acquisition.channels{nChannels+1,1}='YFP';
+    handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh4,'String'));
+    handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh4,'String'));
+    handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh4,'Value');%add to others
+    handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh4,'String'));%add to others
+    %camera settings
+    handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh4,'Value');%%%%%
+    handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh4,'String'));%%%%%
+    if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
+        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
+    end%
+    handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh4,'String')));
     %update the points list (if there is one) - add a column for exposure times for this channel
-   if size(handles.acquisition.points,1)>0
+    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
-   end
+    end
 else
     set(handles.expCh4,'Enable','off');
     set(handles.skipCh4,'Enable','off');
@@ -925,25 +925,25 @@ else
     set(handles.voltCh4,'Enable','off');%%%%%
     sizeChannels=size(handles.acquisition.channels);
     if sizeChannels(1)~=0
-       anyZ=0;
+        anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it. And also records if any channel does sectioning.
             if strcmp(char(handles.acquisition.channels(n,1)),'YFP')==1
-            delnumber=n;
+                delnumber=n;
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
                 if zChoice==1;
-                anyZ=1;
+                    anyZ=1;
                 end
             end
         end
         if size(handles.acquisition.points,1)>0
             handles=updatePoints(handles,delnumber);%update the points list - remove the relevant column of exposure times
         end
-    handles.acquisition.channels(delnumber,:)=[];
-    if anyZ==0%deactivate z settings choices if no channel is using z
-        set(handles.nZsections,'Enable','off');
-        set(handles.zspacing,'Enable','off');
-    end
+        handles.acquisition.channels(delnumber,:)=[];
+        if anyZ==0%deactivate z settings choices if no channel is using z
+            set(handles.nZsections,'Enable','off');
+            set(handles.zspacing,'Enable','off');
+        end
     end
 end
 updateDiskSpace(handles);
@@ -959,39 +959,39 @@ function useCh5_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.ZsectCh5,'Value')==1
-       set(handles.nZsections,'Enable','on');
-       set(handles.zspacing,'Enable','on');
-     end
-   set(handles.skipCh5,'Enable','on');
-   set(handles.ZsectCh5,'Enable','on');
-   set(handles.starttpCh5,'Enable','on');%add to others
-   set(handles.snapCh5,'Enable','on');
-   set(handles.cammodeCh5,'Enable','on');
-   set(handles.skipCh5,'Enable','on');
+    if get(handles.ZsectCh5,'Value')==1
+        set(handles.nZsections,'Enable','on');
+        set(handles.zspacing,'Enable','on');
+    end
+    set(handles.skipCh5,'Enable','on');
+    set(handles.ZsectCh5,'Enable','on');
+    set(handles.starttpCh5,'Enable','on');%add to others
+    set(handles.snapCh5,'Enable','on');
+    set(handles.cammodeCh5,'Enable','on');
+    set(handles.skipCh5,'Enable','on');
     %camera settings - enable controls
-   set(handles.cammodeCh5,'Enable','on');%%%%%
-   if get(handles.cammodeCh5,'Value')==1%channel set to camera EM mode
-       set (handles.startgainCh5,'Enable','on');%%%%%
-       set (handles.voltCh5,'Enable','on');%%%%%
-   end   %%%%%
-   set(handles.expCh5,'Enable','on');
-   handles.acquisition.channels{nChannels+1,1}='mCherry';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh5,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh5,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh5,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh5,'String'));%add to others
-   %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh5,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh5,'String'));
-   if isempty(handles.acquisition.channels(nChannels+1,7))
-       handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
-   end
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh5,'String')));
+    set(handles.cammodeCh5,'Enable','on');%%%%%
+    if get(handles.cammodeCh5,'Value')==1%channel set to camera EM mode
+        set (handles.startgainCh5,'Enable','on');%%%%%
+        set (handles.voltCh5,'Enable','on');%%%%%
+    end   %%%%%
+    set(handles.expCh5,'Enable','on');
+    handles.acquisition.channels{nChannels+1,1}='mCherry';
+    handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh5,'String'));
+    handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh5,'String'));
+    handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh5,'Value');%add to others
+    handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh5,'String'));%add to others
+    %camera settings
+    handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh5,'Value');
+    handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh5,'String'));
+    if isempty(handles.acquisition.channels(nChannels+1,7))
+        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
+    end
+    handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh5,'String')));
     %update the points list (if there is one) - add a column for exposure times for this channel
-   if size(handles.acquisition.points,1)>0
+    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
-   end
+    end
 else
     set(handles.expCh5,'Enable','off');
     set(handles.skipCh5,'Enable','off');
@@ -1007,22 +1007,22 @@ else
         anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it. And also records if any channel does sectioning.
             if strcmp(char(handles.acquisition.channels(n,1)),'mCherry')==1
-            delnumber=n;
+                delnumber=n;
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
                 if zChoice==1;
-                anyZ=1;
+                    anyZ=1;
                 end
             end
         end
         if size(handles.acquisition.points,1)>0
             handles=updatePoints(handles,delnumber);%update the points list - remove the relevant column of exposure times
         end
-    handles.acquisition.channels(delnumber,:)=[];
-    if anyZ==0%deactivate z settings choices if no channel is using z
-        set(handles.nZsections,'Enable','off');
-        set(handles.zspacing,'Enable','off');
-    end
+        handles.acquisition.channels(delnumber,:)=[];
+        if anyZ==0%deactivate z settings choices if no channel is using z
+            set(handles.nZsections,'Enable','off');
+            set(handles.zspacing,'Enable','off');
+        end
     end
 end
 updateDiskSpace(handles);
@@ -1038,38 +1038,38 @@ function useCh6_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.ZsectCh6,'Value')==1
-       set(handles.nZsections,'Enable','on');
-       set(handles.zspacing,'Enable','on');
-     end
-   set(handles.skipCh6,'Enable','on');
-   set(handles.ZsectCh6,'Enable','on');
-   set(handles.starttpCh6,'Enable','on');%add to others
-   set(handles.snapCh6,'Enable','on');
-   set(handles.cammodeCh6,'Enable','on');
+    if get(handles.ZsectCh6,'Value')==1
+        set(handles.nZsections,'Enable','on');
+        set(handles.zspacing,'Enable','on');
+    end
+    set(handles.skipCh6,'Enable','on');
+    set(handles.ZsectCh6,'Enable','on');
+    set(handles.starttpCh6,'Enable','on');%add to others
+    set(handles.snapCh6,'Enable','on');
+    set(handles.cammodeCh6,'Enable','on');
     %camera settings - enable controls
-   set(handles.cammodeCh6,'Enable','on');%%%%%
-   if get(handles.cammodeCh6,'Value')==1%channel set to camera EM mode
-       set (handles.startgainCh6,'Enable','on');%%%%%
-       set (handles.voltCh6,'Enable','on');%%%%%
-   end   %%%%%
-   set(handles.expCh6,'Enable','on');
-   handles.acquisition.channels{nChannels+1,1}='tdTomato';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh6,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh6,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh6,'String'));
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh6,'String'));%add to others
-   %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh6,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh6,'String'));
-   if isempty(handles.acquisition.channels(nChannels+1,7))
-       handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
-   end
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh6,'String')));
-   %update the points list (if there is one) - add a column for exposure times for this channel
-   if size(handles.acquisition.points,1)>0
+    set(handles.cammodeCh6,'Enable','on');%%%%%
+    if get(handles.cammodeCh6,'Value')==1%channel set to camera EM mode
+        set (handles.startgainCh6,'Enable','on');%%%%%
+        set (handles.voltCh6,'Enable','on');%%%%%
+    end   %%%%%
+    set(handles.expCh6,'Enable','on');
+    handles.acquisition.channels{nChannels+1,1}='tdTomato';
+    handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh6,'String'));
+    handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh6,'Value');%add to others
+    handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh6,'String'));
+    handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh6,'String'));%add to others
+    %camera settings
+    handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh6,'Value');
+    handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh6,'String'));
+    if isempty(handles.acquisition.channels(nChannels+1,7))
+        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
+    end
+    handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh6,'String')));
+    %update the points list (if there is one) - add a column for exposure times for this channel
+    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
-   end
+    end
 else
     set(handles.expCh6,'Enable','off');
     set(handles.skipCh6,'Enable','off');
@@ -1084,22 +1084,22 @@ else
         anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it. And also records if any channel does sectioning.
             if strcmp(char(handles.acquisition.channels(n,1)),'tdTomato')==1
-            delnumber=n;
+                delnumber=n;
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
                 if zChoice==1;
-                anyZ=1;
+                    anyZ=1;
                 end
             end
         end
         if size(handles.acquisition.points,1)>0
             handles=updatePoints(handles,delnumber);%update the points list - remove the relevant column of exposure times
         end
-    handles.acquisition.channels(delnumber,:)=[];
-    if anyZ==0%deactivate z settings choices if no channel is using z
-        set(handles.nZsections,'Enable','off');
-        set(handles.zspacing,'Enable','off');
-    end
+        handles.acquisition.channels(delnumber,:)=[];
+        if anyZ==0%deactivate z settings choices if no channel is using z
+            set(handles.nZsections,'Enable','off');
+            set(handles.zspacing,'Enable','off');
+        end
     end
 end
 updateDiskSpace(handles);
@@ -1120,46 +1120,46 @@ function useChannel_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-   if get(handles.(['Zsect' tagEnd]),'Value')==1
-       set(handles.nZsections,'Enable','on');
-       set(handles.zspacing,'Enable','on');
-   end
-   set(handles.(['skip' tagEnd]),'Enable','on');
-   set(handles.(['Zsect' tagEnd]),'Enable','on');
-   set(handles.(['starttp' tagEnd]),'Enable','on');
-   set(handles.(['snap' tagEnd]),'Enable','on');
-   set(handles.(['skip' tagEnd]),'Enable','on');
-
-   switch handles.acquisition.microscope.Name
-       case 'Batman'
-           set(handles.(['cammode' tagEnd]),'Enable','on');
-           set(handles.(['volt' tagEnd]),'Enable','on');
-       case 'Robin'
-   end
-   %camera settings - enable controls
-   set(handles.(['cammode' tagEnd]),'Enable','on');%%%%%
-   if get(handles.(['cammode' tagEnd]),'Value')==1%channel set to camera EM mode
-       set (handles.(['startgain' tagEnd]),'Enable','on');%%%%%
-       set (handles.(['volt' tagEnd]),'Enable','on');%%%%%
-   end   %%%%%
-   set(handles.(['exp' tagEnd]),'Enable','on');
-   %initialise channels entry
-   handles.acquisition.channels{nChannels+1,1}=chName;
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.(['exp' tagEnd]),'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.(['skip' tagEnd]),'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.(['Zsect' tagEnd]),'Value');
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.(['starttp' tagEnd]),'String'));
-   %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.(['cammode' tagEnd]),'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.(['startgain' tagEnd]),'String'));%%%%%
-   if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
-       handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
-   end%
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.(['volt' tagEnd]),'String')));
-   %update the points list (if there is one) - add a column for exposure times for this channel
-   if size(handles.acquisition.points,1)>0
+    if get(handles.(['Zsect' tagEnd]),'Value')==1
+        set(handles.nZsections,'Enable','on');
+        set(handles.zspacing,'Enable','on');
+    end
+    set(handles.(['skip' tagEnd]),'Enable','on');
+    set(handles.(['Zsect' tagEnd]),'Enable','on');
+    set(handles.(['starttp' tagEnd]),'Enable','on');
+    set(handles.(['snap' tagEnd]),'Enable','on');
+    set(handles.(['skip' tagEnd]),'Enable','on');
+    
+    switch handles.acquisition.microscope.Name
+        case 'Batman'
+            set(handles.(['cammode' tagEnd]),'Enable','on');
+            set(handles.(['volt' tagEnd]),'Enable','on');
+        case 'Robin'
+    end
+    %camera settings - enable controls
+    set(handles.(['cammode' tagEnd]),'Enable','on');%%%%%
+    if get(handles.(['cammode' tagEnd]),'Value')==1%channel set to camera EM mode
+        set (handles.(['startgain' tagEnd]),'Enable','on');%%%%%
+        set (handles.(['volt' tagEnd]),'Enable','on');%%%%%
+    end   %%%%%
+    set(handles.(['exp' tagEnd]),'Enable','on');
+    %initialise channels entry
+    handles.acquisition.channels{nChannels+1,1}=chName;
+    handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.(['exp' tagEnd]),'String'));
+    handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.(['skip' tagEnd]),'String'));
+    handles.acquisition.channels{nChannels+1,4}=get(handles.(['Zsect' tagEnd]),'Value');
+    handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.(['starttp' tagEnd]),'String'));
+    %camera settings
+    handles.acquisition.channels{nChannels+1,6}=get(handles.(['cammode' tagEnd]),'Value');
+    handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.(['startgain' tagEnd]),'String'));%%%%%
+    if isempty(handles.acquisition.channels(nChannels+1,7))%%%%%
+        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
+    end%
+    handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.(['volt' tagEnd]),'String')));
+    %update the points list (if there is one) - add a column for exposure times for this channel
+    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
-   end
+    end
 else%this channel has been deselected
     set(handles.(['exp' tagEnd]),'Enable','off');
     set(handles.(['skip' tagEnd]),'Enable','off');
@@ -1174,22 +1174,22 @@ else%this channel has been deselected
         anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it
             if strcmp(char(handles.acquisition.channels(n,1)),chName)==1
-            delnumber=n;%mark this channel for deletion
+                delnumber=n;%mark this channel for deletion
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
                 if zChoice==1;
-                anyZ=1;
+                    anyZ=1;
                 end
             end
         end
-    if size(handles.acquisition.points,1)>0
-        handles=updatePoints(handles,delnumber);%update the points list - remove the relevant column of exposure times
-    end
-    handles.acquisition.channels(delnumber,:)=[];
-    if anyZ==0
-        set(handles.nZsections,'Enable','off');
-        set(handles.zspacing,'Enable','off');
-    end
+        if size(handles.acquisition.points,1)>0
+            handles=updatePoints(handles,delnumber);%update the points list - remove the relevant column of exposure times
+        end
+        handles.acquisition.channels(delnumber,:)=[];
+        if anyZ==0
+            set(handles.nZsections,'Enable','off');
+            set(handles.zspacing,'Enable','off');
+        end
     end
 end
 updateDiskSpace(handles);
@@ -1288,11 +1288,11 @@ handles.acquisition.time(4)=totalS;%set total time in acquisition data
 totalUnits=get(handles.unitsTotal,'Value');
 switch (totalUnits)
     case {1}%value 1 represents 's'
-       set(handles.totaltime,'String',num2str(totalS));
+        set(handles.totaltime,'String',num2str(totalS));
     case{2}%'min'
         set(handles.totaltime,'String',num2str(totalS/60));
     case{3}%'hr'
-       set(handles.totaltime,'String',num2str(totalS/3600));
+        set(handles.totaltime,'String',num2str(totalS/3600));
 end
 %need to update flow switching settings based on the new total number of
 %timepoints.
@@ -1343,11 +1343,11 @@ intUnits=get(handles.units,'Value');%get the units
 %also update the total time based on this interval
 switch (intUnits)
     case {1}%value 1 represents 's'
-    handles.acquisition.time(2)=intervalEntered;     
+        handles.acquisition.time(2)=intervalEntered;
     case{2}%'min'
-    handles.acquisition.time(2)=intervalEntered*60; 
+        handles.acquisition.time(2)=intervalEntered*60;
     case{3}%'hr'
-    handles.acquisition.time(2)=intervalEntered*3600; 
+        handles.acquisition.time(2)=intervalEntered*3600;
 end
 %update the total time based on the new interval
 timepoints=handles.acquisition.time(3);%get the number of timepoints
@@ -1358,13 +1358,13 @@ handles.acquisition.time(4)=totalS;%set total time in acquisition data
 totalUnits=get(handles.unitsTotal,'Value');
 switch (totalUnits)
     case {1}%value 1 represents 's'
-       set(handles.totaltime,'String',num2str(totalS));
+        set(handles.totaltime,'String',num2str(totalS));
     case{2}%'min'
         set(handles.totaltime,'String',num2str(totalS/60));
     case{3}%'hr'
-       set(handles.totaltime,'String',num2str(totalS/3600));
+        set(handles.totaltime,'String',num2str(totalS/3600));
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 
@@ -1388,10 +1388,10 @@ function ZsectChannel_Callback(hObject, eventdata, handles)
 [chName tagEnd]=getChannel(hObject,handles);
 
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
-                          %and record that z sectioning is being done for
-                          %this channel in the handles.acquisition.channels cell array
-                          %also get the z sectioning values from the gui
-                          %and copy them to the handles.acquisition.z array to be used
+    %and record that z sectioning is being done for
+    %this channel in the handles.acquisition.channels cell array
+    %also get the z sectioning values from the gui
+    %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
     switch handles.acquisition.microscope.Name
@@ -1406,7 +1406,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),chName)==1
-            handles.acquisition.channels(n,4)=num2cell(1);
+                handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
     end
@@ -1421,22 +1421,22 @@ else%if this button has been deselected
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),chName)==1
-            handles.acquisition.channels(n,4)=num2cell(0);
+                handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
-            anyZ=1;
+                anyZ=1;
             end
         end
     end
     if anyZ==0
-       set(handles.nZsections,'Enable','off');
-       set(handles.zspacing,'Enable','off');
-       set(handles.zMethod,'Enable','off');
-%        set(handles.nZsections,'String','1');
-%        set(handles.zspacing,'String','0');
-       handles.acquisition.z(1)=1;
-       handles.acquisition.z(2)=0;
-       handles.acquisition.z(4)=0;
+        set(handles.nZsections,'Enable','off');
+        set(handles.zspacing,'Enable','off');
+        set(handles.zMethod,'Enable','off');
+        %        set(handles.nZsections,'String','1');
+        %        set(handles.zspacing,'String','0');
+        handles.acquisition.z(1)=1;
+        handles.acquisition.z(2)=0;
+        handles.acquisition.z(4)=0;
     end
 end
 updateDiskSpace(handles);
@@ -1446,10 +1446,10 @@ guidata(hObject, handles);
 % --- Executes on button press in ZsectCh3.
 function ZsectCh3_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
-                          %and record that z sectioning is being done for
-                          %this channel in the handles.acquisition.channels cell array
-                          %also get the z sectioning values from the gui
-                          %and copy them to the handles.acquisition.z array to be used
+    %and record that z sectioning is being done for
+    %this channel in the handles.acquisition.channels cell array
+    %also get the z sectioning values from the gui
+    %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
@@ -1458,7 +1458,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'GFP')==1
-            handles.acquisition.channels(n,4)=num2cell(1);
+                handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
     end
@@ -1473,33 +1473,33 @@ else%if this button has been deselected
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'GFP')==1
-            handles.acquisition.channels(n,4)=num2cell(0);
+                handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
-            anyZ=1;
+                anyZ=1;
             end
         end
     end
     if anyZ==0
-       set(handles.nZsections,'Enable','off');
-       set(handles.zspacing,'Enable','off');
-%        set(handles.nZsections,'String','1');
-%        set(handles.zspacing,'String','0');
-       handles.acquisition.z(1)=1;
-       handles.acquisition.z(2)=0;
+        set(handles.nZsections,'Enable','off');
+        set(handles.zspacing,'Enable','off');
+        %        set(handles.nZsections,'String','1');
+        %        set(handles.zspacing,'String','0');
+        handles.acquisition.z(1)=1;
+        handles.acquisition.z(2)=0;
     end
 end
 updateDiskSpace(handles);
-  guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes on button press in ZsectCh4.
 function ZsectCh4_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
-                          %and record that z sectioning is being done for
-                          %this channel in the handles.acquisition.channels cell array
-                          %also get the z sectioning values from the gui
-                          %and copy them to the handles.acquisition.z array to be used
+    %and record that z sectioning is being done for
+    %this channel in the handles.acquisition.channels cell array
+    %also get the z sectioning values from the gui
+    %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
@@ -1508,7 +1508,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'YFP')==1
-            handles.acquisition.channels(n,4)=num2cell(1);
+                handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
     end
@@ -1523,32 +1523,32 @@ else%if this button has been deselected
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'YFP')==1
-            handles.acquisition.channels(n,4)=num2cell(0);
+                handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
-            anyZ=1;
+                anyZ=1;
             end
         end
     end
     if anyZ==0
-       set(handles.nZsections,'Enable','off');
-       set(handles.zspacing,'Enable','off');
-%        set(handles.nZsections,'String','1');
-%        set(handles.zspacing,'String','0');
-       handles.acquisition.z(1)=1;
-       handles.acquisition.z(2)=0;
+        set(handles.nZsections,'Enable','off');
+        set(handles.zspacing,'Enable','off');
+        %        set(handles.nZsections,'String','1');
+        %        set(handles.zspacing,'String','0');
+        handles.acquisition.z(1)=1;
+        handles.acquisition.z(2)=0;
     end
 end
 updateDiskSpace(handles);
-  guidata(hObject, handles);
-  
+guidata(hObject, handles);
+
 % --- Executes on button press in ZsectCh5.
 function ZsectCh5_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
-                          %and record that z sectioning is being done for
-                          %this channel in the handles.acquisition.channels cell array
-                          %also get the z sectioning values from the gui
-                          %and copy them to the handles.acquisition.z array to be used
+    %and record that z sectioning is being done for
+    %this channel in the handles.acquisition.channels cell array
+    %also get the z sectioning values from the gui
+    %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
@@ -1557,7 +1557,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'mCherry')==1
-            handles.acquisition.channels(n,4)=num2cell(1);
+                handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
     end
@@ -1572,32 +1572,32 @@ else%if this button has been deselected
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'mCherry')==1
-            handles.acquisition.channels(n,4)=num2cell(0);
+                handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
-            anyZ=1;
+                anyZ=1;
             end
         end
     end
     if anyZ==0
-       set(handles.nZsections,'Enable','off');
-       set(handles.zspacing,'Enable','off');
-%        set(handles.nZsections,'String','1');
-%        set(handles.zspacing,'String','0');
-       handles.acquisition.z(1)=1;
-       handles.acquisition.z(2)=0;
+        set(handles.nZsections,'Enable','off');
+        set(handles.zspacing,'Enable','off');
+        %        set(handles.nZsections,'String','1');
+        %        set(handles.zspacing,'String','0');
+        handles.acquisition.z(1)=1;
+        handles.acquisition.z(2)=0;
     end
 end
 updateDiskSpace(handles);
-  guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes on button press in ZsectCh6.
 function ZsectCh6_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
-                          %and record that z sectioning is being done for
-                          %this channel in the handles.acquisition.channels cell array
-                          %also get the z sectioning values from the gui
-                          %and copy them to the handles.acquisition.z array to be used
+    %and record that z sectioning is being done for
+    %this channel in the handles.acquisition.channels cell array
+    %also get the z sectioning values from the gui
+    %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
@@ -1606,7 +1606,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'tdTomato')==1
-            handles.acquisition.channels(n,4)=num2cell(1);
+                handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
     end
@@ -1621,33 +1621,33 @@ else%if this button has been deselected
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'tdTomato')==1
-            handles.acquisition.channels(n,4)=num2cell(0);
+                handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
-            anyZ=1;
+                anyZ=1;
             end
         end
     end
     if anyZ==0
-       set(handles.nZsections,'Enable','off');
-       set(handles.zspacing,'Enable','off');
-%        set(handles.nZsections,'String','1');
-%        set(handles.zspacing,'String','0');
-       handles.acquisition.z(1)=1;
-       handles.acquisition.z(2)=0;
+        set(handles.nZsections,'Enable','off');
+        set(handles.zspacing,'Enable','off');
+        %        set(handles.nZsections,'String','1');
+        %        set(handles.zspacing,'String','0');
+        handles.acquisition.z(1)=1;
+        handles.acquisition.z(2)=0;
     end
 end
 updateDiskSpace(handles);
-  guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes on button press in ZsectCh2.
 function ZsectCh2_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
-                          %and record that z sectioning is being done for
-                          %this channel in the handles.acquisition.channels cell array
-                          %also get the z sectioning values from the gui
-                          %and copy them to the handles.acquisition.z array to be used
+    %and record that z sectioning is being done for
+    %this channel in the handles.acquisition.channels cell array
+    %also get the z sectioning values from the gui
+    %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
@@ -1656,7 +1656,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'CFP')==1
-            handles.acquisition.channels(n,4)=num2cell(1);
+                handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
     end
@@ -1671,47 +1671,47 @@ else%if this button has been deselected
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'CFP')==1
-            handles.acquisition.channels(n,4)=num2cell(0);
+                handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
-            anyZ=1;
+                anyZ=1;
             end
         end
     end
     if anyZ==0
-       set(handles.nZsections,'Enable','off');
-       set(handles.zspacing,'Enable','off');
-%        set(handles.nZsections,'String','1');
-%        set(handles.zspacing,'String','0');
-       handles.acquisition.z(1)=1;
-       handles.acquisition.z(2)=0;
+        set(handles.nZsections,'Enable','off');
+        set(handles.zspacing,'Enable','off');
+        %        set(handles.nZsections,'String','1');
+        %        set(handles.zspacing,'String','0');
+        handles.acquisition.z(1)=1;
+        handles.acquisition.z(2)=0;
     end
 end
 updateDiskSpace(handles);
-  guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 function starttpCh2_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
-        for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'CFP')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'CFP')==1
             handles.acquisition.channels(n,5)=num2cell(offset);
-            end
         end
+    end
 else
     set(handles.starttpCh2,'String','0');
-     for n=1:sizeChannels(1)
-         if strcmp(char(handles.acquisition.channels(n,1)),'CFP')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'CFP')==1
             handles.acquisition.channels(n,5)=num2cell(0);
-            end
-     end   
+        end
+    end
 end
-   guidata(hObject, handles);
+guidata(hObject, handles);
 
-   
-   
+
+
 % --- Executes during object creation, after setting all properties.
 function starttpCh2_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to starttpCh2 (see GCBO)
@@ -1730,20 +1730,20 @@ function starttpCh3_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
-        for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'GFP')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'GFP')==1
             handles.acquisition.channels(n,5)=num2cell(offset);
-            end
         end
+    end
 else
     set(handles.starttpCh3,'String','0');
-     for n=1:sizeChannels(1)
-         if strcmp(char(handles.acquisition.channels(n,1)),'GFP')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'GFP')==1
             handles.acquisition.channels(n,5)=num2cell(0);
-            end
-     end   
+        end
+    end
 end
-   guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1764,20 +1764,20 @@ function starttpCh4_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
-        for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'YFP')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'YFP')==1
             handles.acquisition.channels(n,5)=num2cell(offset);
-            end
         end
+    end
 else
     set(handles.starttpCh4,'String','0');
-     for n=1:sizeChannels(1)
-         if strcmp(char(handles.acquisition.channels(n,1)),'YFP')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'YFP')==1
             handles.acquisition.channels(n,5)=num2cell(0);
-            end
-     end   
+        end
+    end
 end
-   guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function starttpCh4_CreateFcn(hObject, eventdata, handles)
@@ -1797,20 +1797,20 @@ function starttpCh5_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
-        for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'mCherry')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'mCherry')==1
             handles.acquisition.channels(n,5)=num2cell(offset);
-            end
         end
+    end
 else
     set(handles.starttpCh5,'String','0');
-     for n=1:sizeChannels(1)
-         if strcmp(char(handles.acquisition.channels(n,1)),'mCherry')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'mCherry')==1
             handles.acquisition.channels(n,5)=num2cell(0);
-            end
-     end   
+        end
+    end
 end
-   guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function starttpCh5_CreateFcn(hObject, eventdata, handles)
@@ -1830,20 +1830,20 @@ function starttpCh6_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
-        for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'tdTomato')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'tdTomato')==1
             handles.acquisition.channels(n,5)=num2cell(offset);
-            end
         end
+    end
 else
     set(handles.starttpCh6,'String','0');
-     for n=1:sizeChannels(1)
-         if strcmp(char(handles.acquisition.channels(n,1)),'tdTomato')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'tdTomato')==1
             handles.acquisition.channels(n,5)=num2cell(0);
-            end
-     end   
+        end
+    end
 end
-   guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1892,18 +1892,18 @@ callingTag=get(hObject,'Tag');
 
 
 if isempty(get(hObject,'String'))~=1;
-        for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
-                handles.acquisition.channels(n,5)=num2cell(starttp);
-            end
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
+            handles.acquisition.channels(n,5)=num2cell(starttp);
         end
+    end
 else
     set(handles.starttpCh1,'String','1');
-     for n=1:sizeChannels(1)
-         if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
             handles.acquisition.channels(n,5)=num2cell(1);
-         end
-     end   
+        end
+    end
 end
 updateDiskSpace(handles);
 guidata(hObject, handles);
@@ -1978,8 +1978,8 @@ if ~isempty(handles.acquisition.channels)
         return;
     end
 else
-     warndlg('No channels are selected - try again','No channels','modal');
-        return;
+    warndlg('No channels are selected - try again','No channels','modal');
+    return;
 end
 
 %Then - display a modal dialog box showing the experimental settings with a
@@ -2012,28 +2012,28 @@ switch (content)
     case{2}%'min'
         set (handles.interval,'String',num2str(timeInterval/60));
     case{3}%'hr'
-        set (handles.interval,'String',num2str(timeInterval/3600));  
+        set (handles.interval,'String',num2str(timeInterval/3600));
 end
-    guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes on button press in doTimelapse.
 function doTimelapse_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%timelapse experiment selected
     %enable time lapse controls
-set(handles.interval,'Enable','on');
-set(handles.units,'Enable','on');
-set(handles.nTimepoints,'Enable','on');
-set(handles.totaltime,'Enable','on');
-set(handles.unitsTotal,'Enable','on');
-handles.acquisition.time(1)=1;
+    set(handles.interval,'Enable','on');
+    set(handles.units,'Enable','on');
+    set(handles.nTimepoints,'Enable','on');
+    set(handles.totaltime,'Enable','on');
+    set(handles.unitsTotal,'Enable','on');
+    handles.acquisition.time(1)=1;
 else
     set(handles.interval,'Enable','off');
-set(handles.units,'Enable','off');
-set(handles.nTimepoints,'Enable','off');
-set(handles.totaltime,'Enable','off');
-set(handles.unitsTotal,'Enable','off');
-handles.acquisition.time(1)=0;
+    set(handles.units,'Enable','off');
+    set(handles.nTimepoints,'Enable','off');
+    set(handles.totaltime,'Enable','off');
+    set(handles.unitsTotal,'Enable','off');
+    handles.acquisition.time(1)=0;
 end
 updateDiskSpace(handles);
 guidata(hObject, handles);
@@ -2052,9 +2052,9 @@ switch (content)
     case{2}%'min'
         set (handles.totaltime,'String',num2str(totalTime/60));
     case{3}%'hr'
-        set (handles.totaltime,'String',num2str(totalTime/3600));  
+        set (handles.totaltime,'String',num2str(totalTime/3600));
 end
-    guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -2118,7 +2118,7 @@ handles.acquisition.points((nPoints+1),1:6)={defName,x,y,z,PFS,group};%add data 
 %selected and default exposure times.
 numChannels=size(handles.acquisition.channels,1);
 for ch=1:numChannels
-handles.acquisition.points(nPoints+1,6+ch)={num2str(cell2mat(handles.acquisition.channels(ch,2)))};%this has to be a string - will allow entries other than numbers - eg 'double' for a double exposure to test bleaching
+    handles.acquisition.points(nPoints+1,6+ch)={num2str(cell2mat(handles.acquisition.channels(ch,2)))};%this has to be a string - will allow entries other than numbers - eg 'double' for a double exposure to test bleaching
 end
 set (handles.pointsTable,'Data',handles.acquisition.points);%update the table
 updateDiskSpace(handles);
@@ -2128,8 +2128,8 @@ guidata(hObject, handles);
 % --- Executes when entered data in editable cell(s) in pointsTable.
 function pointsTable_CellEditCallback(hObject, eventdata, handles)
 
-% eventdata = 
-% 
+% eventdata =
+%
 %          Indices: [1 7]
 %     PreviousData: '10'
 %         EditData: 'double'
@@ -2166,7 +2166,7 @@ for n=1:size(eventdata.Indices,1)
             else%the entry is a non-numeric string that is not double
                 errordlg('Please enter an exposure time (ms) or ''double'' for a double exposure','Incorrect entry in exposure time for point');
                 table(row,column)={eventdata.PreviousData};
-
+                
             end
         else%the entry is numeric - a new exposure time
             %set all group members to this (rounded) exposure time - unless their
@@ -2181,9 +2181,9 @@ for n=1:size(eventdata.Indices,1)
             end
         end%of if/else statement - is the entry numeric
     end
-%Change in a group - if leaves only one member of a group with double - ask
-%for exposure time entry
-%Set the exposure time to the same as the other group members
+    %Change in a group - if leaves only one member of a group with double - ask
+    %for exposure time entry
+    %Set the exposure time to the same as the other group members
     
     if column==6%ie a group number
         %first check if the previous group has only one entry that is
@@ -2196,9 +2196,9 @@ for n=1:size(eventdata.Indices,1)
                 exposentry=char(table(oldgroupmember,p));
                 if isempty(str2num(exposentry))%the entry is not a number
                     if strcmp(exposentry,'double')
-                       errordlg(strcat('Groups must have at least one exposure time entered. ''double'' changed to previous exposure time for group_',num2str(oldgroupno),'. Channel:',char(handles.acquisition.channels(p-6,1))),'Old group left with only a double entry');
-                       oldexpos=table(row,p);
-                       table(oldgroupmember,p)=oldexpos;
+                        errordlg(strcat('Groups must have at least one exposure time entered. ''double'' changed to previous exposure time for group_',num2str(oldgroupno),'. Channel:',char(handles.acquisition.channels(p-6,1))),'Old group left with only a double entry');
+                        oldexpos=table(row,p);
+                        table(oldgroupmember,p)=oldexpos;
                     end
                 end
             end
@@ -2220,7 +2220,7 @@ for n=1:size(eventdata.Indices,1)
                     count=count+1;
                 end
                 table(row,ch)={exposure};
-            end        
+            end
         end
     end
     
@@ -2249,28 +2249,28 @@ guidata(hObject, handles);
 
 % --- Executes on button press in deletePoint.
 function deletePoint_Callback(hObject, eventdata, handles)
-   sizes=size(handles.selected);
-    nSelected=sizes(1);
-   if nSelected~=0
+sizes=size(handles.selected);
+nSelected=sizes(1);
+if nSelected~=0
     for n=1:nSelected
         row=handles.selected(n,1);
         handles.acquisition.points(row,:)=[];
     end
     set (handles.pointsTable,'Data',handles.acquisition.points);%update the table
     guidata(hObject, handles);
-   end
-   updateDiskSpace(handles);
+end
+updateDiskSpace(handles);
 guidata(hObject, handles);
 % --- Executes on button press in clearList.
 function clearList_Callback(hObject, eventdata, handles)
-   ButtonName = questdlg('Are you sure you want to delete all marked points', ...
-                         'Delete marked points','No');
-   switch ButtonName,
-     case 'Yes',
-      handles.acquisition.points={};
-set (handles.pointsTable,'Data',handles.acquisition.points);%update the table
-     case 'No',
-   end % switch
+ButtonName = questdlg('Are you sure you want to delete all marked points', ...
+    'Delete marked points','No');
+switch ButtonName,
+    case 'Yes',
+        handles.acquisition.points={};
+        set (handles.pointsTable,'Data',handles.acquisition.points);%update the table
+    case 'No',
+end % switch
 updateDiskSpace(handles);
 
 guidata(hObject, handles);
@@ -2282,7 +2282,7 @@ function visit_Callback(hObject, eventdata, handles)
 global mmc;
 %confirm only one point is selected
 sizes=size(handles.selected);
-    nSelected=sizes(1);
+nSelected=sizes(1);
 if nSelected==1
     %get data for position to visit
     table=get(handles.pointsTable,'Data');
@@ -2388,11 +2388,11 @@ function loadSettings_Callback(hObject, eventdata, handles)
 user=getenv('USERNAME');
 lastSavedPath=strcat('C:\Documents and Settings\All Users\multiDGUIfiles\',user,'lastSaved.txt');
 if exist (lastSavedPath,'file')==2
-fileWithPath=fopen(lastSavedPath);
-acqFilePath=textscan(fileWithPath,'%s','Delimiter','');%read with empty delimiter,'' - prevents new line being started at spaces in the path name 
-fclose(fileWithPath);
-acqFilePath=acqFilePath{:};
-defaultPath=char(acqFilePath);
+    fileWithPath=fopen(lastSavedPath);
+    acqFilePath=textscan(fileWithPath,'%s','Delimiter','');%read with empty delimiter,'' - prevents new line being started at spaces in the path name
+    fclose(fileWithPath);
+    acqFilePath=acqFilePath{:};
+    defaultPath=char(acqFilePath);
 else
     defaultPath='C:\AcquisitionData';
 end
@@ -2421,136 +2421,136 @@ if nChannels~=0
     set(handles.useCh1,'Value',0);
     set(handles.useCh2,'Value',0);
     set(handles.useCh3,'Value',0);
-    set(handles.useCh4,'Value',0);        
+    set(handles.useCh4,'Value',0);
     set(handles.useCh5,'Value',0);
     set(handles.useCh6,'Value',0);
     set(handles.useCh7,'Value',0);
-useDIC=0;
-useCFP=0;
-useGFP=0;
-useYFP=0;
-usemCh=0;
-usetd=0;
-usecy5=0;
-
+    useDIC=0;
+    useCFP=0;
+    useGFP=0;
+    useYFP=0;
+    usemCh=0;
+    usetd=0;
+    usecy5=0;
+    
     for ch=1:nChannels
         chName=char(handles.acquisition.channels(ch,1));
         switch chName
             case 'DIC'
-            useDIC=1;%variable to check later if DIC is used
-            set(handles.expCh1,'Enable','on');  
-            set(handles.useCh1,'Value',1);
-            set(handles.ZsectCh1,'Enable','on');
-            set(handles.starttpCh1,'Enable','on');
-            set(handles.cammodeCh1,'Enable','on');
-            set(handles.startgainCh1,'Enable','on');
-            set(handles.voltCh1,'Enable','on');
-            set(handles.expCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
-            set(handles.ZsectCh1,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.starttpCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeCh1,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainCh1,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
-            
+                useDIC=1;%variable to check later if DIC is used
+                set(handles.expCh1,'Enable','on');
+                set(handles.useCh1,'Value',1);
+                set(handles.ZsectCh1,'Enable','on');
+                set(handles.starttpCh1,'Enable','on');
+                set(handles.cammodeCh1,'Enable','on');
+                set(handles.startgainCh1,'Enable','on');
+                set(handles.voltCh1,'Enable','on');
+                set(handles.expCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
+                set(handles.ZsectCh1,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+                set(handles.starttpCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+                set(handles.cammodeCh1,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+                set(handles.startgainCh1,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+                set(handles.voltCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+                
                 
             case 'CFP'
-            useCFP=1;
-            set(handles.expCh2,'Enable','on');  
-            set(handles.useCh2,'Value',1);
-            set(handles.ZsectCh2,'Enable','on');
-            set(handles.starttpCh2,'Enable','on');
-            set(handles.cammodeCh2,'Enable','on');
-            set(handles.startgainCh2,'Enable','on');
-            set(handles.voltCh2,'Enable','on');
-            set(handles.expCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
-            set(handles.ZsectCh2,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.starttpCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeCh2,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainCh2,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+                useCFP=1;
+                set(handles.expCh2,'Enable','on');
+                set(handles.useCh2,'Value',1);
+                set(handles.ZsectCh2,'Enable','on');
+                set(handles.starttpCh2,'Enable','on');
+                set(handles.cammodeCh2,'Enable','on');
+                set(handles.startgainCh2,'Enable','on');
+                set(handles.voltCh2,'Enable','on');
+                set(handles.expCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
+                set(handles.ZsectCh2,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+                set(handles.starttpCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+                set(handles.cammodeCh2,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+                set(handles.startgainCh2,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+                set(handles.voltCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'GFP'
-              useGFP=1;
-            set(handles.expCh3,'Enable','on');  
-            set(handles.useCh3,'Value',1);
-            set(handles.ZsectCh3,'Enable','on');
-            set(handles.starttpCh3,'Enable','on');
-            set(handles.cammodeCh3,'Enable','on');
-            set(handles.startgainCh3,'Enable','on');
-            set(handles.voltCh3,'Enable','on');
-            set(handles.expCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.ZsectCh3,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.starttpCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeCh3,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainCh3,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+                useGFP=1;
+                set(handles.expCh3,'Enable','on');
+                set(handles.useCh3,'Value',1);
+                set(handles.ZsectCh3,'Enable','on');
+                set(handles.starttpCh3,'Enable','on');
+                set(handles.cammodeCh3,'Enable','on');
+                set(handles.startgainCh3,'Enable','on');
+                set(handles.voltCh3,'Enable','on');
+                set(handles.expCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+                set(handles.ZsectCh3,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+                set(handles.starttpCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+                set(handles.cammodeCh3,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+                set(handles.startgainCh3,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+                set(handles.voltCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'YFP'
-            set(handles.expCh4,'Enable','on');  
-            set(handles.useCh4,'Value',1);
-            set(handles.ZsectCh4,'Enable','on');
-            set(handles.starttpCh4,'Enable','on');
-            set(handles.cammodeCh4,'Enable','on');
-            set(handles.startgainCh4,'Enable','on');
-            set(handles.voltCh4,'Enable','on');
-            set(handles.expCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.ZsectCh4,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.starttpCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeCh4,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainCh4,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+                set(handles.expCh4,'Enable','on');
+                set(handles.useCh4,'Value',1);
+                set(handles.ZsectCh4,'Enable','on');
+                set(handles.starttpCh4,'Enable','on');
+                set(handles.cammodeCh4,'Enable','on');
+                set(handles.startgainCh4,'Enable','on');
+                set(handles.voltCh4,'Enable','on');
+                set(handles.expCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+                set(handles.ZsectCh4,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+                set(handles.starttpCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+                set(handles.cammodeCh4,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+                set(handles.startgainCh4,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+                set(handles.voltCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'mCherry'
-            set(handles.expCh5,'Enable','on');  
-            set(handles.useCh5,'Value',1);
-            set(handles.skipCh5,'Enable','on');
-            set(handles.ZsectCh5,'Enable','on');
-            set(handles.starttpCh5,'Enable','on');
-            set(handles.cammodeCh5,'Enable','on');
-            set(handles.startgainCh5,'Enable','on');
-            set(handles.voltCh5,'Enable','on');
-            set(handles.expCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.ZsectCh5,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.starttpCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeCh5,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainCh5,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+                set(handles.expCh5,'Enable','on');
+                set(handles.useCh5,'Value',1);
+                set(handles.skipCh5,'Enable','on');
+                set(handles.ZsectCh5,'Enable','on');
+                set(handles.starttpCh5,'Enable','on');
+                set(handles.cammodeCh5,'Enable','on');
+                set(handles.startgainCh5,'Enable','on');
+                set(handles.voltCh5,'Enable','on');
+                set(handles.expCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+                set(handles.ZsectCh5,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+                set(handles.starttpCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+                set(handles.cammodeCh5,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+                set(handles.startgainCh5,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+                set(handles.voltCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'tdTomato'
-            usetd=1;            
-            set(handles.expCh6,'Enable','on');  
-            set(handles.useCh6,'Value',1);
-            set(handles.tdskip,'Enable','on');
-            set(handles.ZsectCh6,'Enable','on');
-            set(handles.starttpCh6,'Enable','on');
-            set(handles.cammodeCh6,'Enable','on');
-            set(handles.startgainCh6,'Enable','on');
-            set(handles.voltCh6,'Enable','on');
-            set(handles.expCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.ZsectCh6,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.starttpCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeCh6,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainCh6,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+                usetd=1;
+                set(handles.expCh6,'Enable','on');
+                set(handles.useCh6,'Value',1);
+                set(handles.tdskip,'Enable','on');
+                set(handles.ZsectCh6,'Enable','on');
+                set(handles.starttpCh6,'Enable','on');
+                set(handles.cammodeCh6,'Enable','on');
+                set(handles.startgainCh6,'Enable','on');
+                set(handles.voltCh6,'Enable','on');
+                set(handles.expCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+                set(handles.ZsectCh6,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+                set(handles.starttpCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+                set(handles.cammodeCh6,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+                set(handles.startgainCh6,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+                set(handles.voltCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
             case 'cy5'
-            usetd=1;            
-            set(handles.expCh7,'Enable','on');  
-            set(handles.useCh7,'Value',1);
-            set(handles.skipCh7,'Enable','on');
-            set(handles.ZsectCh7,'Enable','on');
-            set(handles.starttpCh7,'Enable','on');
-            set(handles.cammodeCh7,'Enable','on');
-            set(handles.startgainCh7,'Enable','on');
-            set(handles.voltCh7,'Enable','on');
-            set(handles.expCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-            set(handles.ZsectCh7,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-            set(handles.starttpCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-            set(handles.cammodeCh7,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-            set(handles.startgainCh7,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-            set(handles.voltCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+                usetd=1;
+                set(handles.expCh7,'Enable','on');
+                set(handles.useCh7,'Value',1);
+                set(handles.skipCh7,'Enable','on');
+                set(handles.ZsectCh7,'Enable','on');
+                set(handles.starttpCh7,'Enable','on');
+                set(handles.cammodeCh7,'Enable','on');
+                set(handles.startgainCh7,'Enable','on');
+                set(handles.voltCh7,'Enable','on');
+                set(handles.expCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
+                set(handles.ZsectCh7,'Value',cell2mat(handles.acquisition.channels(ch,4)));
+                set(handles.starttpCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+                set(handles.cammodeCh7,'Value',cell2mat(handles.acquisition.channels(ch,6)));
+                set(handles.startgainCh7,'Value',cell2mat(handles.acquisition.channels(ch,7)));
+                set(handles.voltCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
         end%end of channel name switch
     end%end of loop through the channels
 end%end of if statment - if number of channels isn't zero
 
 %if any channel is not used make sure all channel options are disabled
 if useDIC==0
-    set(handles.expCh1,'Enable','off');  
+    set(handles.expCh1,'Enable','off');
     set(handles.skipCh1,'Enable','off');
     set(handles.ZsectCh1,'Enable','off');
     set(handles.starttpCh1,'Enable','off');
@@ -2559,7 +2559,7 @@ if useDIC==0
     set(handles.voltCh1,'Enable','off');
 end
 if useCFP==0
-    set(handles.expCh2,'Enable','off');  
+    set(handles.expCh2,'Enable','off');
     set(handles.skipCh2,'Enable','off');
     set(handles.ZsectCh2,'Enable','off');
     set(handles.starttpCh2,'Enable','off');
@@ -2568,7 +2568,7 @@ if useCFP==0
     set(handles.voltCh2,'Enable','off');
 end
 if useGFP==0
-    set(handles.expCh3,'Enable','off');  
+    set(handles.expCh3,'Enable','off');
     set(handles.skipCh3,'Enable','off');
     set(handles.ZsectCh3,'Enable','off');
     set(handles.starttpCh3,'Enable','off');
@@ -2577,7 +2577,7 @@ if useGFP==0
     set(handles.voltCh3,'Enable','off');
 end
 if useYFP==0
-    set(handles.expCh4,'Enable','off');  
+    set(handles.expCh4,'Enable','off');
     set(handles.skipCh4,'Enable','off');
     set(handles.ZsectCh4,'Enable','off');
     set(handles.starttpCh4,'Enable','off');
@@ -2586,16 +2586,16 @@ if useYFP==0
     set(handles.voltCh4,'Enable','off');
 end
 if usemCh==0
-    set(handles.expCh5,'Enable','off');  
+    set(handles.expCh5,'Enable','off');
     set(handles.skipCh5,'Enable','off');
     set(handles.ZsectCh5,'Enable','off');
-    set(handles.starttpCh5,'Enable','off');   
+    set(handles.starttpCh5,'Enable','off');
     set(handles.cammodeCh5,'Enable','off');
     set(handles.startgainCh5,'Enable','off');
     set(handles.voltCh5,'Enable','off');
 end
 if usetd==0
-    set(handles.expCh6,'Enable','off');  
+    set(handles.expCh6,'Enable','off');
     set(handles.skipCh6,'Enable','off');
     set(handles.ZsectCh6,'Enable','off');
     set(handles.starttpCh6,'Enable','off');
@@ -2604,7 +2604,7 @@ if usetd==0
     set(handles.voltCh6,'Enable','off');
 end
 if usecy5==0
-    set(handles.expCh7,'Enable','off');  
+    set(handles.expCh7,'Enable','off');
     set(handles.skipCh7,'Enable','off');
     set(handles.ZsectCh7,'Enable','off');
     set(handles.starttpCh7,'Enable','off');
@@ -2612,7 +2612,7 @@ if usecy5==0
     set(handles.startgainCh7,'Enable','off');
     set(handles.voltCh7,'Enable','off');
 end
-    
+
 % Z settings - active only if at least one channel is doing z sectioning
 nSections=handles.acquisition.z(1);
 set(handles.nZsections,'String',num2str(nSections));
@@ -2663,7 +2663,7 @@ if timeSettings(1)==1
     set(handles.nTimepoints,'Enable','on');
     set(handles.unitsTotal,'Enable','on');
 else
-     set(handles.interval,'Enable','off');
+    set(handles.interval,'Enable','off');
     set(handles.units,'Enable','off');
     set(handles.totaltime,'Enable','off');
     set(handles.nTimepoints,'Enable','off');
@@ -2675,11 +2675,11 @@ end
 set(handles.contentsP1,'String',char(handles.acquisition.flow(1)));
 set(handles.contentsP2,'String',char(handles.acquisition.flow(2)));
 if cell2mat(handles.acquisition.flow(3))==1
-   set(handles.start1,'Value',1);
-   set(handles.start2,'Value',0);
+    set(handles.start1,'Value',1);
+    set(handles.start2,'Value',0);
 else
-   set(handles.start1,'Value',0);
-   set(handles.start2,'Value',1);   
+    set(handles.start1,'Value',0);
+    set(handles.start2,'Value',1);
 end
 %Experimental info
 set(handles.exptName,'String',char(handles.acquisition.info(1)));
@@ -2760,12 +2760,13 @@ function switchMethod_Callback(hObject, eventdata, handles)
 
 contents=get(hObject,'String');
 choice=contents{get(hObject,'Value')};
+dispFlowChanges=true;
 switch choice
     case 'Enter switch times'
         %Define a variable to check if inputs are OK
         problem=false;
         %Define default values (based on contents of the switching object)
-        %Times (as comma, separated string)       
+        %Times (as comma, separated string)
         defaults{1}=commaString(handles.acquisition.flow{5}.times);
         %Initially-dominant pump
         defaults{2}=num2str(handles.acquisition.flow{5}.initialPump);
@@ -2786,12 +2787,12 @@ switch choice
         initialPump=answers{2};
         initialPump=str2num(initialPump);
         if isempty(initialPump)
-           problem=true;
-           errorMessage='Initial pump must be either 1 or 2';
+            problem=true;
+            errorMessage='Initial pump must be either 1 or 2';
         else
             if ~(initialPump==2||initialPump==1)
-               problem=true;
-               errorMessage='Initial pump must be either 1 or 2';
+                problem=true;
+                errorMessage='Initial pump must be either 1 or 2';
             end
         end
         
@@ -2810,17 +2811,17 @@ switch choice
                     %A single pair of flow rates has been entered -
                     %alternate these at each switch
                     ind=logical(mod(1:length(txtTimes),2));%Logical index to the odd number entries (entry 1, 3, 5 etc).
-                    oldFlow=flowRates;                   
+                    oldFlow=flowRates;
                     flowRates=repmat(flowRates,1,length(txtTimes));
                     %Now all entries are the same - first flow input
                     %followed by second. Swap the even entries
                     
                     if initialPump==1
                         flowRates(1,ind)=oldFlow(2);%The lower flow rate - for times 1, 3, 5 etc.
-                        flowRates(1,logical(1-ind))=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc.                                       
+                        flowRates(1,logical(1-ind))=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc.
                         flowRates(2,ind)=oldFlow(1);%The higher flow rate - for times 1, 3, 5 etc
                         flowRates(2,logical(1-ind))=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc
-
+                        
                     else
                         %Pump 2 is dominant at the start of the experiment
                         %- 1st switch is to pump 1 - so that has the higher
@@ -2829,13 +2830,13 @@ switch choice
                         flowRates(1,logical(1-ind))=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc.
                         flowRates(2,ind)=oldFlow(2);%The lower flow rate - for times 1, 3, 5 etc
                         flowRates(2,logical(1-ind))=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc
-
+                        
                     end
                 end
                 if ~problem
                     handles.acquisition.flow{5}=handles.acquisition.flow{5}.setSwitchTimes(txtTimes,flowRates,initialPump);
                 end
-                else
+            else
                 problem=true;
                 errorMessage='Answer contains invalid times';
             end
@@ -2843,9 +2844,9 @@ switch choice
             problem=true;
             errorMessage='Answer contains invalid times';
         end
-    if problem
-        errordlg(errorMessage);
-    end
+        if problem
+            errordlg(errorMessage);
+        end
     case 'Periodic'
         defaults={'30','0',num2str(handles.acquisition.time(4)/60),'4','.4'};
         input = inputdlg({'Switch the flow every....min','Start switching at ... min','Stop switching at ... min','Flow rate of dominant pump (ul/min)','Flow rate of non-dominant pump (ul/min)'},'Periodic switching',1,defaults);
@@ -2861,7 +2862,7 @@ switch choice
             errordlg('All inputs must be numbers');
         end
         handles.period=switchInterval;
-
+        
     case 'Linear Ramp'
         defaults={'1',num2str(handles.acquisition.time(4)/60),'4','.4','1','2'};
         input = inputdlg({'Start ramp at....min','End ramp at... min','Flow rate at high end of ramp (ul/min)','Flow rate at low end of ramp (ul/min)','Starting Pump High','Ending Pump High'},'Create linear flow ramp',1,defaults);
@@ -2872,44 +2873,44 @@ switch choice
         startPump=str2double(input{5});
         endPump=str2double(input{6});
         handles.acquisition.flow{5}=handles.acquisition.flow{5}.makeLinearRamp(rampStart,rampStop,highFlow,lowFlow,startPump,endPump);
-
-case 'Design flow transition'
-    d=transitionGUI;
-  % handles.acquisition.flow{5}.times=d(:,1);
-  % handles.acquisition.flow{5}.flowPostSwitch=d(:,[2 3]);
-    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setFlowTimes(d(:,1)', d(:,[2 3])');
-    handles.acquisition.flow{5}.switchedTo=0;
-    handles.acquisition.flow{5}.switchedFrom=0;
-
-    
-case 'Enter times'
+        
+    case 'Design flow transition'
+        d=transitionGUI;
+        % handles.acquisition.flow{5}.times=d(:,1);
+        % handles.acquisition.flow{5}.flowPostSwitch=d(:,[2 3]);
+        handles.acquisition.flow{5}=handles.acquisition.flow{5}.setFlowTimes(d(:,1)', d(:,[2 3])');
+        handles.acquisition.flow{5}.switchedTo=0;
+        handles.acquisition.flow{5}.switchedFrom=0;
+        
+        
+    case 'Enter times'
         if handles.acquisition.flow{5}.times==0
             defaults={'0', '4', '.4'};
         else
-        timeString='';
-        pump1String='';
-        pump2String='';
-        for n=1:length(handles.acquisition.flow{5}.times)
-            thisTimeString=num2str(handles.acquisition.flow{5}.times(n));%String made from the time entry
-            charsT=length(thisTimeString);%Number of characters in the time entry for this change
-            thisP1String=num2str(handles.acquisition.flow{5}.flowPostSwitch(1,n));
-            charsP1=length(thisP1String);
-            thisP2String=num2str(handles.acquisition.flow{5}.flowPostSwitch(2,n));
-            charsP2=length(thisP2String);
-            if n<length(handles.acquisition.flow{5}.times)                
-                timeString(length(timeString)+1:length(timeString)+1+charsT)=[thisTimeString ','];
-                
-                pump1String(length(pump1String)+1:length(pump1String)+1+charsP1)=[thisP1String ','];
-                pump2String(length(pump2String)+1:length(pump2String)+1+charsP2)=[thisP2String ','];
-
-            else%This is the last change - don't add a comma
-                timeString(length(timeString)+1:length(timeString)+charsT)=thisTimeString;
-                pump1String(length(pump1String)+1:length(pump1String)+charsP1)=thisP1String;
-                pump2String(length(pump2String)+1:length(pump2String)+charsP2)=thisP2String;
-
+            timeString='';
+            pump1String='';
+            pump2String='';
+            for n=1:length(handles.acquisition.flow{5}.times)
+                thisTimeString=num2str(handles.acquisition.flow{5}.times(n));%String made from the time entry
+                charsT=length(thisTimeString);%Number of characters in the time entry for this change
+                thisP1String=num2str(handles.acquisition.flow{5}.flowPostSwitch(1,n));
+                charsP1=length(thisP1String);
+                thisP2String=num2str(handles.acquisition.flow{5}.flowPostSwitch(2,n));
+                charsP2=length(thisP2String);
+                if n<length(handles.acquisition.flow{5}.times)
+                    timeString(length(timeString)+1:length(timeString)+1+charsT)=[thisTimeString ','];
+                    
+                    pump1String(length(pump1String)+1:length(pump1String)+1+charsP1)=[thisP1String ','];
+                    pump2String(length(pump2String)+1:length(pump2String)+1+charsP2)=[thisP2String ','];
+                    
+                else%This is the last change - don't add a comma
+                    timeString(length(timeString)+1:length(timeString)+charsT)=thisTimeString;
+                    pump1String(length(pump1String)+1:length(pump1String)+charsP1)=thisP1String;
+                    pump2String(length(pump2String)+1:length(pump2String)+charsP2)=thisP2String;
+                    
+                end
             end
-        end
-        defaults={timeString,pump1String,pump2String};
+            defaults={timeString,pump1String,pump2String};
         end
         answers=inputdlg({'Enter flow times in min after start of timelapse (separated by commas): ','Enter flow rates of pump 1 (in ul/min, separated by commas)','Enter flow rates of pump 2 (in ul/min, separated by commas)'},'Flow parameters',1,defaults);
         times=answers{1};
@@ -2918,7 +2919,7 @@ case 'Enter times'
         txtTimes=cell2mat(txtTimes);
         regTimes=regexp(times,[','],'Split');
         %Flow rates
-                hFlw=answers{2};
+        hFlw=answers{2};
         pump1flow=textscan(hFlw,'%f','Delimiter',',');
         pump1flow=cell2mat(pump1flow)';
         lFlw=answers{3};
@@ -2936,11 +2937,79 @@ case 'Enter times'
             end
         else
             errordlg('Answer contains invalid times');
-            
         end
+    case 'Switch Pinch Valves'
+        if isempty(handles.acquisition.flow{5}.solenoidGUI)
+            handles.acquisition.flow{5}.solenoidGUI=solenoidValveGUI;
+        end
+        guidata(hObject, handles);
+
+        if true %handles.acquisition.flow{5}.times==0
+            defaults={'0', '4', '.4',''};
+        else
+            timeString='';
+            pump1String='';
+            pump2String='';
+            for n=1:length(handles.acquisition.flow{5}.times)
+                thisTimeString=num2str(handles.acquisition.flow{5}.times(n));%String made from the time entry
+                charsT=length(thisTimeString);%Number of characters in the time entry for this change
+                thisP1String=num2str(handles.acquisition.flow{5}.flowPostSwitch(1,n));
+                charsP1=length(thisP1String);
+                thisP2String=num2str(handles.acquisition.flow{5}.flowPostSwitch(2,n));
+                charsP2=length(thisP2String);
+                if n<length(handles.acquisition.flow{5}.times)
+                    timeString(length(timeString)+1:length(timeString)+1+charsT)=[thisTimeString ','];
+                    
+                    pump1String(length(pump1String)+1:length(pump1String)+1+charsP1)=[thisP1String ','];
+                    pump2String(length(pump2String)+1:length(pump2String)+1+charsP2)=[thisP2String ','];
+                    
+                else%This is the last change - don't add a comma
+                    timeString(length(timeString)+1:length(timeString)+charsT)=thisTimeString;
+                    pump1String(length(pump1String)+1:length(pump1String)+charsP1)=thisP1String;
+                    pump2String(length(pump2String)+1:length(pump2String)+charsP2)=thisP2String;
+                    
+                end
+            end
+            defaults={timeString,pump1String,pump2String};
+        end
+        answers=inputdlg({'Enter flow times in min after start of timelapse (separated by commas): ','Enter flow rates of pump 1 (in ul/min, separated by commas)','Enter flow rates of pump 2 (in ul/min, separated by commas)',...
+            'Enter times for all solenoid valves to switch'},'Flow parameters',1,defaults);
+        times=answers{1};
+        %CONVERT TO VECTOR OF DOUBLES
+        txtTimes=textscan(times,'%f','Delimiter',',');
+        txtTimes=cell2mat(txtTimes);
+        regTimes=regexp(times,[','],'Split');
+        %Flow rates
+        hFlw=answers{2};
+        pump1flow=textscan(hFlw,'%f','Delimiter',',');
+        pump1flow=cell2mat(pump1flow)';
+        lFlw=answers{3};
+        pump2flow=textscan(lFlw,'%f','Delimiter',',');
+        pump2flow=cell2mat(pump2flow)';
+        solSwT=answers{4};
+        solSwitchTimes=textscan(solSwT,'%f','Delimiter',',');
+        solSwitchTimes=cell2mat(solSwitchTimes)';
+
+        if ~any(isnan([pump1flow pump2flow]))
+            if length(txtTimes)==length(regTimes)
+                flowRates=[pump1flow; pump2flow];
+                if size(flowRates,2)==1
+                    flowRates=repmat(flowRates,1,length(txtTimes));
+                end
+                handles.acquisition.flow{5}=handles.acquisition.flow{5}.setFlowTimes(txtTimes,flowRates,solSwitchTimes);
+            else
+                errordlg('Answer contains invalid times');
+            end
+        else
+            errordlg('Answer contains invalid times');
+        end
+        dispFlowChanges=false;
+
 end
-handles.acquisition.flow{5}.displayFlowChanges;
-    
+
+if dispFlowChanges
+    handles.acquisition.flow{5}.displayFlowChanges;
+end
 
 guidata(hObject, handles);
 updateFlowDisplay(handles);
@@ -2979,29 +3048,29 @@ end
 
 
 function updateFlowData(hObject, eventdata, handles)
-    %Records information from the gui controls in the flow panel to
-    %handles.acquisition.flow
-    
-    %If a pump control has been altered, need to know which one it was
-        
-    nPumps=2;
-    for n=1:nPumps
-        volCell=get(handles.(['diameterP' num2str(n)]),'String');
-        volString=volCell{get(handles.(['diameterP' num2str(n)]),'Value')};        
-        handles.acquisition.flow{4}(n).diameter=pump.getDiameter(volString);
-        handles.acquisition.flow{4}(n).contents=get(handles.(['contentsP' num2str(n)]),'String');
-        dirCell=get(handles.(['directionP' num2str(n)]),'String');
-        dirString=dirCell{get(handles.(['directionP' num2str(n)]),'Value')}; 
-        handles.acquisition.flow{4}(n).direction=dirString;
-        handles.acquisition.flow{4}(n).currentRate=str2num(get(handles.(['flowRateP' num2str(n)]),'String'));
-        handles.acquisition.flow{4}(n).running=get(handles.(['runP' num2str(n)]),'Value');        
-        handles.acquisition.flow{4}(n).updatePumps;%sends information to the syringe pumps
-        handles.acquisition.flow{5}.pumps{n}=handles.acquisition.flow{4}(n);
-    end
-    
-    guidata(hObject, handles);
+%Records information from the gui controls in the flow panel to
+%handles.acquisition.flow
 
-    
+%If a pump control has been altered, need to know which one it was
+
+nPumps=2;
+for n=1:nPumps
+    volCell=get(handles.(['diameterP' num2str(n)]),'String');
+    volString=volCell{get(handles.(['diameterP' num2str(n)]),'Value')};
+    handles.acquisition.flow{4}(n).diameter=pump.getDiameter(volString);
+    handles.acquisition.flow{4}(n).contents=get(handles.(['contentsP' num2str(n)]),'String');
+    dirCell=get(handles.(['directionP' num2str(n)]),'String');
+    dirString=dirCell{get(handles.(['directionP' num2str(n)]),'Value')};
+    handles.acquisition.flow{4}(n).direction=dirString;
+    handles.acquisition.flow{4}(n).currentRate=str2num(get(handles.(['flowRateP' num2str(n)]),'String'));
+    handles.acquisition.flow{4}(n).running=get(handles.(['runP' num2str(n)]),'Value');
+    handles.acquisition.flow{4}(n).updatePumps;%sends information to the syringe pumps
+    handles.acquisition.flow{5}.pumps{n}=handles.acquisition.flow{4}(n);
+end
+
+guidata(hObject, handles);
+
+
 
 
 
@@ -3032,9 +3101,9 @@ set(handles.CCD,'Enable','on');
 
 for i=1:length(handles.acquisition.flow{5}.pumps)
     try
-            handles.acquisition.flow{5}.pumps{i}.openPump;   
+        handles.acquisition.flow{5}.pumps{i}.openPump;
     catch
-       warndlg(['Failed to connect to pump number ' num2str(i)]);
+        warndlg(['Failed to connect to pump number ' num2str(i)]);
     end
 end
 guidata(hObject, handles);
@@ -3070,11 +3139,11 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),chName)==1
-                handles.acquisition.channels{n,6}=value;%1=EM camera mode with correction
+                if strcmp(handles.acquisition.channels(n,1),chName)==1
+                    handles.acquisition.channels{n,6}=value;%1=EM camera mode with correction
+                end
             end
-            end
-        end       
+        end
     case 2%CCD mode selected
         set(handles.(['startgain' tagEnd]),'Enable','off');
         set(handles.(['volt' tagEnd]),'Enable','off');
@@ -3082,27 +3151,27 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),chName)==1
-                handles.acquisition.channels{n,6}=2;%2=CCD camera mode
-            end
+                if strcmp(handles.acquisition.channels(n,1),chName)==1
+                    handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                end
             end
         end
-     case 3%EM_Constant mode selected
+    case 3%EM_Constant mode selected
         set(handles.(['startgain' tagEnd]),'Enable','on');
         set(handles.(['volt' tagEnd]),'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),chName)==1
-                handles.acquisition.channels{n,6}=value;%3=EM constant
-            end
+                if strcmp(handles.acquisition.channels(n,1),chName)==1
+                    handles.acquisition.channels{n,6}=value;%3=EM constant
+                end
             end
         end
-    
+        
 end
 guidata(hObject, handles);
- 
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -3129,11 +3198,11 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'CFP')==1
-                handles.acquisition.channels{n,6}=1;%1=EM camera mode
+                if strcmp(handles.acquisition.channels(n,1),'CFP')==1
+                    handles.acquisition.channels{n,6}=1;%1=EM camera mode
+                end
             end
-            end
-        end       
+        end
     case 2%CCD mode selected
         set(handles.startgainCh2,'Enable','off');
         set(handles.voltCh2,'Enable','off');
@@ -3141,11 +3210,11 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'CFP')==1
-                handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),'CFP')==1
+                    handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                end
             end
-            end
-        end       
+        end
     case 3%EM mode selected
         set(handles.startgainCh2,'Enable','on');
         set(handles.voltCh2,'Enable','on');
@@ -3153,12 +3222,12 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'CFP')==1
-                handles.acquisition.channels{n,6}=3;%3=EM constant camera mode
+                if strcmp(handles.acquisition.channels(n,1),'CFP')==1
+                    handles.acquisition.channels{n,6}=3;%3=EM constant camera mode
+                end
             end
-            end
-        end 
-    
+        end
+        
 end
 guidata(hObject, handles);
 
@@ -3187,35 +3256,35 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'GFP')==1
-                handles.acquisition.channels{n,6}=1;%1=EM camera mode
+                if strcmp(handles.acquisition.channels(n,1),'GFP')==1
+                    handles.acquisition.channels{n,6}=1;%1=EM camera mode
+                end
             end
-            end
-        end       
+        end
     case 2%CCD mode selected
         set(handles.startgainCh3,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'GFP')==1
-                handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),'GFP')==1
+                    handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                end
             end
-            end
-        end     
-        case 3%EM mode selected
+        end
+    case 3%EM mode selected
         set(handles.startgainCh3,'Enable','on');
         set(handles.voltCh3,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'GFP')==1
-                handles.acquisition.channels{n,6}=3;%3=EM_constant camera mode
-            end
+                if strcmp(handles.acquisition.channels(n,1),'GFP')==1
+                    handles.acquisition.channels{n,6}=3;%3=EM_constant camera mode
+                end
             end
         end
-    
+        
 end
 guidata(hObject, handles);
 
@@ -3244,22 +3313,22 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'YFP')==1
-                handles.acquisition.channels{n,6}=1;%1=EMCCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),'YFP')==1
+                    handles.acquisition.channels{n,6}=1;%1=EMCCD camera mode
+                end
             end
-            end
-        end       
+        end
     case 2%CCD mode selected
         set(handles.startgainCh4,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'YFP')==1
-                handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),'YFP')==1
+                    handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                end
             end
-            end
-        end       
+        end
     case 3%EM mode selected
         set(handles.startgainCh4,'Enable','on');
         set(handles.voltCh4,'Enable','on');
@@ -3267,9 +3336,9 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'YFP')==1
-                handles.acquisition.channels{n,6}=3;%3=EMCCD constant camera mode
-            end
+                if strcmp(handles.acquisition.channels(n,1),'YFP')==1
+                    handles.acquisition.channels{n,6}=3;%3=EMCCD constant camera mode
+                end
             end
         end
 end
@@ -3299,34 +3368,34 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
-                handles.acquisition.channels{n,6}=1;%1=EM camera mode
+                if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
+                    handles.acquisition.channels{n,6}=1;%1=EM camera mode
+                end
             end
-            end
-        end       
+        end
     case 2%CCD mode selected
         set(handles.startgainCh5,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
-                handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
+                    handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                end
             end
-            end
-        end       
-     case 3%EM mode selected
+        end
+    case 3%EM mode selected
         set(handles.startgainCh5,'Enable','on');
         set(handles.voltCh5,'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
-                handles.acquisition.channels{n,6}=3;%3=EM constant camera mode
+                if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
+                    handles.acquisition.channels{n,6}=3;%3=EM constant camera mode
+                end
             end
-            end
-        end 
+        end
 end
 guidata(hObject, handles);
 
@@ -3355,22 +3424,22 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
-                handles.acquisition.channels{n,6}=1;%1=EMCCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
+                    handles.acquisition.channels{n,6}=1;%1=EMCCD camera mode
+                end
             end
-            end
-        end       
+        end
     case 2%CCD mode selected
         set(handles.startgainCh6,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
-                handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
+                    handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                end
             end
-            end
-        end       
+        end
     case 3%EM mode selected
         set(handles.startgainCh6,'Enable','on');
         set(handles.voltCh6,'Enable','on');
@@ -3378,9 +3447,9 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
-                handles.acquisition.channels{n,6}=3;%3=EMCCD constant camera mode
-            end
+                if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
+                    handles.acquisition.channels{n,6}=3;%3=EMCCD constant camera mode
+                end
             end
         end
 end
@@ -3406,13 +3475,13 @@ function startgainChannel_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
-   if nChannels~=0
-      for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),chName)==1
-                handles.acquisition.channels{n,7}=startgain;
-           end
-      end
-   end       
+if nChannels~=0
+    for n=1:nChannels
+        if strcmp(handles.acquisition.channels(n,1),chName)==1
+            handles.acquisition.channels{n,7}=startgain;
+        end
+    end
+end
 guidata(hObject, handles);
 
 
@@ -3436,13 +3505,13 @@ function startgainCh2_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
-   if nChannels~=0
-      for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),'CFP')==1
-                handles.acquisition.channels{n,7}=startgain;
-           end
-      end
-   end       
+if nChannels~=0
+    for n=1:nChannels
+        if strcmp(handles.acquisition.channels(n,1),'CFP')==1
+            handles.acquisition.channels{n,7}=startgain;
+        end
+    end
+end
 guidata(hObject, handles);
 
 
@@ -3464,13 +3533,13 @@ function startgainCh3_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
-   if nChannels~=0
-      for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),'GFP')==1
-                handles.acquisition.channels{n,7}=startgain;
-           end
-      end
-   end       
+if nChannels~=0
+    for n=1:nChannels
+        if strcmp(handles.acquisition.channels(n,1),'GFP')==1
+            handles.acquisition.channels{n,7}=startgain;
+        end
+    end
+end
 guidata(hObject, handles);
 
 
@@ -3492,13 +3561,13 @@ function startgainCh4_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
-   if nChannels~=0
-      for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),'YFP')==1
-                handles.acquisition.channels{n,7}=startgain;
-           end
-      end
-   end       
+if nChannels~=0
+    for n=1:nChannels
+        if strcmp(handles.acquisition.channels(n,1),'YFP')==1
+            handles.acquisition.channels{n,7}=startgain;
+        end
+    end
+end
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -3519,13 +3588,13 @@ function startgainCh5_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
-   if nChannels~=0
-      for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
-                handles.acquisition.channels{n,7}=startgain;
-           end
-      end
-   end       
+if nChannels~=0
+    for n=1:nChannels
+        if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
+            handles.acquisition.channels{n,7}=startgain;
+        end
+    end
+end
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -3546,13 +3615,13 @@ function startgainCh6_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
-   if nChannels~=0
-      for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
-                handles.acquisition.channels{n,7}=startgain;
-           end
-      end
-   end       
+if nChannels~=0
+    for n=1:nChannels
+        if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
+            handles.acquisition.channels{n,7}=startgain;
+        end
+    end
+end
 guidata(hObject, handles);
 
 
@@ -3590,7 +3659,7 @@ channel(6)=num2cell(get(handles.(cammodeTag),'Value'));
 channel(7)=num2cell(str2double(get(handles.(startGainTag),'String')));
 channel(8)=num2cell(str2double(get(handles.(voltTag),'String')));
 
-    snap(channel, handles.acquisition.microscope);
+snap(channel, handles.acquisition.microscope);
 set(hObject,'Value',0);
 
 
@@ -3606,7 +3675,7 @@ channel(6)=num2cell(get(handles.cammodeCh2,'Value'));
 channel(7)=num2cell(str2double(get(handles.startgainCh2,'String')));
 channel(8)=num2cell(str2double(get(handles.voltCh2,'String')));
 
-    snap(channel);
+snap(channel);
 set(handles.snapCh2,'Value',0);
 % --- Executes on button press in snapCh3.
 function snapCh3_Callback(hObject, eventdata, handles)
@@ -3621,7 +3690,7 @@ channel(6)=num2cell(get(handles.cammodeCh3,'Value'));
 channel(7)=num2cell(str2double(get(handles.startgainCh3,'String')));
 channel(8)=num2cell(str2double(get(handles.voltCh3,'String')));
 
-    snap(channel);
+snap(channel);
 set(handles.snapCh3,'Value',0);
 
 % --- Executes on button press in snapCh4.
@@ -3635,7 +3704,7 @@ channel(5)=num2cell(0);
 channel(6)=num2cell(get(handles.cammodeCh4,'Value'));
 channel(7)=num2cell(str2double(get(handles.startgainCh4,'String')));
 channel(8)=num2cell(str2double(get(handles.voltCh4,'String')));
-    snap(channel);
+snap(channel);
 set(handles.snapCh4,'Value',0);
 
 % --- Executes on button press in snapCh5.
@@ -3650,8 +3719,8 @@ channel(6)=num2cell(str2mat((get(handles.cammodeCh5,'Value'))));
 channel(7)=num2cell(str2double(get(handles.startgainCh5,'String')));
 channel(8)=num2cell(str2double(get(handles.voltCh5,'String')));
 
-    snap(channel);
-    set(handles.snapCh5,'Value',0);
+snap(channel);
+set(handles.snapCh5,'Value',0);
 
 
 % --- Executes on button press in snapCh6.
@@ -3666,8 +3735,8 @@ channel(6)=num2cell(str2mat((get(handles.cammodeCh6,'Value'))));
 channel(7)=num2cell(str2double(get(handles.startgainCh6,'String')));
 channel(8)=num2cell(str2double(get(handles.voltCh6,'String')));
 
-    snap(channel);
-    set(handles.snapCh6,'Value',0);
+snap(channel);
+set(handles.snapCh6,'Value',0);
 
 
 
@@ -3777,17 +3846,17 @@ disp('Debug here');
 
 
 function expCh7_Callback(hObject, eventdata, handles)
-expos=str2double(get(hObject,'String'));   
+expos=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'cy5')==1
-        handles.acquisition.channels{n,2}=expos;
+            handles.acquisition.channels{n,2}=expos;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -3809,19 +3878,19 @@ pointexpose=get(hObject,'Value');
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if pointexpose==1;
-   set(handles.expCh7,'Enable','off'); 
-
+    set(handles.expCh7,'Enable','off');
+    
 else
     set(handles.expCh7,'Enable','on');
 end
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'cy5')==1
-        handles.acquisition.channels{n,3}=pointexpose;
+            handles.acquisition.channels{n,3}=pointexpose;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes on selection change in cammodeCh7.
 function cammodeCh7_Callback(hObject, eventdata, handles)
@@ -3834,22 +3903,22 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'cy5')==1
-                handles.acquisition.channels{n,6}=1;%1=EMCCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),'cy5')==1
+                    handles.acquisition.channels{n,6}=1;%1=EMCCD camera mode
+                end
             end
-            end
-        end       
+        end
     case 2%CCD mode selected
         set(handles.startgainCh7,'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'cy5')==1
-                handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),'cy5')==1
+                    handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                end
             end
-            end
-        end       
+        end
     case 3%EM mode selected
         set(handles.startgainCh7,'Enable','on');
         set(handles.voltCh7,'Enable','on');
@@ -3857,11 +3926,11 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),'cy5')==1
-                handles.acquisition.channels{n,6}=3;%3=EMCCD constant camera mode
+                if strcmp(handles.acquisition.channels(n,1),'cy5')==1
+                    handles.acquisition.channels{n,6}=3;%3=EMCCD constant camera mode
+                end
             end
-            end
-        end    
+        end
 end
 guidata(hObject, handles);
 
@@ -3884,13 +3953,13 @@ function startgainCh7_Callback(hObject, eventdata, handles)
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
-   if nChannels~=0
-      for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),'cy5')==1
-                handles.acquisition.channels{n,7}=startgain;
-           end
-      end
-   end       
+if nChannels~=0
+    for n=1:nChannels
+        if strcmp(handles.acquisition.channels(n,1),'cy5')==1
+            handles.acquisition.channels{n,7}=startgain;
+        end
+    end
+end
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -3932,10 +4001,10 @@ end
 % --- Executes on button press in ZsectCh7.
 function ZsectCh7_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
-                          %and record that z sectioning is being done for
-                          %this channel in the handles.acquisition.channels cell array
-                          %also get the z sectioning values from the gui
-                          %and copy them to the handles.acquisition.z array to be used
+    %and record that z sectioning is being done for
+    %this channel in the handles.acquisition.channels cell array
+    %also get the z sectioning values from the gui
+    %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
@@ -3944,7 +4013,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'cy5')==1
-            handles.acquisition.channels(n,4)=num2cell(1);
+                handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
     end
@@ -3959,24 +4028,24 @@ else%if this button has been deselected
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),'cy5')==1
-            handles.acquisition.channels(n,4)=num2cell(0);
+                handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
-            anyZ=1;
+                anyZ=1;
             end
         end
     end
     if anyZ==0
-       set(handles.nZsections,'Enable','off');
-       set(handles.zspacing,'Enable','off');
-%        set(handles.nZsections,'String','1');
-%        set(handles.zspacing,'String','0');
-       handles.acquisition.z(1)=1;
-       handles.acquisition.z(2)=0;
+        set(handles.nZsections,'Enable','off');
+        set(handles.zspacing,'Enable','off');
+        %        set(handles.nZsections,'String','1');
+        %        set(handles.zspacing,'String','0');
+        handles.acquisition.z(1)=1;
+        handles.acquisition.z(2)=0;
     end
 end
 updateDiskSpace(handles);
-  guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 
@@ -3984,21 +4053,21 @@ function starttpCh7_Callback(hObject, eventdata, handles)
 offset=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 if isempty(get(hObject,'String'))~=1;
-        for n=1:sizeChannels(1)
-            if strcmp(char(handles.acquisition.channels(n,1)),'cy5')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'cy5')==1
             handles.acquisition.channels(n,5)=num2cell(offset);
-            end
         end
+    end
 else
     set(handles.starttpCh7,'String','0');
-     for n=1:sizeChannels(1)
-         if strcmp(char(handles.acquisition.channels(n,1)),'cy5')==1
+    for n=1:sizeChannels(1)
+        if strcmp(char(handles.acquisition.channels(n,1)),'cy5')==1
             handles.acquisition.channels(n,5)=num2cell(0);
-            end
-     end   
+        end
+    end
 end
 updateDiskSpace(handles);
-   guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -4027,50 +4096,50 @@ channel(6)=num2cell(get(handles.cammodeCh7,'Value'));
 channel(7)=num2cell(str2double(get(handles.startgainCh7,'String')));
 channel(8)=num2cell(str2double(get(handles.voltCh7,'String')));
 
-    snap(channel);
+snap(channel);
 set(handles.snapCh7,'Value',0);
 
- 
+
 
 % --- Executes on button press in useCh7.
 function useCh7_Callback(hObject, eventdata, handles)
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if get(hObject,'Value')==1
-     if get(handles.ZsectCh7,'Value')==1
-       set(handles.nZsections,'Enable','on');
-       set(handles.zspacing,'Enable','on');
-     end
-   set(handles.skipCh7,'Enable','on');
-   set(handles.ZsectCh7,'Enable','on');
-   set(handles.starttpCh7,'Enable','on');%add to others
-   set(handles.snapCh7,'Enable','on');
-   set(handles.cammodeCh7,'Enable','on');
+    if get(handles.ZsectCh7,'Value')==1
+        set(handles.nZsections,'Enable','on');
+        set(handles.zspacing,'Enable','on');
+    end
+    set(handles.skipCh7,'Enable','on');
+    set(handles.ZsectCh7,'Enable','on');
+    set(handles.starttpCh7,'Enable','on');%add to others
+    set(handles.snapCh7,'Enable','on');
+    set(handles.cammodeCh7,'Enable','on');
     %camera settings - enable controls
-   set(handles.cammodeCh7,'Enable','on');%%%%%
-   if get(handles.cammodeCh7,'Value')==1%channel set to camera EM mode
-       set (handles.startgainCh7,'Enable','on');%%%%%
-       set (handles.voltCh7,'Enable','on');%%%%%
-   end   %%%%%
-   if get(handles.skipCh7,'Value')~=1
-   set(handles.expCh7,'Enable','on');
-   end
-   handles.acquisition.channels{nChannels+1,1}='cy5';
-   handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh7,'String'));
-   handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh7,'String'));
-   handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh7,'Value');%add to others
-   handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh7,'String'));%add to others
-   %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh7,'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh7,'String'));
-   if isempty(handles.acquisition.channels(nChannels+1,7))
-       handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
-   end
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh7,'String')));
-   %update the points list (if there is one) - add a column for exposure times for this channel
-   if size(handles.acquisition.points,1)>0
+    set(handles.cammodeCh7,'Enable','on');%%%%%
+    if get(handles.cammodeCh7,'Value')==1%channel set to camera EM mode
+        set (handles.startgainCh7,'Enable','on');%%%%%
+        set (handles.voltCh7,'Enable','on');%%%%%
+    end   %%%%%
+    if get(handles.skipCh7,'Value')~=1
+        set(handles.expCh7,'Enable','on');
+    end
+    handles.acquisition.channels{nChannels+1,1}='cy5';
+    handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.expCh7,'String'));
+    handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.skipCh7,'String'));
+    handles.acquisition.channels{nChannels+1,4}=get(handles.ZsectCh7,'Value');%add to others
+    handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.starttpCh7,'String'));%add to others
+    %camera settings
+    handles.acquisition.channels{nChannels+1,6}=get(handles.cammodeCh7,'Value');
+    handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.startgainCh7,'String'));
+    if isempty(handles.acquisition.channels(nChannels+1,7))
+        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
+    end
+    handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.voltCh7,'String')));
+    %update the points list (if there is one) - add a column for exposure times for this channel
+    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
-   end
+    end
 else
     set(handles.expCh7,'Enable','off');
     set(handles.skipCh7,'Enable','off');
@@ -4085,22 +4154,22 @@ else
         anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it. And also records if any channel does sectioning.
             if strcmp(char(handles.acquisition.channels(n,1)),'cy5')==1
-            delnumber=n;
+                delnumber=n;
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
                 if zChoice==1;
-                anyZ=1;
+                    anyZ=1;
                 end
             end
         end
         if size(handles.acquisition.points,1)>0
             handles=updatePoints(handles,delnumber);%update the points list - remove the relevant column of exposure times
         end
-    handles.acquisition.channels(delnumber,:)=[];
-    if anyZ==0%deactivate z settings choices if no channel is using z
-        set(handles.nZsections,'Enable','off');
-        set(handles.zspacing,'Enable','off');
-    end
+        handles.acquisition.channels(delnumber,:)=[];
+        if anyZ==0%deactivate z settings choices if no channel is using z
+            set(handles.nZsections,'Enable','off');
+            set(handles.zspacing,'Enable','off');
+        end
     end
 end
 updateDiskSpace(handles);
@@ -4112,9 +4181,9 @@ function replace_Callback(hObject, eventdata, handles)
 global mmc;
 %confirm only one point is selected
 sizes=size(handles.selected);
-    nSelected=sizes(1);
+nSelected=sizes(1);
 if nSelected==1
-    ans=questdlg('Do you want to adjust all z positions?');  
+    ans=questdlg('Do you want to adjust all z positions?');
     table=get(handles.pointsTable,'Data');
     row=handles.selected(1);
     if strcmp(ans,'Yes')
@@ -4132,14 +4201,14 @@ if nSelected==1
             end
         end
     end
-           
+    
     set(handles.pointsTable,'Data',table);
     handles.acquisition.points=table;
     guidata(hObject, handles);
-
+    
 else
-       errordlg('Please select one point to replace','Replace point');
-
+    errordlg('Please select one point to replace','Replace point');
+    
 end
 
 
@@ -4176,7 +4245,7 @@ if nargin==1%only the handles input is supplied. This means no channel has been 
     end
     %Now deal with the headings of the points table.
     headings(numColumns+1)=strcat(handles.acquisition.channels(lastChan,1),'(ms)');
-    else%a deleted channel number has been input
+else%a deleted channel number has been input
     toDelete=deleted+6;
     nameToDelete=strcat(handles.acquisition.channels(deleted,1),'(ms)');
     handles.acquisition.points(:,toDelete)=[];
@@ -4214,18 +4283,18 @@ function skipChannel_Callback(hObject, eventdata, handles)
 
 [chName tagEnd]=getChannel(hObject,handles);
 
-skip=str2double(get(hObject,'String'));   
+skip=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),chName)==1
-        handles.acquisition.channels{n,3}=skip;
+            handles.acquisition.channels{n,3}=skip;
         end
     end
 end
 updateDiskSpace(handles);
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function skipCh1_CreateFcn(hObject, eventdata, handles)
@@ -4242,18 +4311,18 @@ end
 
 
 function skipCh2_Callback(hObject, eventdata, handles)
-skip=str2double(get(hObject,'String'));   
+skip=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'CFP')==1
-        handles.acquisition.channels{n,3}=skip;
+            handles.acquisition.channels{n,3}=skip;
         end
     end
 end
 updateDiskSpace(handles);
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function skipCh2_CreateFcn(hObject, eventdata, handles)
@@ -4270,18 +4339,18 @@ end
 
 
 function skipCh3_Callback(hObject, eventdata, handles)
-skip=str2double(get(hObject,'String'));   
+skip=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'GFP')==1
-        handles.acquisition.channels{n,3}=skip;
+            handles.acquisition.channels{n,3}=skip;
         end
     end
 end
 updateDiskSpace(handles);
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -4299,18 +4368,18 @@ end
 
 
 function skipCh4_Callback(hObject, eventdata, handles)
-skip=str2double(get(hObject,'String'));   
+skip=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'YFP')==1
-        handles.acquisition.channels{n,3}=skip;
+            handles.acquisition.channels{n,3}=skip;
         end
     end
 end
 updateDiskSpace(handles);
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -4328,18 +4397,18 @@ end
 
 
 function skipCh5_Callback(hObject, eventdata, handles)
-skip=str2double(get(hObject,'String'));   
+skip=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'mCherry')==1
-        handles.acquisition.channels{n,3}=skip;
+            handles.acquisition.channels{n,3}=skip;
         end
     end
 end
 updateDiskSpace(handles);
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -4357,18 +4426,18 @@ end
 
 
 function skipCh6_Callback(hObject, eventdata, handles)
-skip=str2double(get(hObject,'String'));   
+skip=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'tdTomato')==1
-        handles.acquisition.channels{n,3}=skip;
+            handles.acquisition.channels{n,3}=skip;
         end
     end
 end
 updateDiskSpace(handles);
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -4386,18 +4455,18 @@ end
 
 
 function skipCh7_Callback(hObject, eventdata, handles)
-skip=str2double(get(hObject,'String'));   
+skip=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),'cy5')==1
-        handles.acquisition.channels{n,3}=skip;
+            handles.acquisition.channels{n,3}=skip;
         end
     end
 end
 updateDiskSpace(handles);
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -4461,14 +4530,14 @@ if strcmp(answer,'Add a new project')
                 set(handles.OmeroProjects,'Value',index(1));
                 handles.acquisition.omero.project=newName;
                 set(handles.Project,'String',newName);
-            end           
+            end
         end
     end
 else
     %The user has selected an existing project
     handles.acquisition.omero.project=answer;
     set(handles.Project,'String',answer);
-
+    
 end
 
 guidata(hObject, handles);
@@ -4503,7 +4572,7 @@ if strcmp(answer,'Add a new tag')
         if ~isempty(newName{1})
             newName=newName{1};
             if ~any(strcmp(newName,contents))
-                %The tag name is a new one            
+                %The tag name is a new one
                 description=inputdlg('Enter a description for the new tag','Tag description',7);
                 %Record the new tag in the record of tags that should be in
                 %the database - it will be added the next time the upload
@@ -4513,7 +4582,7 @@ if strcmp(answer,'Add a new tag')
                 handles.acquisition.omero.object.Tags(end).description=description;
                 obj2=handles.acquisition.omero.object;
                 path=obj2.pcPath;
-                save(path,'obj2'); 
+                save(path,'obj2');
                 %Add the new tag name to the menu
                 contents{end}=newName;
                 contents{end+1}='Add a new tag';
@@ -4523,7 +4592,7 @@ if strcmp(answer,'Add a new tag')
                 %experiment
                 handles.acquisition.omero.tags{end+1}=newName;
                 %Display the new list.
-                set(handles.TagList,'String',handles.acquisition.omero.tags);         
+                set(handles.TagList,'String',handles.acquisition.omero.tags);
             end
         end
     end
@@ -4705,7 +4774,11 @@ function diameterP1_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns diameterP1 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from diameterP1
-
+contents = cellstr(get(hObject,'String'));
+volString=contents{get(hObject,'Value')};
+diameter=pump.getDiameter(volString);
+pumpSerial=handles.acquisition.flow{4}(1).serial;
+fprintf(pumpSerial,['DIA' num2str(diameter)]);pause(.05);
 
 % --- Executes during object creation, after setting all properties.
 function diameterP1_CreateFcn(hObject, eventdata, handles)
@@ -4877,7 +4950,7 @@ if ~killPresent
     %Complete the points array
     handles=updatePoints(handles);%This will add an extra column for the kill channel
     handles.acquisition.points{nPoints+1,end}=num2str(5000);%5s exposure for killing cells
-end   
+end
 
 
 
@@ -4902,17 +4975,17 @@ controlName=get(hObject,'Tag');
 k=strfind(controlName,'exp');
 channelName=controlName(1:k-1);
 
-expos=str2double(get(hObject,'String'));   
+expos=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),channelName)==1
-        handles.acquisition.channels{n,2}=expos;
+            handles.acquisition.channels{n,2}=expos;
         end
     end
 end
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function expCh8_CreateFcn(hObject, eventdata, handles)
@@ -4962,34 +5035,34 @@ switch value
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),channelName)==1
-                handles.acquisition.channels{n,6}=1;%1=EM camera mode
+                if strcmp(handles.acquisition.channels(n,1),channelName)==1
+                    handles.acquisition.channels{n,6}=1;%1=EM camera mode
+                end
             end
-            end
-        end       
+        end
     case 2%CCD mode selected
         set(handles.(startgainTag),'Enable','off');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),channelName)==1
-                handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                if strcmp(handles.acquisition.channels(n,1),channelName)==1
+                    handles.acquisition.channels{n,6}=2;%2=CCD camera mode
+                end
             end
-            end
-        end     
-        case 3%EM mode selected
+        end
+    case 3%EM mode selected
         set(handles.(startgainTag),'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
         %loop to find this channel in the channels array
         if nChannels~=0
             for n=1:nChannels
-            if strcmp(handles.acquisition.channels(n,1),channelName)==1
-                handles.acquisition.channels{n,6}=3;%3=EM_constant camera mode
-            end
+                if strcmp(handles.acquisition.channels(n,1),channelName)==1
+                    handles.acquisition.channels{n,6}=3;%3=EM_constant camera mode
+                end
             end
         end
-    
+        
 end
 guidata(hObject, handles);
 
@@ -5023,13 +5096,13 @@ channelName=controlName(10:end);
 startgain=str2double(get(hObject,'String'));
 nChannels=size(handles.acquisition.channels,1);
 %loop to find this channel in the channels array
-   if nChannels~=0
-      for n=1:nChannels
-           if strcmp(handles.acquisition.channels(n,1),channelName)==1
-                handles.acquisition.channels{n,7}=startgain;
-           end
-      end
-   end       
+if nChannels~=0
+    for n=1:nChannels
+        if strcmp(handles.acquisition.channels(n,1),channelName)==1
+            handles.acquisition.channels{n,7}=startgain;
+        end
+    end
+end
 guidata(hObject, handles);
 
 
@@ -5084,10 +5157,10 @@ k=strfind(controlName,'Zsect');
 channelName=controlName(1:k-1);
 
 if get(hObject,'Value')==1%make sure z sectioning controls are enabled
-                          %and record that z sectioning is being done for
-                          %this channel in the handles.acquisition.channels cell array
-                          %also get the z sectioning values from the gui
-                          %and copy them to the handles.acquisition.z array to be used
+    %and record that z sectioning is being done for
+    %this channel in the handles.acquisition.channels cell array
+    %also get the z sectioning values from the gui
+    %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
     handles.acquisition.z(1)=str2double(get(handles.nZsections,'String'));
@@ -5096,7 +5169,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
-            handles.acquisition.channels(n,4)=num2cell(1);
+                handles.acquisition.channels(n,4)=num2cell(1);
             end
         end
     end
@@ -5111,24 +5184,24 @@ else%if this button has been deselected
     if sizeChannels(1)~=0
         for n=1:sizeChannels(1)
             if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
-            handles.acquisition.channels(n,4)=num2cell(0);
+                handles.acquisition.channels(n,4)=num2cell(0);
             end
             if cell2mat(handles.acquisition.channels(n,4))==1
-            anyZ=1;
+                anyZ=1;
             end
         end
     end
     if anyZ==0
-       set(handles.nZsections,'Enable','off');
-       set(handles.zspacing,'Enable','off');
-%        set(handles.nZsections,'String','1');
-%        set(handles.zspacing,'String','0');
-       handles.acquisition.z(1)=1;
-       handles.acquisition.z(2)=0;
+        set(handles.nZsections,'Enable','off');
+        set(handles.zspacing,'Enable','off');
+        %        set(handles.nZsections,'String','1');
+        %        set(handles.zspacing,'String','0');
+        handles.acquisition.z(1)=1;
+        handles.acquisition.z(2)=0;
     end
 end
 updateDiskSpace(handles);
-  guidata(hObject, handles);
+guidata(hObject, handles);
 
 function starttpCh8_Callback(hObject, eventdata, handles)
 % hObject    handle to starttpCh8 (see GCBO)
@@ -5181,7 +5254,7 @@ channel(6)=num2cell(get(handles.(cammodeTag),'Value'));
 channel(7)=num2cell(str2double(get(handles.(startgainTag),'String')));
 channel(8)=num2cell(str2double(get(handles.(epgTag),'String')));
 
-    snap(channel);
+snap(channel);
 set(handles.(controlName),'Value',0);
 
 
@@ -5210,11 +5283,11 @@ startgainTag=['startgain' channelName];
 voltTag=['volt' channelName];
 expTag=[channelName 'exp'];
 
-if get(hObject,'Value')==1 
+if get(hObject,'Value')==1
     %Button has been clicked on
     if get(handles.(zTag),'Value')==1
-       set(handles.nZsections,'Enable','on');   
-       set(handles.zspacing,'Enable','on');
+        set(handles.nZsections,'Enable','on');
+        set(handles.zspacing,'Enable','on');
     end
     set(handles.(skipTag),'Enable','on');
     set(handles.(voltTag),'Enable','on');
@@ -5227,24 +5300,24 @@ if get(hObject,'Value')==1
     if get(handles.(cammodeTag),'Value')==1%channel set to camera EM mode
         set (handles.(startgainTag),'Enable','on');
         set (handles.(voltTag),'Enable','on');
-    end 
+    end
     set(handles.(expTag),'Enable','on');
     handles.acquisition.channels{nChannels+1,1}=channelName;
     handles.acquisition.channels{nChannels+1,2}=str2double(get(handles.(expTag),'String'));
     handles.acquisition.channels{nChannels+1,3}=str2double(get(handles.(skipTag),'String'));
     handles.acquisition.channels{nChannels+1,4}=get(handles.(zTag),'Value');
     handles.acquisition.channels{nChannels+1,5}=str2double(get(handles.(starttpTag),'String'));
-   %camera settings
-   handles.acquisition.channels{nChannels+1,6}=get(handles.(cammodeTag),'Value');
-   handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.(startgainTag),'String'));
-   if isempty(handles.acquisition.channels(nChannels+1,7));
-       handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
-   end%
-      handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.(voltTag),'String')));
-   %update the points list (if there is one) - add a column for exposure times for this channel
-   if size(handles.acquisition.points,1)>0
+    %camera settings
+    handles.acquisition.channels{nChannels+1,6}=get(handles.(cammodeTag),'Value');
+    handles.acquisition.channels{nChannels+1,7}=str2double(get(handles.(startgainTag),'String'));
+    if isempty(handles.acquisition.channels(nChannels+1,7));
+        handles.acquisition.channels(nChannels+1,7)=270;%default value if there is no valid number in there
+    end%
+    handles.acquisition.channels(nChannels+1,8)=num2cell(str2double(get(handles.(voltTag),'String')));
+    %update the points list (if there is one) - add a column for exposure times for this channel
+    if size(handles.acquisition.points,1)>0
         handles=updatePoints(handles);
-   end
+    end
 else
     %Inactivate other controls for this channel
     set(handles.(expTag),'Enable','off');
@@ -5260,22 +5333,22 @@ else
         anyZ=0;
         for n=1:sizeChannels(1)%loop to find this channel and delete it. And also records if any channel does sectioning.
             if strcmp(char(handles.acquisition.channels(n,1)),channelName)==1
-            delnumber=n;
+                delnumber=n;
             else%only check if the channel does z sectioning if it's not about to be removed.
                 zChoice=cell2mat(handles.acquisition.channels(n,4));
                 if zChoice==1;
-                anyZ=1;
+                    anyZ=1;
                 end
             end
         end
         if size(handles.acquisition.points,1)>0
             handles=updatePoints(handles,delnumber);%update the points list - remove the relevant column of exposure times
         end
-    handles.acquisition.channels(delnumber,:)=[];
-    if anyZ==0%deactivate z settings choices if no channel is using z
-        set(handles.nZsections,'Enable','off');
-        set(handles.zspacing,'Enable','off');
-    end
+        handles.acquisition.channels(delnumber,:)=[];
+        if anyZ==0%deactivate z settings choices if no channel is using z
+            set(handles.nZsections,'Enable','off');
+            set(handles.zspacing,'Enable','off');
+        end
     end
 end
 updateDiskSpace(handles);
@@ -5294,18 +5367,18 @@ function skipCh8_Callback(hObject, eventdata, handles)
 controlName=get(hObject,'Tag');
 channelName=controlName(5:end);
 
-skip=str2double(get(hObject,'String'));   
+skip=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
 nChannels=sizeChannels(1);
 if nChannels~=0
     for n=1:nChannels
         if strcmp(handles.acquisition.channels(n,1),channelName)==1
-        handles.acquisition.channels{n,3}=skip;
+            handles.acquisition.channels{n,3}=skip;
         end
     end
 end
 updateDiskSpace(handles);
- guidata(hObject, handles);
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function skipCh8_CreateFcn(hObject, eventdata, handles)
@@ -5374,7 +5447,7 @@ if ~isempty(input)
     end
 else
     %a number was not input
-   set(handles.distanceBox,'String',num2str(handles.distance));
+    set(handles.distanceBox,'String',num2str(handles.distance));
 end
 guidata(hObject,handles);
 
@@ -5391,7 +5464,7 @@ switch tag
         mmc.setRelativeXYPosition('XYStage',0,-handles.distance);
     case 'shiftDown'
         mmc.setRelativeXYPosition('XYStage',0,handles.distance);
-
+        
 end
 
 
@@ -5428,12 +5501,12 @@ input=str2num(input);
 ok=false;
 if ~isempty(input)
     if input>0 && input<=4
-       ok=true;
-       handles.acquisition.channels{channelRow,8}=input;
+        ok=true;
+        handles.acquisition.channels{channelRow,8}=input;
     end
 end
 if ~ok
-   set(handles.(tag),'String', num2str(oldValue)); 
+    set(handles.(tag),'String', num2str(oldValue));
 end
 
 guidata(hObject,handles);
@@ -5446,19 +5519,19 @@ function live_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global gui;
 if gui.isLiveModeOn
-gui.enableLiveMode(0);
-set(handles.live,'String','Live');
-set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
+    gui.enableLiveMode(0);
+    set(handles.live,'String','Live');
+    set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
 else
-gui.enableLiveMode(1);
-set(handles.live,'String','Stop Live');
-set(handles.live,'BackgroundColor',[.9 0.2 0.2]);
+    gui.enableLiveMode(1);
+    set(handles.live,'String','Stop Live');
+    set(handles.live,'BackgroundColor',[.9 0.2 0.2]);
 end
 
 
 
-    
-    
+
+
 
 
 % --- Executes on button press in liveDIC.
@@ -5474,15 +5547,15 @@ switch handles.acquisition.microscope.Name
         mmc.setProperty('Evolve','Port','Normal');
 end
 if gui.isLiveModeOn
-gui.enableLiveMode(0);
-set(handles.liveDIC,'String','Live');
-set(handles.live,'BackgroundColor',[.15 0.23 0.37]);
+    gui.enableLiveMode(0);
+    set(handles.liveDIC,'String','Live');
+    set(handles.live,'BackgroundColor',[.15 0.23 0.37]);
 else
-mmc.setConfig('Channel', handles.acquisition.microscope.InitialChannel);
-mmc.waitForConfig('Channel', handles.acquisition.microscope.InitialChannel);
-gui.enableLiveMode(1);
-set(handles.live,'String','Stop Live');
-set(handles.liveDIC,'BackgroundColor',[0.2 .9 0.2]);
+    mmc.setConfig('Channel', handles.acquisition.microscope.InitialChannel);
+    mmc.waitForConfig('Channel', handles.acquisition.microscope.InitialChannel);
+    gui.enableLiveMode(1);
+    set(handles.live,'String','Stop Live');
+    set(handles.liveDIC,'BackgroundColor',[0.2 .9 0.2]);
 end
 
 
@@ -5515,9 +5588,9 @@ switch input
     case 'PIFOC'
         handles.acquisition.z(6)=1;
     case 'PIFOC with PFS on'
-         handles.acquisition.z(6)=2;
+        handles.acquisition.z(6)=2;
     case 'PFS'
-         handles.acquisition.z(6)=3;
+        handles.acquisition.z(6)=3;
 end
 guidata(hObject,handles);
 

@@ -1,6 +1,6 @@
 function []=acqTimelapse(acqData,logfile,exptFolder,posDirectories)
 global mmc;
-tic%start of timer - toc statement will give time since this tic
+startT=tic%start of timer - toc statement will give time since this tic
 
 %Warn if autofocus device isn't on
 if acqData.time(1)==1
@@ -135,7 +135,7 @@ for t=1:numTimepoints%start of timepoint loop.
     fprintf(logfile,'\r\n');
     acqData.logtext=writelog(logfile,acqData.logtext,'');
     logstring=strcat('------Time point_',num2str(t),'------');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-    startOfTimepoint=toc;
+    startOfTimepoint=toc(startT);
     endOfTimepoint=(startOfTimepoint+interval);
     disp(strcat('Start of timepoint:',num2str(t)));
     
@@ -146,14 +146,14 @@ for t=1:numTimepoints%start of timepoint loop.
        drawnow;
        guiinfo=guidata(acqData.guihandle);
        if guiinfo.stop==1
-          logstring=strcat('Experiment stopped by user at:',num2str(toc));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+          logstring=strcat('Experiment stopped by user at:',num2str(toc(startT)));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
           break%This leaves the position loop
        end
 
 
        
        %Run pump changing function if necessary
-       acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60,logfile);
+       acqData.flow{5}=acqData.flow{5}.shouldChange(toc(startT)/60,logfile);
        %Determine the position group of the current point
        groupid=cell2mat(acqData.points(pos,6));
        groups=[acqData.points{:,6}];%the list of groups
@@ -288,7 +288,7 @@ for t=1:numTimepoints%start of timepoint loop.
    
    
    %Change the pumps if necessary
-   acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60,logfile);
+   acqData.flow{5}=acqData.flow{5}.shouldChange(toc(startT)/60,logfile);
    
    if acqData.z(3)==1
        mmc.setProperty('TIPFSStatus','State','On');
@@ -382,8 +382,8 @@ for t=1:numTimepoints%start of timepoint loop.
    end%of loop through groups
                     
 
-   %Include log file entries here - time point t completed at toc
-   currTime=toc;
+   %Include log file entries here - time point t completed at toc(startT)
+   currTime=toc(startT);
    logstring=strcat('Timepoint: ',num2str(t),' completed at:',datestr(clock));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
    logstring=strcat('Time since start of timelapse: ',num2str(currTime));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
    [~]=acqData.microscope.getAutofocusStatus(logfile);%This method will write the status to the logfile
@@ -396,9 +396,9 @@ for t=1:numTimepoints%start of timepoint loop.
        logstring=strcat('Time to next time point:',num2str(endOfTimepoint-currTime));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
        drawnow;
        while (currTime<endOfTimepoint)
-           currTime=toc;
+           currTime=toc(startT);
            %Change the pumps if necessary
-           acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60, logfile);
+           acqData.flow{5}=acqData.flow{5}.shouldChange(toc(startT)/60, logfile);
            guiinfo=guidata(acqData.guihandle);
            drawnow;
            if guiinfo.stop==1

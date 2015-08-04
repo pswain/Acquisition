@@ -123,7 +123,7 @@ classdef pump
         end
    end
    methods (Static)
-       function diameter=getDiameter(volString) 
+        function diameter=getDiameter(volString) 
            %Returns the diameter (mm) of Becton Dickinson syringes of the model
            %specified by volString. Data is from the Aladdin pump manual:
            %http://www.wpiinc.com/clientuploads/pdf/Aladdin-IM.pdf p60

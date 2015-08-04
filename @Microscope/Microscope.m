@@ -1,4 +1,4 @@
-classdef Microscope
+classdef Microscope<handle
 
     properties
         Name

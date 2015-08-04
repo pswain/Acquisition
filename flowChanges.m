@@ -10,6 +10,9 @@ classdef flowChanges
         flowPostSwitch%n * number of switches double array, Flow rates of each pump after switching (n=number of pumps)
         switchParams%structure, with the parameters governing switching
         numChanges%number of switching events
+        solenoidGUI=[];
+        timesSwitchSol=0;
+        switchedSol=true;
     end
     
     methods
@@ -44,18 +47,16 @@ classdef flowChanges
             obj.switched=false(1,obj.numChanges);
             obj.flowPostSwitch=flowRate;
             obj.timesSwitched=zeros(1,obj.numChanges);
-%             [maxFlow obj.switchedTo]=max(obj.flowPostSwitch);
-%             [minFlow obj.switchedFrom]=min(obj.flowPostSwitch);
-            obj.switchedTo=ones(1,length(obj.times));           
+            %             [maxFlow obj.switchedTo]=max(obj.flowPostSwitch);
+            %             [minFlow obj.switchedFrom]=min(obj.flowPostSwitch);
+            obj.switchedTo=ones(1,length(obj.times));
             obj.switchedTo(initialPump:2:end)=2;
             obj.switchedFrom=ones(1,length(obj.times));
             obj.switchedFrom(3-initialPump:2:end)=2;
-
+            
             
             
         end
-        
-        
         
         function obj=setPeriodic(obj,switchInterval,switchStart,switchStop,highFlow,lowFlow,pumpIndices)
             
@@ -105,14 +106,14 @@ classdef flowChanges
             %             [minFlow obj.switchedFrom]=min(obj.flowPostSwitch);
             obj.switchedTo=false(1,obj.numChanges);
             obj.switchedFrom=false(1,obj.numChanges);
-
+            
         end
         
-        function obj=setFlowTimes(obj,txtTimes,flowRates) 
+        function obj=setFlowTimes(obj,txtTimes,flowRates,solSwitchTimes)
             %Creates changes for linear pump ramp
             %highIndex=index (in obj.pumps) of the pump with the higher flow
             %rate at the start of the ramp.
-                        
+            
             obj.numChanges=length(txtTimes);
             obj.times=txtTimes;
             obj.switched=false(1,obj.numChanges);
@@ -122,6 +123,10 @@ classdef flowChanges
             %             [minFlow obj.switchedFrom]=min(obj.flowPostSwitch);
             obj.switchedTo=false(1,obj.numChanges);
             obj.switchedFrom=false(1,obj.numChanges);
+            if nargin>3
+                obj.timesSwitchSol=solSwitchTimes;
+                obj.switchedSol=false(1,length(obj.timesSwitchSol));
+            end
             
         end
         
@@ -136,7 +141,6 @@ classdef flowChanges
             [nextSwitchTime ind]=min(obj.times(obj.switched==false));
             ind=min(find(obj.switched==false));
             if currTime>=nextSwitchTime
-                
                 if obj.switchedTo(ind)>0
                     %Experiment requires switching with fast infuse/withdraw
                     %step
@@ -169,24 +173,33 @@ classdef flowChanges
                     fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);
                     fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
                     fprintf(p1,['RAT' num2str(obj.flowPostSwitch(1,ind)) 'UM']);fprintf(p2,['RAT' num2str(obj.flowPostSwitch(2,ind)) 'UM']);pause(.05);
-
-%                     fprintf(p1,['RAT' num2str(flowrates(1))]);
-%                     fprintf(p2,['RAT' num2str(flowrates(2))]);pause(.05);
+                    
+                    %                     fprintf(p1,['RAT' num2str(flowrates(1))]);
+                    %                     fprintf(p2,['RAT' num2str(flowrates(2))]);pause(.05);
                     
                     fprintf(p1,'VOL0');fprintf(p2,'VOL0');pause(.05);
                     fprintf(p1,'RUN2');fprintf(p2,'RUN2');
                     
                     obj.switched(ind)=true;
                     obj.timesSwitched(ind)=currTime;
-
+                    
                 end
-    
-                  %Then reset pump flow rates and volumes
-                  logstring=['Pump: ' (obj.pumps{1}.pumpName) ' running at: ' num2str(obj.flowPostSwitch(1,ind)) 'ul/min'];acqData.logtext=writelog(logfile,'',logstring);
-                  logstring=['Pump: ' (obj.pumps{2}.pumpName) ' running at: ' num2str(obj.flowPostSwitch(2,ind)) 'ul/min'];acqData.logtext=writelog(logfile,'',logstring);                  
+                %Then reset pump flow rates and volumes
+                logstring=['Pump: ' (obj.pumps{1}.pumpName) ' running at: ' num2str(obj.flowPostSwitch(1,ind)) 'ul/min'];acqData.logtext=writelog(logfile,'',logstring);
+                logstring=['Pump: ' (obj.pumps{2}.pumpName) ' running at: ' num2str(obj.flowPostSwitch(2,ind)) 'ul/min'];acqData.logtext=writelog(logfile,'',logstring);
+                
+            end
+            [nextSwitchTimeSol indSol]=min(obj.timesSwitchSol(obj.switchedSol==false));
+            indSol=min(find(obj.switchedSol==false));
+            if currTime>=nextSwitchTimeSol
+                obj.switchedSol(indSol)=true;
+                for relayInd=1:4
+                    obj.solenoidGUI.toggleRelay(relayInd-1);
+                end
             end
             
         end
+        
         
         function obj=switchFast(obj,ind)
             %Fast pump/withdraw phase to remove hysteresis
@@ -209,7 +222,7 @@ classdef flowChanges
             %their vol units from ul to ml if using 10ml syringes (diam 14.43)
             %or bigger. You can manually change
             %the units to nl on that pump - will be a disaster if someone
-            %does this...            
+            %does this...
             
             %Correct volume for units on pump1(obj.switchParams.withdrawVol
             %is in ul)
@@ -236,7 +249,7 @@ classdef flowChanges
                 case 'AL-1002X'
                     wVol2=num2str(obj.switchParams.withdrawVol);
             end
-
+            
             
             fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
             fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);
@@ -246,9 +259,9 @@ classdef flowChanges
             fprintf(p1,'DIRINF');fprintf(p2,'DIRINF');pause(.05);
             fprintf(p1,'PHN3');fprintf(p2,'PHN3');pause(.05);
             fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-
+            
             fprintf(p1,['RAT' num2str(max(obj.flowPostSwitch(:))) 'UM']);fprintf(p2,['RAT' num2str(max(obj.flowPostSwitch(:))) 'UM']);pause(.05);
-
+            
             fprintf(p1,'VOL0');fprintf(p2,'VOL0');pause(.05);
             fprintf(p1,'DIRINF');fprintf(p2,'DIRINF');pause(.05);
             
@@ -282,10 +295,10 @@ classdef flowChanges
             fprintf(file,'Dynamic flow details:');
             fprintf(file,'\r\n');
             fprintf(file,['Number of pump changes:' num2str(obj.numChanges)]);
-            fprintf(file,'\r\n');            
+            fprintf(file,'\r\n');
             fprintf(file,['Switching parameters:' num2str(obj.switchParams.withdrawVol) ',' num2str(obj.switchParams.rate)]);
             fprintf(file,'\r\n');
-            timeString=obj.makeString(obj.times);           
+            timeString=obj.makeString(obj.times);
             fprintf(file,['Times:' timeString]);
             fprintf(file,'\r\n');
             fprintf(file,'Pump names:');
@@ -304,7 +317,7 @@ classdef flowChanges
             for n=1:size(obj.flowPostSwitch,1)
                 fprintf(file,'\r\n');
                 fprintf(file, obj.makeString(obj.flowPostSwitch(n,:)));
-            end           
+            end
         end
         
         function obj=loadChangeDetails(obj,file)
@@ -349,7 +362,7 @@ classdef flowChanges
             switchedFrom=str2double(switchedFrom);
             obj.switchedFrom=switchedFrom';
             
-            flowPostLine=strncmp('Flow post switch:',rawdata,17);flowPostLine=find(flowPostLine);flowPostLine=flowPostLine(end)            
+            flowPostLine=strncmp('Flow post switch:',rawdata,17);flowPostLine=find(flowPostLine);flowPostLine=flowPostLine(end)
             pump1=textscan(rawdata{flowPostLine+1},'%s','Delimiter',',');
             pump1{1}=strrep(pump1{1},'Flow post switch:','');
             pump1=pump1{1};
@@ -364,61 +377,61 @@ classdef flowChanges
         end
         
         function obj=displayFlowChanges(obj)
-        %Displays the information contained in the object - should allow
-        %the user to check if things are correctly set up
-        
-        %This is unfinished (obviously)
-        dispFig=figure('Toolbar','none','menubar','none','numbertitle','off','name','Switching experiment setup');
-        %Convert times to comma-separated string
-        timesString=commaString(obj.times);
-        timesText=uicontrol('Parent',dispFig,'Style','Text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .90   1 .03],'String',['Switching times (min): ' timesString]);
-        initialText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .95   1 .03],'String',['Initial pump: ' num2str(obj.initialPump)]);
-        switchedToText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .85   1 .03],'String',['Pump switched to at each change: ' commaString(obj.switchedTo)]);
-        switchedFromText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .80   1 .03],'String',['Pump switched from at each change: ' commaString(obj.switchedFrom)]);
-        postSwitch1Text=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .75   1 .03],'String',['Pump1 flow rate after each switch: ' commaString(obj.flowPostSwitch(1,:))]);
-        postSwitch2Text=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .70   1 .03],'String',['Pump2 flow rate after each switch: ' commaString(obj.flowPostSwitch(2,:))]);
-        volText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .65   1 .03],'String',['Volume of fast infuse/withdraw step during switching:' num2str(obj.switchParams.withdrawVol)]);
-        rateText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .60   1 .03],'String',['Rate of fast infuse/withdraw step during switching:' num2str(obj.switchParams.rate)]);
-        %Plot a visual representation of the switching
-        switchPlot=axes('Parent',dispFig,'Units','Normalized','Position',[.02 .05  .95 .45]);figure(gcf)
-        %Set axis limits
-        maxTime=1.1*max(obj.times);
-        set(switchPlot, 'XLim',[0 maxTime]);
-        maxRate=1.1*max(max(obj.flowPostSwitch(:)));
-        set(switchPlot,'YLim',[0 maxRate]);
-        set(switchPlot, 'XLim',[0 maxTime]);
-        set(switchPlot,'YLim',[0 maxRate]);
-        hold on
-        timeVector=obj.times;
-        timeVector(end+1)=maxTime;
-        for n=2:length(timeVector)
-            times=[timeVector(n) timeVector(n-1)];
-            flow1=[obj.flowPostSwitch(1,n-1) obj.flowPostSwitch(1,n-1)];
-            flow2=[obj.flowPostSwitch(2,n-1) obj.flowPostSwitch(2,n-1)];
-            if n==length(timeVector)
-                lStyle='--';
-            else
-                lStyle='-';
+            %Displays the information contained in the object - should allow
+            %the user to check if things are correctly set up
+            
+            %This is unfinished (obviously)
+            dispFig=figure('Toolbar','none','menubar','none','numbertitle','off','name','Switching experiment setup');
+            %Convert times to comma-separated string
+            timesString=commaString(obj.times);
+            timesText=uicontrol('Parent',dispFig,'Style','Text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .90   1 .03],'String',['Switching times (min): ' timesString]);
+            initialText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .95   1 .03],'String',['Initial pump: ' num2str(obj.initialPump)]);
+            switchedToText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .85   1 .03],'String',['Pump switched to at each change: ' commaString(obj.switchedTo)]);
+            switchedFromText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .80   1 .03],'String',['Pump switched from at each change: ' commaString(obj.switchedFrom)]);
+            postSwitch1Text=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .75   1 .03],'String',['Pump1 flow rate after each switch: ' commaString(obj.flowPostSwitch(1,:))]);
+            postSwitch2Text=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .70   1 .03],'String',['Pump2 flow rate after each switch: ' commaString(obj.flowPostSwitch(2,:))]);
+            volText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .65   1 .03],'String',['Volume of fast infuse/withdraw step during switching:' num2str(obj.switchParams.withdrawVol)]);
+            rateText=uicontrol('Parent',dispFig,'Style','text','HorizontalAlignment','left','Units', 'Normalized','Position',[.02 .60   1 .03],'String',['Rate of fast infuse/withdraw step during switching:' num2str(obj.switchParams.rate)]);
+            %Plot a visual representation of the switching
+            switchPlot=axes('Parent',dispFig,'Units','Normalized','Position',[.02 .05  .95 .45]);figure(gcf)
+            %Set axis limits
+            maxTime=1.1*max(obj.times);
+            set(switchPlot, 'XLim',[0 maxTime]);
+            maxRate=1.1*max(max(obj.flowPostSwitch(:)));
+            set(switchPlot,'YLim',[0 maxRate]);
+            set(switchPlot, 'XLim',[0 maxTime]);
+            set(switchPlot,'YLim',[0 maxRate]);
+            hold on
+            timeVector=obj.times;
+            timeVector(end+1)=maxTime;
+            for n=2:length(timeVector)
+                times=[timeVector(n) timeVector(n-1)];
+                flow1=[obj.flowPostSwitch(1,n-1) obj.flowPostSwitch(1,n-1)];
+                flow2=[obj.flowPostSwitch(2,n-1) obj.flowPostSwitch(2,n-1)];
+                if n==length(timeVector)
+                    lStyle='--';
+                else
+                    lStyle='-';
+                end
+                if flow1(1)==flow2(1)
+                    plot(times,flow1,'color','m','Linestyle',lStyle);
+                else
+                    plot(times, flow1,'color','b','Linestyle',lStyle);
+                    plot(times, flow2,'color','r','Linestyle',lStyle);
+                end
             end
-            if flow1(1)==flow2(1)
-                plot(times,flow1,'color','m','Linestyle',lStyle);
-            else
-                plot(times, flow1,'color','b','Linestyle',lStyle);
-                plot(times, flow2,'color','r','Linestyle',lStyle);  
-            end
-        end
-
-        
-        l={['Pump1: ' obj.pumps{1}.contents] ['Pump2: ' obj.pumps{2}.contents]};
-        legend(l,'Location','NorthOutside');
-    
-        
+            
+            
+            l={['Pump1: ' obj.pumps{1}.contents] ['Pump2: ' obj.pumps{2}.contents]};
+            legend(l,'Location','NorthOutside');
+            
+            
         end
     end
     methods (Static)
         function outString = makeString(numbers)
             %Function to format vectors and matrices for writing to file
-            try 
+            try
                 outString=num2str(numbers,'%g,');
                 outString=strrep(outString,' ','');
                 if strcmp(outString(end),',')
