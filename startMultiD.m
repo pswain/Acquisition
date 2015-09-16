@@ -185,6 +185,8 @@ handles.acquisition.omero.object=obj2;
 
 %Display the projects
 proj=handles.acquisition.omero.object.getProjectNames;
+%Sort alphabetically
+proj=sort(proj);
 %Make sure there is a 'Default project' entry
 if ~any(strcmp('Default project',proj))
      proj{end+1}='Default project';
@@ -203,7 +205,9 @@ handles.acquisition.omero.project='Default project';
 %Same thing for the tags list:
 
 %Retrieve recorded tag names:
-tags=handles.acquisition.omero.object.getTagNames(false);
+tags=handles.acquisition.omero.object.getTagNames(false);   
+%Sort alphabetically
+tags=sort(tags);
 %Add a menu item for making new tags:
 tags{end+1}='Add a new tag';
 %Set menu items:
