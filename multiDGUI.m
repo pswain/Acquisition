@@ -1131,7 +1131,8 @@ if get(hObject,'Value')==1
     set(handles.(['skip' tagEnd]),'Enable','on');
     
     switch handles.acquisition.microscope.Name
-        case 'Batman'
+
+        case {'Batman' , 'Batgirl'}
             set(handles.(['cammode' tagEnd]),'Enable','on');
             set(handles.(['volt' tagEnd]),'Enable','on');
         case 'Robin'
@@ -2940,12 +2941,15 @@ switch choice
         end
     case 'Switch Pinch Valves'
         if isempty(handles.acquisition.flow{5}.solenoidGUI)
-            handles.acquisition.flow{5}.solenoidGUI=solenoidValveGUI;
+
+            handles.acquisition.flow{5}.solenoidGUI=solenoidValveGUI(handles.acquisition.microscope.pinchComPort);
         end
         guidata(hObject, handles);
 
         if true %handles.acquisition.flow{5}.times==0
             defaults={'0', '4', '.4',''};
+            defaults={'0', '4', '.4','0'};
+
         else
             timeString='';
             pump1String='';
@@ -3013,7 +3017,6 @@ end
 
 guidata(hObject, handles);
 updateFlowDisplay(handles);
-
 
 
 function []=updateFlowDisplay(handles)
@@ -4513,7 +4516,7 @@ if strcmp(answer,'Add a new project')
                 handles.acquisition.omero.object.Projects(end).id=0;%This marks it as a new project to be created
                 handles.acquisition.omero.object.Projects(end).description=description;
                 obj2=handles.acquisition.omero.object;
-                path=obj2.pcPath;
+                path=[handles.acquisition.microscope.OmeroInfoPath 'dbInfoSkye.mat'];
                 save(path,'obj2');
                 %Add the new project name to the menu
                 contents{end}=newName;
@@ -4581,7 +4584,7 @@ if strcmp(answer,'Add a new tag')
                 handles.acquisition.omero.object.Tags(end).id=0;%This marks it as a new tag to be created
                 handles.acquisition.omero.object.Tags(end).description=description;
                 obj2=handles.acquisition.omero.object;
-                path=obj2.pcPath;
+                path=[handles.acquisition.microscope.OmeroInfoPath 'dbInfoSkye.mat'];
                 save(path,'obj2');
                 %Add the new tag name to the menu
                 contents{end}=newName;
@@ -4690,10 +4693,13 @@ switch lens{:}
         defaults{3}='82.4';
         defaults{4}='82.4';
 end
-answers=inputdlg({'Number of rows (y)','Number of columns(x)','Space between rows (microns)','Space between columns (microns)'},'Tile creation: define dimensions',1,defaults);
+defaults{5}='pos';
+answers=inputdlg({'Number of rows (y)','Number of columns(x)','Space between rows (microns)','Space between columns (microns)','Name for this group'},'Tile creation: define dimensions',1,defaults);
+
+
 
 currPosList=handles.acquisition.points;
-[tiles handles]=makeTiles(str2num(answers{1}),str2num(answers{2}),str2num(answers{3}),str2num(answers{4}), handles);
+[tiles handles]=makeTiles(str2num(answers{1}),str2num(answers{2}),str2num(answers{3}),str2num(answers{4}), answers{5},handles);
 tiles(1:size(currPosList,1),:)=currPosList;
 set(handles.pointsTable,'Data',tiles);
 handles.acquisition.points=tiles;
@@ -5498,9 +5504,20 @@ oldValue=handles.acquisition.channels{channelRow,8};
 %Get the input value
 input=get(hObject,'String');
 input=str2num(input);
+%Following code checks values are in range
+%Could make this more sophisticated by defining the overload points of all
+%LEDs and using a Microscope method to return limits for each channel.
+switch handles.acquisition.microscope.Name
+    case 'Batman'
+        upLimit=4;
+        lowLimit=0;
+    case 'Batgirl'
+        upLimit=100;
+        lowLimit=0;
+end
 ok=false;
 if ~isempty(input)
-    if input>0 && input<=4
+    if input>lowLimit && input<=upLimit
         ok=true;
         handles.acquisition.channels{channelRow,8}=input;
     end

@@ -1,4 +1,4 @@
-function [tiles handles] = makeTiles (nRows,nColumns, rowSpacing, colSpacing, handles)
+function [tiles handles] = makeTiles (nRows,nColumns, rowSpacing, colSpacing, groupName,handles)
 
 Points=nRows*nColumns;%number of points
 
@@ -30,14 +30,16 @@ if afStatus
    %First any slope in X
    mmc.setRelativeXYPosition(handles.acquisition.microscope.XYStage,100,0);
    %Wait for the pfs to finish focusing
+   tic
    status='Focusing';
    while ~strcmp(status,'Locked in focus')
-      status=handles.acquisition.microscope.Autofocus.getStatus;
-      pause (0.1);
+      status=handles.acquisition.microscope.Autofocus.getStatus
+      mmc.getPosition(handles.acquisition.microscope.ZStage)
    end
-   pause (0.4);
+   toc
+   pause (1);
 
-   newZ_x=mmc.getPosition(handles.acquisition.microscope.ZStage);
+   newZ_x=mmc.getPosition(handles.acquisition.microscope.ZStage)
    xSlope=newZ_x-startZ;
    %Then slope in Y
    mmc.setRelativeXYPosition(handles.acquisition.microscope.XYStage,0,100);
@@ -46,7 +48,7 @@ if afStatus
       status=handles.acquisition.microscope.Autofocus.getStatus;
       pause (0.1);
    end
-   pause (0.4);
+   pause (1);
    newZ_y=mmc.getPosition(handles.acquisition.microscope.ZStage);
    ySlope=newZ_y-newZ_x;
    %Return stage to original position
@@ -72,7 +74,7 @@ for row=1:nRows
     for col=1:nColumns
         %Generate a default name and make sure this name hasn't already been taken
         number=number+1;
-        defName=strcat('pos',num2str(number,'%03d'));%generate default point name       
+        defName=strcat(groupName,num2str(number,'%03d'));%generate default point name       
         tiles{number,1}=defName;
         tiles{number,2}=(col-1)*colSpacing+startX;
         tiles{number,3}=(row-1)*rowSpacing+startY;

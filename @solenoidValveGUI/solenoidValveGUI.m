@@ -118,3 +118,5 @@ classdef solenoidValveGUI<handle
         end
     end
 end
+    end
+end
