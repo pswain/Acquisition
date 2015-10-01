@@ -217,18 +217,7 @@ for t=1:numTimepoints%start of timepoint loop.
            logstring=strcat('Single position and Z section. No call to correctDrift');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
            acqData.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
 
-           %visit z-position if on robin
-           if strcmp(acqData.microscope.Name,'Robin')      
-               zNow=acqData.points{pos,4};
-               if pos>1
-                   zOld=acqData.points{pos-1,4};
-               else
-                   zOld=1e9;
-               end
-               if zNow~=zOld
-                   mmc.setPosition(acqData.microscope.ZStage,acqData.points{pos,4});
-               end
-           end
+           
            
            if acqData.z(4)~=0%anyZ = 1 if any channel does z sectioning.
                %At least one channel does z sectioning.
@@ -255,7 +244,7 @@ for t=1:numTimepoints%start of timepoint loop.
        else
            posFolder=exptFolder;
        end
-       positionData=captureChannels(acqData,logfile,posFolder,pos,t,CHsets);%data for all channels stored for this position in the position variable
+       positionData=acqData.microscope.capturePosition(acqData,logfile,posFolder,pos,t,CHsets);%data for all channels stored for this position in the position variable
        
        %Record the maximum value measured for each channel - if it is the highest of
        %any position in this position group
@@ -269,7 +258,7 @@ for t=1:numTimepoints%start of timepoint loop.
            %timepoint for this channel - ie if it hasn't been skipped
            %and t>= the defined starttp
            if rem(t-1,CHsets.skip(ch))==0 && t>=acqData.channels{ch,5}
-               maxgroups(gp,ch)=max(maxgroups(gp,ch),positionData.max(ch));
+                maxgroups(gp,ch)=max(maxgroups(gp,ch),positionData.max(ch));
                logstring=strcat('Maximum grey level measured for ',char(acqData.channels{ch,1}),'_at position:',char(acqData.points(pos,1)),':',num2str(maxgroups(gp,ch)));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
                if acqData.channels{ch,6}==1;%ie this channel is using EM mode.
                    logstring=strcat('(Gain:',num2str(CHsets.values(ch,1,gp)),',E=',num2str(CHsets.values(ch,2,gp)),',Saturation at: ',num2str(CHsets.values(ch,3,gp)),')');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
@@ -280,9 +269,9 @@ for t=1:numTimepoints%start of timepoint loop.
                logstring=['Channel: ' char(acqData.channels{ch,1}) 'not captured until timepoint ' num2str(acqData.channels{ch,5})];acqData.logtext=writelog(logfile,acqData.logtext,logstring);
            end
        end
-       %Assign image from this position to the timepoint image array
-       %for display
-       timepointData(pos,:,:,:)=positionData.images;
+%        %Assign image from this position to the timepoint image array
+%        %for display - This may be useful one day - leave commented
+%        timepointData(pos,:,:,:)=positionData.images;
    end%Of the positions capture loop
    
    

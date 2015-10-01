@@ -2,11 +2,6 @@
 
 addpath(genpath('./Programmatic GUI'));
 
-
-
-
-
-
 % Set up a structure to hold the acquisition parameters.
 %Fields are channels, z, time, points, flow, info
 
@@ -85,8 +80,6 @@ else
    fprintf('<a href=""> Initializing micromanager path for pc... </a>\n')
    pcMMPath;
 end
-
-
  
 %Show warning if running from the shared, public folder
 if strcmp(pwd,'C:\Users\Public\Microscope Control');
@@ -112,7 +105,7 @@ handles=multiDGUI2;
 [idum,hostname]= system('hostname');
 %Create microscope object - details will depend on which computer is
 %running this
-handles.acquisition.microscope=Microscope;
+handles.acquisition.microscope=chooseScope;
 
 %Get free disk space
 handles.freeDisk=checkDiskSpace(handles.acquisition.microscope.DataPath(1:2));

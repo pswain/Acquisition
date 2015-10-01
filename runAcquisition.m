@@ -5,9 +5,17 @@ global mmc;
 %also saves acquisition settings
 [logfile,exptFolder,posDirectories]=initializeFiles(acqData);
 
+global mmc;
+global gui;
 
-    %Microscope initialization script
-    acqData.microscope.Initialize;
+%clear all previous acquisitions
+gui.closeAllAcquisitions();
+gui.clearMessageWindow();
+mmc.stopSequenceAcquisition;%Will allow acquisition to run if someone has 
+%forgotten to stop the 'live' mode from the mm GUI
+pause on;
+
+   
 
     %Is the PFS on - affects a lot of the z sectioning processes later on - add
     %this info to acqData and record initial (reference) position of the Z
