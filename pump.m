@@ -8,6 +8,7 @@ classdef pump
       contents%string
       pumpName%micromanager device name for the pump
       serial
+      model%string, model number of the pump
    end
     
    methods
@@ -26,6 +27,30 @@ classdef pump
                obj.direction='INF';
                obj.running=false;
                obj.contents='2% raffinose in SC';
+           end
+           %Set the pump model - This needs edited if you ever move pumps
+           %between computers. Can use the pumpName input to determine
+           %which pump is which if you are running different models on the
+           %same computer
+           [idum,hostname]= system('hostname');
+           if length(hostname)<14
+               hostname(length(hostname)+1:14)=' ';
+           end
+           %Establish which computer is running this, and therefore which microscope
+           k=strfind(hostname,'SCE-BIO-C03727');
+           if ~isempty(k)
+               %Robin
+               obj.model='AL-1000';
+           end
+           k=strfind(hostname,'SCE-BIO-C03982');
+           if ~isempty(k)
+               %Batman
+               obj.model='AL-1002X';
+           end
+           k=strfind(hostname,'SCE-BIO-C04078');
+           if ~isempty(k)
+               %Batgirl
+               obj.model='AL-1002X';
            end
        end
        

@@ -1,4 +1,5 @@
 classdef Microscope
+
     properties
         Name
         nameImage%Icon to display in GUI
@@ -15,6 +16,7 @@ classdef Microscope
         %Microscope devices
         XYStage%string, micromanager config name of the XY stage device
         ZStage;%string, micromanager config name of the Z focus device
+        ImageSize;
 
     end
     
@@ -33,7 +35,7 @@ classdef Microscope
             %Robin
             obj.Name='Robin';
             obj.nameImage=imread('Robin.jpg');
-            obj.Config='C:\Users\Public\MM config files\LeicaConfig.cfg';
+            obj.Config='C:\Users\Public\MM config files\LeicaConfig_3colour2.cfg';
             obj.InitialChannel='BrightField';
             obj.Autofocus=Autofocus('none');
             obj.pumpComs(1).com='COM14';%pump1
@@ -52,7 +54,7 @@ classdef Microscope
                 %Batman
                 obj.Name='Batman';      
                 obj.nameImage=imread('Batman.jpg');
-                obj.Config='C:\Micromanager config files\MMConfig_2_3_15.txt';
+                obj.Config='C:\Micromanager config files\MMConfig_2cNMS.cfg';
                 obj.InitialChannel='DIC';
                 obj.Autofocus=Autofocus('PFS');
                 obj.pumpComs(1).com='COM8';%pump1
@@ -61,9 +63,11 @@ classdef Microscope
                 obj.pumpComs(2).baud=19200;
                 obj.OmeroInfoPath='C:/AcquisitionData/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/';
                 obj.OmeroCodePath='C:/AcquisitionData/Omero code';
+                obj.DataPath='C:/AcquisitionData';
                 obj.DataPath='D:/AcquisitionDataBatman';
                 obj.XYStage='XYStage';
                 obj.ZStage='TIZDrive';
+                obj.ImageSize=[512 512];
             else
                 
             l=strfind(hostname,'SCE-BIO-C04078');
@@ -150,12 +154,12 @@ classdef Microscope
                 mmc.setAutoShutter(1);
             case 'Robin'
                 mmc.setProperty('Myo','ReadoutRate','10MHz 14bit');
+                mmc.setProperty('Myo','Binning',2);
                 mmc.setAutoShutter(1);
             case('Batgirl')
                 mmc.setProperty('Evolve', 'Gain', '1');
                 mmc.setProperty('Evolve', 'ClearMode', 'Clear Pre-Sequence');
                 mmc.setProperty('Evolve','MultiplierGain','270');%starting gain
-                %next 2 lines are specific for QUANT version of scripts
                 mmc.setProperty('Evolve','PP  2   ENABLED','Yes');%Enable quant view - output in photoelectrons
                 mmc.setProperty('Evolve','PP  2   (E)','1');%one grey level per pixel
                 mmc.setProperty('Evolve','Port','Normal');
@@ -208,6 +212,9 @@ classdef Microscope
                           set(handles.(camModeTagName),'Value',2);
                           switch(obj.Name)
                               case 'Batman'
+                                  set(handles.(camModeTagName),'Enable','On');
+                                  set(handles.(voltTagName),'Enable','off');
+                              case 'Batgirl'
                                   set(handles.(camModeTagName),'Enable','On');
                                   set(handles.(voltTagName),'Enable','off');
                               case 'Robin'
@@ -295,11 +302,22 @@ classdef Microscope
                        handles.acquisition.omero.tags{length(handles.acquisition.omero.tags)+1}='Batgirl';
                        set(handles.bin,'enable','on');
                        set(handles.zMethod,'Enable','off');
-
                end
-               %Set the disk size text
-               set(set(handles.freeSpaceText,'String',['Free space (Gb, drive ' obj.DataPath(1:2) ')']));
                
+               %Set the News text
+               
+               switch obj.Name
+                   case 'Batman'
+                       batText='You are running the new programmatic GUI. This is not fully tested on Batman. Z sectioning will not work. You should go to the folder: Users/Public/Microscope control_old_multiDGUI and run multiDGUI to run the old version.';
+                   case 'Robin'
+                       batText='New programmatic GUI running on Robin. Ask Ivan (07748450511, ivan.clark@ed.ac.uk) if there are any problems.';
+                   case 'Batgirl'
+                       batText='New programmatic GUI running on Batgirl. Ask Ivan (07748450511, ivan.clark@ed.ac.uk) if there are any problems. Recent bug fixes: Camera mode should be set properly when snapping, and EM images should be flipped to the correct orientation.';
+               end
+               set(handles.news,'String',batText);
+               
+               %Set the disk size text
+               set(set(handles.freeSpaceText,'String',['Free space (Gb, drive ' obj.DataPath(1) ')']));
                set(handles.TagList,'String', handles.acquisition.omero.tags);
                %Define the correct image size
                %Get the image size and set in handles.imageSize
@@ -312,7 +330,8 @@ classdef Microscope
         end
         function lightToCamera(obj)
            switch obj.Name 
-               case('Batman')
+
+               case {'Batman','Batgirl'}
                    global mmc
                    mmc.setProperty('TILightPath', 'Label','2-Left100');%send light to the camera
            end
@@ -344,7 +363,22 @@ classdef Microscope
         function figTitle=setCamMode(obj, mode,figTitle,EMgain)
         global mmc
         switch (obj.Name)
-            case('Batman')
+            case 'Batman'
+                switch mode
+                    case 1
+                        mmc.setProperty ('Evolve','Port','Multiplication Gain');
+                        mmc.setProperty ('Evolve','MultiplierGain',num2str(EMgain));
+                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(EMgain));
+                    case 3
+                        mmc.setProperty ('Evolve','Port','Multiplication Gain');
+                        mmc.setProperty ('Evolve','MultiplierGain',num2str(EMgain));
+                        figTitle=strcat(figTitle,'. EMCCD, gain:',num2str(EMgain));
+                    case 2
+                        mmc.setProperty ('Evolve','Port','Normal');
+                        figTitle=strcat(figTitle,'. CCD');
+                end
+                mmc.waitForDevice('Evolve');
+            case 'Batgirl'
                 switch mode
                     case 1
                         mmc.setProperty ('Evolve','Port','Multiplication Gain');
@@ -361,9 +395,7 @@ classdef Microscope
                 mmc.waitForDevice('Evolve');
             end
         end
-        
-        
-        
+
         function obj=getFilters(obj)
         %Parses the config file to extract filter information
         confFile=fopen(obj.Config);
@@ -502,8 +534,9 @@ classdef Microscope
                 LED=0;
         end
         end
-        
-        function setPort(obj, channel,CHsets,logfile)
+
+
+        function setPort(obj, channel,CHsets, logfile)
            %Sets the appropriate camera port (or any other channel-specific camera setting) for the input channel
            global mmc;
            switch obj.Name
@@ -528,8 +561,22 @@ classdef Microscope
                            EMgain=CHsets.values(ch,1,gp);
 
                         end
-               end
-           end
+                  end
+                       
+               case 'Batgirl'
+                   port=mmc.getProperty('Evolve','Port');
+                   if cell2mat(channel(6))==2%if this channel uses the normal (CCD) port
+                        if strcmp(port,'Normal')~=1%set port to normal if it's not set already
+                            mmc.setProperty('Evolve','Port','Normal');
+                            logstring=strcat('Camera port changed to normal:',datestr(clock));A=writelog(logfile,1,logstring);
+                        end
+                   else%if this channel doesn't use the normal port
+                        if strcmp(port,'EM')~=1%if it isn't EM already then set port to EM 
+                            mmc.setProperty('Evolve','Port','Multiplication Gain');
+                            logstring=strcat('Camera port changed to EM:',datestr(clock));A=writelog(logfile,1,logstring);
+                        end
+                   end
+            end
         end
         
         function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,height,width)
@@ -560,7 +607,10 @@ classdef Microscope
             global mmc;
             nSlices=zInfo(1);
             sliceInterval=zInfo(2);
-            anyZ=zInfo(4);
+            anyZ=zInfo(4);           
+            fprintf('no longer uses passed height/width\n');
+            height=obj.ImageSize(1);
+            width=obj.ImageSize(2);
             stack=zeros(height,width,nSlices);
             %Set the device used for sectioning
             switch obj.Name
@@ -578,7 +628,17 @@ classdef Microscope
                 case 'Batgirl'
                     sectDevice='ZStage';                    
             end
+            %Wait until the device is ready before getting position (not
+            %convinced this line does anything, hence the pause for Robin
+            %next.
+            mmc.waitForDevice(sectDevice);
+            %Pause to make sure that the stage has finished moving before
+            %getting the start position
+            %if strcmp(obj.Name, 'Robin')
+             %   pause(.5);
+            %end
             startPos=mmc.getPosition(sectDevice);%starting position of the sectioning device (microns)
+
             maxvalue=0;
             %Need to multiply distances by 2 if using PIFOC because for some reason PIFOC moves 0.5microns when you tell it
             %to move 1.
@@ -598,6 +658,9 @@ classdef Microscope
                     slicePosition=startPos-((nSlices-1)*p*sliceInterval)/2+(p*((z-1)*sliceInterval));                    
                     mmc.setPosition(sectDevice,slicePosition+offset);
                     mmc.waitForDevice(sectDevice);
+                    if strcmp(obj.Name, 'Robin')
+                        pause(.01);
+                    end
                     pause(0.2);
                     mmc.snapImage();
                     img=mmc.getImage;
@@ -617,10 +680,21 @@ classdef Microscope
                  end
                  %Restore z position
                  mmc.setPosition(sectDevice,startPos);
+                 if strcmp(obj.Name, 'Robin')
+                     pause(.02);
+                 end
+
             else%single section acquisition
                 %If any of the channels in this acquisition do z sectioning then need
                 %to use the sectioning device to position focus to the middle of the stack. If not
                 %then just capture an image.
+                if ~strcmp(obj.Name, 'Robin')
+                    if anyZ==1
+                        z=nSlices/2;
+                        slicePosition=startPos+(p*((z-1)*sliceInterval));
+                        mmc.setPosition(sectDevice,slicePosition+offset);
+                        pause(0.05);
+                    end
                 if anyZ==1
                    z=nSlices/2;
                    slicePosition=startPos+(p*((z-1)*sliceInterval));
@@ -641,41 +715,19 @@ classdef Microscope
                 imwrite(img2,char(sliceFileName));
                 %imshow(img2,[]);
                 %drawnow;
+                if ~strcmp(obj.Name, 'Robin')
+                    mmc.setPosition(sectDevice,startPos);
+                    if strcmp(obj.Name, 'Robin')
+                        pause(.02);
+                    end
+                end
+            end
+        end
+                              
                 mmc.setPosition(sectDevice,startPos);
 
-            end
+        end
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-%             switch obj.Name
-%                 case 'Batman'
-%                     switch zInfo(6)
-%                         case 1
-%                             [stack,maxvalue]=captureStack(filename,zsect,zInfo,offset,EM,E);%z stack capture
-%                         case 2
-%                             [stack,maxvalue]=captureStack_PFS_ON(filename,zsect, zInfo, offset, EM, E);
-%                         case 3
-%                             [stack,maxvalue]=captureStack_PFS(filename,zsect,zInfo,offset,EM,E);
-%                     end
-%                 case 'Robin'
-%                     [stack,maxvalue]=captureStackRobin(filename,zsect,zInfo,offset,EM,E,height,width);
-%                 case 'Batgirl'
-%                     [stack,maxvalue]=captureStackBatgirl(filename,zsect,zInfo,offset,EM,E,height,width);
-% 
-%             end
-            
-            end
         
         
         function imageSize=getImageSize(obj,bin)
@@ -701,7 +753,7 @@ classdef Microscope
                         case '4x4'
                             imageSize=[128 128];
                     end
-                    case 'Batgirl'
+                 case 'Batgirl'
                     switch bin
                         case '1'
                             imageSize=[512 512];
@@ -711,18 +763,21 @@ classdef Microscope
                             imageSize=[128 128];
                     end
             end
+            obj.ImageSize=imageSize;
+
         end
          
         function setBin(obj,bin)
            %Sets the bin on the camera
            %input is a string, the first character of which is the binning
            %number (eg '2x2')
+           obj.getImageSize(bin);
            bin=str2mat(bin(1));
            global mmc
            switch obj.Name
                case 'Robin'
-                   mmc.setProperty('Myo','Binning',bin);
-               case 'Batman'
+                   mmc.setProperty('Myo','Binning',bin);              
+               case {'Batman','Batgirl'}
                    mmc.setProperty('Evolve','Binning',bin);
            end
             
@@ -736,5 +791,5 @@ classdef Microscope
       end
             
         
-    end
 
+end

@@ -13,7 +13,7 @@ for ch=1:numChannels
 end
 set(handles.pointsTable,'ColumnName',headings);
 set(handles.pointsTable,'ColumnEditable',editable);
-number=0;
+number=size(handles.pointsTable.Data,1);
 %Get the starting X and Y positions from the microscope equipment
 [startX, startY, startZ, AF]=handles.acquisition.microscope.definePoint;
 global mmc;
@@ -72,7 +72,7 @@ for row=1:nRows
     for col=1:nColumns
         %Generate a default name and make sure this name hasn't already been taken
         number=number+1;
-        defName=strcat('pos',num2str(number));%generate default point name       
+        defName=strcat('pos',num2str(number,'%03d'));%generate default point name       
         tiles{number,1}=defName;
         tiles{number,2}=(col-1)*colSpacing+startX;
         tiles{number,3}=(row-1)*rowSpacing+startY;

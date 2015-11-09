@@ -22,7 +22,11 @@ switch name
         name='Andy';
     case 'v1jtraet'
         name='Joleen';
-        
+    case 'v1slamai'
+        name='Sebastien';
+    case 's1403943'
+        name='Naimah';
+                
 end
 [swain tyers millar]=getUsers;
 testSwain=strcmp(name,swain);
@@ -46,4 +50,7 @@ if isTyers==1
     stringtoadd='/RAW DATA/';
 end
 
+% if name == 'Sebastien'
+%     lab = 'E:/';
+% end
 root=strcat(lab,name,stringtoadd,today(8:11),'/',today(4:6),'/', date);
