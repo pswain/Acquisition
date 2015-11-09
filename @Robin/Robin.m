@@ -12,7 +12,7 @@ classdef Robin<Microscope
             obj.pumpComs(1).baud=19200;
             obj.pumpComs(2).baud=19200;
             obj.OmeroInfoPath='C:/AcquisitionDataRobin/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/';
-            obj.OmeroCodePath='C:/AcquisitionDataRobin\Swain Lab\OmeroCode';
+            obj.OmeroCodePath='C:/OmeroCode';
             obj.DataPath='C:/AcquisitionDataRobin';
             obj.XYStage='XYStage';
             obj.ZStage='ZStage';

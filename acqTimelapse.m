@@ -124,8 +124,6 @@ for ch=1:numChannels
     CHsets.skip(ch)=cell2mat(acqData.channels(ch,3));
 end
 
-%Initialise timepoint image array for display
-timepointData=zeros(numPositions,numChannels,acqData.imagesize(1),acqData.imagesize(2));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -132,8 +132,10 @@ classdef (Abstract) Microscope<handle
                     switch zInfo(6)
                         case 1
                             sectDevice='PIFOC';
+                            keepPFSON=false;
                         case 2
                             sectDevice='PIFOC';
+                            keepPFSON=true;
                         case 3
                             sectDevice='PFS';
                             sectDevice='TIPFSOffset';
@@ -160,12 +162,7 @@ classdef (Abstract) Microscope<handle
                     mmc.waitForDevice(sectDevice);
                 end
             end
-            %             pause(.2);
-            %Pause to make sure that the stage has finished moving before
-            %getting the start position
-            %if strcmp(obj.Name, 'Robin')
-            %   pause(.5);
-            %end
+            
             startPos=mmc.getPosition(sectDevice);%starting position of the sectioning device (microns)
             maxvalue=0;
             %Need to multiply distances by 2 if using PIFOC because for some reason PIFOC moves 0.5microns when you tell it
