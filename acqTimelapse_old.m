@@ -1,6 +1,6 @@
 function []=acqTimelapse(acqData,logfile,exptFolder,posDirectories)
 global mmc;
-startT=tic%start of timer - toc statement will give time since this tic
+tic%start of timer - toc statement will give time since this tic
 
 %Warn if autofocus device isn't on
 if acqData.time(1)==1
@@ -124,6 +124,8 @@ for ch=1:numChannels
     CHsets.skip(ch)=cell2mat(acqData.channels(ch,3));
 end
 
+%Initialise timepoint image array for display
+timepointData=zeros(numPositions,numChannels,acqData.imagesize(1),acqData.imagesize(2));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,7 +135,7 @@ for t=1:numTimepoints%start of timepoint loop.
     fprintf(logfile,'\r\n');
     acqData.logtext=writelog(logfile,acqData.logtext,'');
     logstring=strcat('------Time point_',num2str(t),'------');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-    startOfTimepoint=toc(startT);
+    startOfTimepoint=toc;
     endOfTimepoint=(startOfTimepoint+interval);
     disp(strcat('Start of timepoint:',num2str(t)));
     
@@ -144,14 +146,21 @@ for t=1:numTimepoints%start of timepoint loop.
        drawnow;
        guiinfo=guidata(acqData.guihandle);
        if guiinfo.stop==1
-          logstring=strcat('Experiment stopped by user at:',num2str(toc(startT)));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+          logstring=strcat('Experiment stopped by user at:',num2str(toc));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
           break%This leaves the position loop
        end
-
+       
+%        fprintf('matts update every 3 pos code')
+%        if pos>2
+%            if rem(pos,3)==1
+%                    logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+%                    acqData.microscope=acqData.microscope.correctDrift(logfile,acqData.points(pos,4),acqData.points(pos,5));
+%            end
+%        end
 
        
        %Run pump changing function if necessary
-       acqData.flow{5}=acqData.flow{5}.shouldChange(toc(startT)/60,logfile);
+       acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60,logfile);
        %Determine the position group of the current point
        groupid=cell2mat(acqData.points(pos,6));
        groups=[acqData.points{:,6}];%the list of groups
@@ -184,7 +193,7 @@ for t=1:numTimepoints%start of timepoint loop.
                    %
                    %               
                    acqData.microscope.Autofocus.switchOff;
-                   pause(0.4);%Gives it time to switch off - is pretty slow
+                   pause(0.2);%Gives it time to switch off - is pretty slow
                end
                %Does any channel at this position do z sectioning?
                anyZThisPos=false;
@@ -215,7 +224,18 @@ for t=1:numTimepoints%start of timepoint loop.
            logstring=strcat('Single position and Z section. No call to correctDrift');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
            acqData.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
 
-           
+           %visit z-position if on robin
+           if strcmp(acqData.microscope.Name,'Robin')      
+               zNow=acqData.points{pos,4};
+               if pos>1
+                   zOld=acqData.points{pos-1,4};
+               else
+                   zOld=1e9;
+               end
+               if zNow~=zOld
+                   mmc.setPosition(acqData.microscope.ZStage,acqData.points{pos,4});
+               end
+           end
            
            if acqData.z(4)~=0%anyZ = 1 if any channel does z sectioning.
                %At least one channel does z sectioning.
@@ -242,7 +262,7 @@ for t=1:numTimepoints%start of timepoint loop.
        else
            posFolder=exptFolder;
        end
-       positionData=acqData.microscope.capturePosition(acqData,logfile,posFolder,pos,t,CHsets);%data for all channels stored for this position in the position variable
+       positionData=captureChannels(acqData,logfile,posFolder,pos,t,CHsets);%data for all channels stored for this position in the position variable
        
        %Record the maximum value measured for each channel - if it is the highest of
        %any position in this position group
@@ -256,7 +276,7 @@ for t=1:numTimepoints%start of timepoint loop.
            %timepoint for this channel - ie if it hasn't been skipped
            %and t>= the defined starttp
            if rem(t-1,CHsets.skip(ch))==0 && t>=acqData.channels{ch,5}
-                maxgroups(gp,ch)=max(maxgroups(gp,ch),positionData.max(ch));
+               maxgroups(gp,ch)=max(maxgroups(gp,ch),positionData.max(ch));
                logstring=strcat('Maximum grey level measured for ',char(acqData.channels{ch,1}),'_at position:',char(acqData.points(pos,1)),':',num2str(maxgroups(gp,ch)));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
                if acqData.channels{ch,6}==1;%ie this channel is using EM mode.
                    logstring=strcat('(Gain:',num2str(CHsets.values(ch,1,gp)),',E=',num2str(CHsets.values(ch,2,gp)),',Saturation at: ',num2str(CHsets.values(ch,3,gp)),')');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
@@ -267,15 +287,15 @@ for t=1:numTimepoints%start of timepoint loop.
                logstring=['Channel: ' char(acqData.channels{ch,1}) 'not captured until timepoint ' num2str(acqData.channels{ch,5})];acqData.logtext=writelog(logfile,acqData.logtext,logstring);
            end
        end
-%        %Assign image from this position to the timepoint image array
-%        %for display - This may be useful one day - leave commented
-%        timepointData(pos,:,:,:)=positionData.images;
+       %Assign image from this position to the timepoint image array
+       %for display
+       timepointData(pos,:,:,:)=positionData.images;
    end%Of the positions capture loop
    
    
    
    %Change the pumps if necessary
-   acqData.flow{5}=acqData.flow{5}.shouldChange(toc(startT)/60,logfile);
+   acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60,logfile);
    
    if acqData.z(3)==1
        mmc.setProperty('TIPFSStatus','State','On');
@@ -369,8 +389,8 @@ for t=1:numTimepoints%start of timepoint loop.
    end%of loop through groups
                     
 
-   %Include log file entries here - time point t completed at toc(startT)
-   currTime=toc(startT);
+   %Include log file entries here - time point t completed at toc
+   currTime=toc;
    logstring=strcat('Timepoint: ',num2str(t),' completed at:',datestr(clock));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
    logstring=strcat('Time since start of timelapse: ',num2str(currTime));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
    [~]=acqData.microscope.getAutofocusStatus(logfile);%This method will write the status to the logfile
@@ -383,9 +403,9 @@ for t=1:numTimepoints%start of timepoint loop.
        logstring=strcat('Time to next time point:',num2str(endOfTimepoint-currTime));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
        drawnow;
        while (currTime<endOfTimepoint)
-           currTime=toc(startT);
+           currTime=toc;
            %Change the pumps if necessary
-           acqData.flow{5}=acqData.flow{5}.shouldChange(toc(startT)/60, logfile);
+           acqData.flow{5}=acqData.flow{5}.shouldChange(toc/60, logfile);
            guiinfo=guidata(acqData.guihandle);
            drawnow;
            if guiinfo.stop==1

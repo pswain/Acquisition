@@ -2,11 +2,6 @@
 
 addpath(genpath('./Programmatic GUI'));
 
-
-
-
-
-
 % Set up a structure to hold the acquisition parameters.
 %Fields are channels, z, time, points, flow, info
 
@@ -72,7 +67,6 @@ addpath(genpath('./Programmatic GUI'));
 %Column 5 - object of class switches
 
 %Add necessary folders to path
-addpath(genpath('C:\AcquisitionData\Swain Lab\OmeroCode'));
 addpath(['.' filesep 'transitionGUI']);
 
 
@@ -85,8 +79,6 @@ else
    fprintf('<a href=""> Initializing micromanager path for pc... </a>\n')
    pcMMPath;
 end
-
-
  
 %Show warning if running from the shared, public folder
 if strcmp(pwd,'C:\Users\Public\Microscope Control');
@@ -112,7 +104,7 @@ handles=multiDGUI2;
 [idum,hostname]= system('hostname');
 %Create microscope object - details will depend on which computer is
 %running this
-handles.acquisition.microscope=Microscope;
+handles.acquisition.microscope=chooseScope;
 
 %Get free disk space
 handles.freeDisk=checkDiskSpace(handles.acquisition.microscope.DataPath(1:2));
@@ -185,6 +177,9 @@ handles.acquisition.omero.object=obj2;
 
 %Display the projects
 proj=handles.acquisition.omero.object.getProjectNames;
+%Sort alphabetically (case insensitive, hence use of upper)
+[sorted, indices]=sort(upper(proj));
+proj=proj(indices);
 %Make sure there is a 'Default project' entry
 if ~any(strcmp('Default project',proj))
      proj{end+1}='Default project';
@@ -203,7 +198,10 @@ handles.acquisition.omero.project='Default project';
 %Same thing for the tags list:
 
 %Retrieve recorded tag names:
-tags=handles.acquisition.omero.object.getTagNames(false);
+tags=handles.acquisition.omero.object.getTagNames(false);   
+%Sort alphabetically (case insensitive, hence use of upper)
+[sorted, indices]=sort(upper(tags));
+tags=tags(indices);
 %Add a menu item for making new tags:
 tags{end+1}='Add a new tag';
 %Set menu items:
