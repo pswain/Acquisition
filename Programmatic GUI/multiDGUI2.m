@@ -140,7 +140,7 @@ handles.zspacing=uicontrol('Style','edit','Parent',handles.zPanel,'Units','Norma
 handles.zMethod=uicontrol('Style','popupmenu','Parent',handles.zPanel,'Units','Normalized','Position',[0.0400    0.3000    0.35000    0.2],'String',{'PIFOC';'PIFOC with PFS on';'PFS'},'FontSize',8,'Callback',@zMethod_Callback,'TooltipString','Batman only: Choose method used for Z sectioning - note exact Z positions may not be known with PIFOC with PFS on method');
 
 %Time settings panel
-handles.doTimelapse=uicontrol('Style','radiobutton','BackgroundColor',[0.8 0.8 0.8],'Parent',handles.timePanel,'Units','Normalized','Position',[.098 .862 .732 .094],'String','Time lapse?','FontSize',10,'HorizontalAlignment','Center','Callback',@doTimelapse_Callback);
+handles.doTimelapse=uicontrol('Style','radiobutton','Value',1,'BackgroundColor',[0.8 0.8 0.8],'Parent',handles.timePanel,'Units','Normalized','Position',[.098 .862 .732 .094],'String','Time lapse?','FontSize',10,'HorizontalAlignment','Center','Callback',@doTimelapse_Callback);
 handles.text18=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.088 .732 .298 .106],'String','Time interval','FontSize',10,'HorizontalAlignment','Left');
 handles.interval=uicontrol('Style','edit','Parent',handles.timePanel,'Units','Normalized','Position',[.088 .691 .332 .081],'String','5','BackgroundColor','w','Callback',@interval_Callback,'TooltipString','Interval between time points');
 handles.units=uicontrol('Style','popupmenu','Parent',handles.timePanel,'Units','Normalized','Position',[.429 .691 .3 .081],'String',{'s';'min';'hr'},'FontSize',10,'Callback',@units_Callback,'TooltipString','Set units for time interval');
