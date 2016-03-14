@@ -72,7 +72,7 @@ classdef pump
            
            fprintf(obj.serial,'PHN1');pause(.1);
            fprintf(obj.serial,'FUNRAT');pause(.1);
-           fprintf(obj.serial,['RAT' num2str(obj.currentRate)]);pause(.1);
+           fprintf(obj.serial,['RAT' num2str(obj.currentRate) 'UM']);pause(.1);
            fprintf(obj.serial,'VOL0');pause(.1);
            fprintf(obj.serial,['DIR' obj.direction]);pause(.1);
            if obj.running
