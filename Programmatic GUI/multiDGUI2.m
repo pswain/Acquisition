@@ -1,6 +1,74 @@
 function handles=multiDGUI2
 %Code to make programmatic gui figure for multiDGUI
 
+
+%Set up a structure to hold the acquisition parameters.
+%Fields are channels, z, time, points, flow, info
+
+%Channels. Will be a cell array
+%Column 1 - name of channel
+%Column 2 - exposure time in ms
+%Column 3 - skip number - eg if 2 only take an image every 2nd time point in this channel, if 3 only every 3rd etc.
+%Column 4 - 1 if using Z sectioning, 0 if not
+%Column 5 - starting timepoint - no images will be captured in this channel until this timepoint
+%Column 6 - Camera mode. 1 if EM with gain+exposure correction, 2 if CCD, 3 if EM with constant gain and exposure
+%Column 7 - Starting EM gain (not used if camera in CCD mode, default 270).
+%Column 8 - LED voltage - number between 0 and 4 - the voltage applied across the LED during the exposure
+
+%Z sectioning:
+%z. double array
+%1. number of sections
+%2. spacing in microns
+%3. PFS on (1 or 0 - only added on start of experiment)
+%4. anyZ (1 if any channel does z sectioning, 0 if not, only added at start of experiment
+%5. drift - the drift in the z plane, recorded during a timlapse by querying the position of the z drive after the pfs has corrected it.
+%6. method - method of z sectioning. 1. 'PIFOC' or 2. 'PIFOC_PFSON' or 3. 'PFS'
+
+
+%Timelapse settings
+%time. double array
+%Column 1 - use timelapse (1 for yes, 0 for no)
+%Column 2 - interval in s (300s (5min) default)
+%Column 3 - number of time points (180 default)
+%Column 4 - total time (54000s (15hr) default)
+
+%Point visiting
+%points. cell array
+%Column 1 - name
+%Column 2 - x stage position (microns)
+%Column 3 - y stage position (microns)
+%Column 4 - microscope z drive position (microns)
+%Column 5 - PFS offset position (microns)
+%Column 6 - Group - all points that are members of a group should have the same exposure settings - eg - should all be the same genotype and media condition
+%Changes to exposure time settings that affect one member of the group
+%should affect them all - eg if the intensity approaches saturation and the
+%exposure time is reduced accordingly this should happen to all points in
+%the group coordinately. This allows one position to be used to measure the
+%bleaching of all points in the group.
+%Columns 7-? - exposure times for each used channel at the point - or a string 'double'- means do a double exposure for this point - for asessing bleaching
+
+
+%Flow control
+%flow. Cell array
+
+%Column 1 - Contents of syringe in pump 1 (string)
+%Column 2 - Contents of syringe in pump 2 (string)
+%Column 3 -
+%Column 4 - cell array of pump objects
+%Column 5 - switches object
+%Column 6 - 1 if pumps are to be switched off at the end of the experiment, 0 if not.
+
+
+%Experimental information
+%info. Cell array
+%Column 1 - experiment name
+%Column 2 - user name
+%Column 3 - root for folder to save files
+%Column 4 - Experiment description/aims
+%Column 5 - object of class switches
+
+
+
 %GUI height should be relatively larger on Robin and Batgirl, which have lower resolution monitors.
 pix_ss=get(0,'screensize');
 if pix_ss(3)<1700
@@ -143,7 +211,7 @@ handles.zMethod=uicontrol('Style','popupmenu','Parent',handles.zPanel,'Units','N
 handles.doTimelapse=uicontrol('Style','radiobutton','BackgroundColor',[0.8 0.8 0.8],'Parent',handles.timePanel,'Units','Normalized','Position',[.098 .862 .732 .094],'String','Time lapse?','FontSize',10,'HorizontalAlignment','Center','Callback',@doTimelapse_Callback);
 handles.text18=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.088 .732 .298 .106],'String','Time interval','FontSize',10,'HorizontalAlignment','Left');
 handles.interval=uicontrol('Style','edit','Parent',handles.timePanel,'Units','Normalized','Position',[.088 .691 .332 .081],'String','5','BackgroundColor','w','Callback',@interval_Callback,'TooltipString','Interval between time points');
-handles.units=uicontrol('Style','popupmenu','Parent',handles.timePanel,'Units','Normalized','Position',[.429 .691 .3 .081],'String',{'s';'min';'hr'},'FontSize',10,'Callback',@units_Callback,'TooltipString','Set units for time interval');
+handles.units=uicontrol('Style','popupmenu','Parent',handles.timePanel,'Units','Normalized','Position',[.429 .691 .3 .081],'String',{'s';'min';'hr'},'Value',2,'FontSize',10,'Callback',@units_Callback,'TooltipString','Set units for time interval');
 handles.text20=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.088 .512 .561 .106],'String','Number of time points','FontSize',10,'HorizontalAlignment','Left');
 handles.nTimepoints=uicontrol('Style','edit','Parent',handles.timePanel,'Units','Normalized','Position',[.088 .472 .332 .081],'String','1','BackgroundColor','w','Callback',@nTimepoints_Callback,'TooltipString','Number of time points');
 handles.text21=uicontrol('Style','text','Parent',handles.timePanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.088 .338 .561 .106],'String','Total time','FontSize',10,'HorizontalAlignment','Left');
@@ -195,17 +263,18 @@ handles.text47=uicontrol('Style','text','Parent',handles.flowPanel,'BackgroundCo
 handles.text49=uicontrol('Style','text','Parent',handles.flowPanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[0.3850    0.8870    0.2050    0.0620],'String','Syringe vol','FontSize',10,'HorizontalAlignment','Center','FontWeight','Bold');
 handles.text50=uicontrol('Style','text','Parent',handles.flowPanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.598 .887 .18 .062],'String','Rate (ul/min)','FontSize',10,'HorizontalAlignment','Center','FontWeight','Bold');
 handles.text51=uicontrol('Style','text','Parent',handles.flowPanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.77 .887 .205 .062],'String','Run','FontSize',10,'HorizontalAlignment','Center','FontWeight','Bold');
-handles.contentsP1=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.021 .771 .35 .098],'String','2% raffinose in SC','BackgroundColor','w','Callback',@updateFlowData,'TooltipString','Enter details of pump 1 media. Will be recorded in experiment log file');
-handles.contentsP2=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.021 .629 .35 .098],'String','2% raffinose in SC','BackgroundColor','w','Callback',@updateFlowData,'TooltipString','Enter details of pump 2 media. Will be recorded in experiment log file');
+handles.contentsP1=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.021 .771 .35 .098],'String','2% raffinose in SC','BackgroundColor','w','Callback',@updateFlowData_Callback,'TooltipString','Enter details of pump 1 media. Will be recorded in experiment log file');
+handles.contentsP2=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.021 .629 .35 .098],'String','2% galactose in SC','BackgroundColor','w','Callback',@updateFlowData_Callback,'TooltipString','Enter details of pump 2 media. Will be recorded in experiment log file');
 handles.diameterP1=uicontrol('Style','popupmenu','Parent',handles.flowPanel,'Units','Normalized','Position',[.42 .776 .15 .089],'String',{'3ml';'5ml';'10ml';'20ml';'60ml'},'FontSize',10,'Callback',@diameterP1_Callback,'TooltipString','Select syringe volume. This is essential to ensure the correct flow rate');
 handles.diameterP2=uicontrol('Style','popupmenu','Parent',handles.flowPanel,'Units','Normalized','Position',[.42 .638 .15 .089],'String',{'3ml';'5ml';'10ml';'20ml';'60ml'},'FontSize',10,'Callback',@diameterP2_Callback,'TooltipString','Select syringe volume. This is essential to ensure the correct flow rate');
-handles.flowRateP1=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.64 .771 .119 .098],'String','4','BackgroundColor','w','Callback',@updateFlowData,'TooltipString','Rate of infusion or withdrawal from pump 1');
-handles.flowRateP2=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.64 .629 .119 .098],'String','4','BackgroundColor','w','Callback',@updateFlowData,'TooltipString','Rate of infusion or withdrawal from pump 2');
-handles.runP1=uicontrol('Style','radiobutton','BackgroundColor',[0.8 0.8 0.8],'Parent',handles.flowPanel,'Units','Normalized','Position',[.82 .767 .149 .103],'String','Pump 1','FontSize',10,'HorizontalAlignment','Center','Callback',@updateFlowData,'TooltipString','Start or stop pump 1');
-handles.runP2=uicontrol('Style','radiobutton','BackgroundColor',[0.8 0.8 0.8],'Parent',handles.flowPanel,'Units','Normalized','Position',[.82 .637 .149 .103],'String','Pump 2','FontSize',10,'HorizontalAlignment','Center','Callback',@updateFlowData,'TooltipString','Start or stop pump 2');
+handles.flowRateP1=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.64 .771 .119 .098],'String','4','BackgroundColor','w','Callback',@updateFlowData_Callback,'TooltipString','Rate of infusion or withdrawal from pump 1');
+handles.flowRateP2=uicontrol('Style','edit','Parent',handles.flowPanel,'Units','Normalized','Position',[.64 .629 .119 .098],'String','4','BackgroundColor','w','Callback',@updateFlowData_Callback,'TooltipString','Rate of infusion or withdrawal from pump 2');
+handles.runP1=uicontrol('Style','radiobutton','BackgroundColor',[0.8 0.8 0.8],'Parent',handles.flowPanel,'Units','Normalized','Position',[.82 .767 .149 .103],'String','Pump 1','FontSize',10,'HorizontalAlignment','Center','Callback',@updateFlowData_Callback,'TooltipString','Start or stop pump 1');
+handles.runP2=uicontrol('Style','radiobutton','BackgroundColor',[0.8 0.8 0.8],'Parent',handles.flowPanel,'Units','Normalized','Position',[.82 .637 .149 .103],'String','Pump 2','FontSize',10,'HorizontalAlignment','Center','Callback',@updateFlowData_Callback,'TooltipString','Start or stop pump 2');
 handles.text40=uicontrol('Style','text','Parent',handles.flowPanel,'BackgroundColor',[0.8 0.8 0.8],'Units','Normalized','Position',[.012 .169 .298 .111],'String','Dynamic flow','FontSize',13,'HorizontalAlignment','Center','FontWeight','Bold');
 handles.switchMethod=uicontrol('Style','popupmenu','Parent',handles.flowPanel,'Units','Normalized','Position',[.033 .058 .298 .089],'String',{'Enter switch times';'Periodic';'Linear Ramp';'Enter times';'Design flow transition';'Switch Pinch Valves'},'FontSize',10,'Callback',@switchMethod_Callback,'TooltipString','Select method for defining flow changes');
 handles.switchParams=uicontrol('Style','pushbutton','Parent',handles.flowPanel,'Units','Normalized','Position',[.347 .058 .253 .098],'String','Switch parameters','TooltipString','Click to change the parameters used by the pumps during media switching','Callback',@switchParams_Callback);
+handles.stoppumps=uicontrol('Style','radiobutton','BackgroundColor',[0.8 0.8 0.8],'Parent',handles.flowPanel,'Units','Normalized','Position',[.62 .058 .4 .103],'String','Stop pumps on completion','Value',1,'FontSize',10,'HorizontalAlignment','Center','Callback',@updateFlowData_Callback,'TooltipString','Select to stop all pumps when experiment is completed');
 %Controls outside the panels
 handles.saveSettings=uicontrol('Style','pushbutton','Parent',handles.gui,'Units','Normalized','Position',[.558 .141 .104 .026],'String','Save settings','TooltipString','Save experiment acquisition settings','Callback',@saveSettings_Callback);
 handles.loadSettings=uicontrol('Style','pushbutton','Parent',handles.gui,'Units','Normalized','Position',[.558 .109 .104 .026],'String','Load settings','TooltipString','Load experiment acquisition settings','Callback',@loadSettings_Callback);

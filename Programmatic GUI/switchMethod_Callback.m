@@ -258,5 +258,5 @@ if dispFlowChanges
     handles.acquisition.flow{5}.displayFlowChanges;
 end
 
-updateFlowDisplay(handles);
+%updateFlowDisplay(handles);
 guidata(hObject, handles)

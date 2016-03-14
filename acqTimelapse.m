@@ -402,4 +402,17 @@ for t=1:numTimepoints%start of timepoint loop.
 
 
 end%of timepoint loop
+%If pumps are to be stopped at the end of the experiment then stop them
+%here
+if acqData.flow{6}==1
+    for n=1:length(acqData.flow{4})
+        fprintf(acqData.flow{4}(n).serial,'STP');
+        acqData.flow{4}(n).running=0;
+        acqData.flow{4}(n).updatePumps;%sends information to the syringe pumps
+    end
+    logstring=('All pumps switched off as acquisition complete.');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+end
+
+
+
 logstring=('Experiment completed');acqData.logtext=writelog(logfile,acqData.logtext,logstring);

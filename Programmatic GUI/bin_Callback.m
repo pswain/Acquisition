@@ -3,6 +3,7 @@ function bin_Callback (hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of voltCh1 as text
 %        str2double(get(hObject,'String')) returns contents of voltCh1 as a double
+handles=guidata(gcf);
 menu=get(hObject,'String');
 bin=menu{get(hObject,'Value')};
 handles.acquisition.imagesize=handles.acquisition.microscope.getImageSize(bin);

@@ -29,14 +29,14 @@ addpath(genpath('./Programmatic GUI'));
 %time. double array
 %Column 1 - use timelapse (1 for yes, 0 for no)
 %Column 2 - interval in s (300s (5min) default)
-%Column 3 - number of time points (180 default) 
+%Column 3 - number of time points (180 default)
 %Column 4 - total time (54000s (15hr) default)
 
 %Point visiting
 %points. cell array
 %Column 1 - name
 %Column 2 - x stage position (microns)
-%Column 3 - y stage position (microns) 
+%Column 3 - y stage position (microns)
 %Column 4 - microscope z drive position (microns)
 %Column 5 - PFS offset position (microns)
 %Column 6 - Group - all points that are members of a group should have the same exposure settings - eg - should all be the same genotype and media condition
@@ -53,9 +53,10 @@ addpath(genpath('./Programmatic GUI'));
 
 %Column 1 - Contents of syringe in pump 1 (string)
 %Column 2 - Contents of syringe in pump 2 (string)
-%Column 3 - 
+%Column 3 -
 %Column 4 - cell array of pump objects
 %Column 5 - switches object
+%Column 6 - 1 if pumps are to be switched off at the end of the experiment, 0 if not.
 
 
 %Experimental information
@@ -72,6 +73,8 @@ addpath(['.' filesep 'transitionGUI']);
 
 
 %Make sure micromanager files are on the path
+global gui;
+if ~isa(gui,'org.micromanager.MMStudio@4f6af134')
 if ismac
    disp('Initializing micromanager path for mac');
    macMMPath;
@@ -79,7 +82,7 @@ else
    fprintf('<a href=""> Initializing micromanager path for pc... </a>\n')
    pcMMPath;
 end
- 
+end
 %Show warning if running from the shared, public folder
 if strcmp(pwd,'C:\Users\Public\Microscope Control');
     msgbox('MultiDGUI is running from the shared Microscope Control folder - please do not edit this version of the software!','Running shared software','Warn');
@@ -90,14 +93,14 @@ end
 %micromanager button
 isthereagui=exist ('gui','var');
 global gui;
-if isthereagui~=1
+if ~isa(gui,'org.micromanager.MMStudio')
     fprintf('<a href=""> Starting Micro-manager. Ignore TextCanvas error message </a>\n')
     fprintf('<a href=""> Select (none) when asked to choose configuration file </a>\n')
-
-
     guiconfig;
-end
     fprintf('<a href=""> Creating the GUI... </a>\n')
+else
+    fprintf('<a href=""> Micromanager GUI already open </a>\n');
+end
 %Create the GUI
 handles=multiDGUI2;
 %Get computer name
@@ -135,7 +138,8 @@ lastSavedFilename=char(acqFilePath);
         handles.acquisition.z=[1 0 0 0 0 2]; 
         handles.acquisition.time=[1 300 180 54000];
         p1=pump(handles.acquisition.microscope.pumpComs(1).com,handles.acquisition.microscope.pumpComs(1).baud);p2=pump(handles.acquisition.microscope.pumpComs(2).com,handles.acquisition.microscope.pumpComs(2).baud);
-        handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
+        %Set default pump parameters.
+        handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2}) 1};
         %info entry is already initialised above
     end
 else%If there is no file containing the path of a last saved acquisition the initialise with defaults
