@@ -167,13 +167,13 @@ switch obj.Name
         %channel name in a for loop then have a switch statement. Also
         %add explanation in the tooltip.
         set(handles.voltCh1,'String','1');
-        set(handles.voltCh2,'String','46');
+        set(handles.voltCh2,'String','4');
         set(handles.voltCh3,'String','1');
         set(handles.voltCh4,'String','19');
-        set(handles.voltCh5,'String','19');
+        set(handles.voltCh5,'String','10');
         set(handles.voltCh6,'String','18');
         set(handles.voltCh7,'String','18');
-        set(handles.voltCh8,'String','18');
+        set(handles.voltCh8,'String','2');
         
 end
 

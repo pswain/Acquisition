@@ -111,6 +111,7 @@ handles.output = hObject;
 %Column 3 -
 %Column 4 - cell array of pump objects
 %Column 5 - switches object
+%Column 6 - 1 if pumps are to be switched off at the end of the experiment, 0 if not.
 
 
 %Experimental information
