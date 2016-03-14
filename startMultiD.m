@@ -145,7 +145,7 @@ lastSavedFilename=char(acqFilePath);
 else%If there is no file containing the path of a last saved acquisition the initialise with defaults
 handles.acquisition.channels={};
 handles.acquisition.z=[1 0 0 0 0 2]; 
-handles.acquisition.time=[0 300 180 54000];
+handles.acquisition.time=[1 300 180 54000];
 p1=pump(handles.acquisition.microscope.pumpComs(1).com,handles.acquisition.microscope.pumpComs(1).baud);p2=pump(handles.acquisition.microscope.pumpComs(2).com,handles.acquisition.microscope.pumpComs(2).baud);
 handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
 %info entry is already initialised above
