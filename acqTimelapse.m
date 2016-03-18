@@ -29,7 +29,7 @@ numPositions=size(acqData.points,1);%number of positions to visit - will be zero
      acqData.microscope.visitXY(logfile,acqData.points(1,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
      startingZ=visitZ(logfile,acqData.z,acqData.logtext,acqData.points(1,:));
      if acqData.z(3)==1;
-        acqData.Microscope.Autofocus.switchOn;
+        acqData.microscope.Autofocus.switchOn;
      end
  end
  
