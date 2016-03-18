@@ -4,7 +4,7 @@ classdef Batman<Microscope
         function obj=Batman
             obj.Name='Batman';
             obj.nameImage=imread('Batman.jpg');
-            obj.Config='C:\Micromanager config files\MMConfig_2cNMS.cfg';
+            obj.Config='C:\Micromanager config files\MMConfig_3_3_16_YFP.txt';
             obj.InitialChannel='DIC';
             obj.Autofocus=Autofocus('PFS');
             obj.pumpComs(1).com='COM8';%pump1

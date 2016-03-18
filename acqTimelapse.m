@@ -136,6 +136,14 @@ for t=1:numTimepoints%start of timepoint loop.
     startOfTimepoint=toc(startT);
     endOfTimepoint=(startOfTimepoint+interval);
     disp(strcat('Start of timepoint:',num2str(t)));
+    %Log memory info
+    m=memory;
+    logString=['Memory available for all arrays: ' num2str(m.MemAvailableAllArrays)];
+    acqData.logtext=writelog(logfile,acqData.logtext,logString);
+    logString=['Memory used by Matlab: ' num2str(m.MemUsedMATLAB)];
+    acqData.logtext=writelog(logfile,acqData.logtext,logString);
+      
+    
     
    maxgroups=zeros(numGroups,numChannels);
    %loop through the positions
@@ -148,8 +156,7 @@ for t=1:numTimepoints%start of timepoint loop.
           break%This leaves the position loop
        end
 
-
-       
+        
        %Run pump changing function if necessary
        acqData.flow{5}=acqData.flow{5}.shouldChange(toc(startT)/60,logfile);
        %Determine the position group of the current point
