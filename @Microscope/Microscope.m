@@ -66,15 +66,16 @@ classdef (Abstract) Microscope<handle
                             mmc.setProperty('Evolve','Port','Multiplication Gain');
                             logstring=strcat('Camera port changed to EM:',datestr(clock));A=writelog(logfile,1,logstring);
                         end
-                        
+                        %Code below required to get EMsmart method working
+                        %- needs debugged
                         %EM camera mode only - do camera settings need to be changed?
-                        if CHsets.values(ch,1,gp)~=EMgain %check if gain for this channel needs to be changed
-                            %change the camera settings here - if altering E don't forget to multiply the data by this number.
-                            mmc.setProperty('Evolve','MultiplierGain',num2str(CHsets.values(ch,1,gp)));
-                            logstring=strcat('EM gain changed to:',num2str(CHsets.values(ch,1,gp)),datestr(clock));A=writelog(logfile,1,logstring);
-                            EMgain=CHsets.values(ch,1,gp);
-                            
-                        end
+%                         if CHsets.values(ch,1,gp)~=EMgain %check if gain for this channel needs to be changed
+%                             %change the camera settings here - if altering E don't forget to multiply the data by this number.
+%                             mmc.setProperty('Evolve','MultiplierGain',num2str(CHsets.values(ch,1,gp)));
+%                             logstring=strcat('EM gain changed to:',num2str(CHsets.values(ch,1,gp)),datestr(clock));A=writelog(logfile,1,logstring);
+%                             EMgain=CHsets.values(ch,1,gp);
+%                             
+%                         end
                     end
                     
                 case 'Batgirl'
@@ -93,7 +94,7 @@ classdef (Abstract) Microscope<handle
             end
         end
         
-        function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,height,width)
+        function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,point)
             %Captures and saves a Z stack using the current microscope. Z
             %position is moved using the appropriate device for this
             %microscope. If Batman is in use then there are 3 alternative
@@ -103,7 +104,7 @@ classdef (Abstract) Microscope<handle
             %1. Imaging configuration (LED, exposure time, filter positions etc) must
             %   be set
             %2. If any channel in the acquisition does z sectioning the z position
-            %should be moved to the top of the stack before calling this.
+            %should be moved to the bottom of the stack before calling this.
             %If not, the focus should be positioned at the desired focal position.
             
             %Arguments:
@@ -112,17 +113,19 @@ classdef (Abstract) Microscope<handle
             %2. thisZ - 1 if this is a stack
             %3. acqData.z - with the z sectioning information for this experiment -
             %nSlices and interval
-            %4. offset value - to position stack in a non standard place
+            %4. offset value - INPUT OFFSET IS NOT USED - NOW USED TO
+            %CONTROL THE VALUES SENT TO THE PIFOC
             %5. EM - 1 if this channel uses the EM mode of the camera (ie image should
             %be flipped)
             %6. E - a scalar to multiply the data by (if in the EM mode) - useful for
             %correcting for any changes in exposure time that have occured to avoid
             %saturation in the data.
+            %7. Point - row of the acqData.points cell array that refers to
+            %the current position.
             global mmc;
             nSlices=zInfo(1);
             sliceInterval=zInfo(2);
             anyZ=zInfo(4);
-            fprintf('no longer uses passed height/width\n');
             height=obj.ImageSize(1);
             width=obj.ImageSize(2);
             stack=zeros(height,width,nSlices);
@@ -169,10 +172,19 @@ classdef (Abstract) Microscope<handle
             %to move 1.
             if strcmp(sectDevice,'PIFOC')
                 p=2;
+                %Also PIFOC can't accept negative numbers - so define an
+                %offset to compensate for that
+                %Calculate the first slice position (lowest focus position
+                %in the stack)
+                z=1;
+                firstSlice=startPos-((nSlices-1)*p*sliceInterval)/2+(p*((z-1)*sliceInterval));
+                offset=abs(firstSlice);
             elseif strcmp(sectDevice,'TIPFSOffset')
                 p=8;
+                offset=0;
             else
                 p=1;
+                offset=0;
             end
             if thisZ==1%this is a stack acquisition
                 %make sure the PFS or other focus device is off
@@ -182,14 +194,11 @@ classdef (Abstract) Microscope<handle
                         obj.Autofocus.switchOff;
                     end
                 end
+                %zstep values required for PFSon method
                 zStep=-floor(nSlices/2)+[0:nSlices-1];
                 zStep=zStep*2*sliceInterval;
-                [b index]=sort(abs(zStep));
-
-                %Temp fix
-                %startPos=startPos+2;
-                
-                
+                [b, index]=sort(abs(zStep));
+                                                
                 for z=1:nSlices%start of z sectioning loop
                     %                     %Position of current slice
                     
@@ -251,10 +260,10 @@ classdef (Abstract) Microscope<handle
                 %to use the sectioning device to position focus to the middle of the stack. If not
                 %then just capture an image.
                 if ~strcmp(obj.Name, 'Robin')
-                    if anyZ==1
+                    if anyZ==1                                              
                         z=nSlices/2;
                         slicePosition=startPos+(p*((z-1)*sliceInterval));
-                        mmc.setPosition(sectDevice,slicePosition+offset);
+                        mmc.setPosition(sectDevice,slicePosition);
                         pause(0.005);
                     end
                     mmc.snapImage();

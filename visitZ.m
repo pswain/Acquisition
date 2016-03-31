@@ -15,7 +15,7 @@
 %Without a point: Only the first 4 of the inputs above
 
 %If anyz==1 (ie at least one channel does z sectioning) then the focus is
-%moved to the top of the stack, taking either the input z position (if
+%moved to the bottom of the stack, taking either the input z position (if
 %nargin>3) or the starting position of the z drive (if nargin==3) as the
 %centre of the stack.
 

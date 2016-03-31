@@ -10,6 +10,8 @@ handles=guidata(hObject);
 value=get(hObject,'Value');
 switch value
     case 1%EM_Smart mode selected
+        %SMART mode not working yet in the code - so this option disabled -
+        %goes to EM constant
         set(handles.(['startgain' tagEnd]),'Enable','on');
         set(handles.(['volt' tagEnd]),'Enable','on');
         nChannels=size(handles.acquisition.channels,1);
@@ -17,10 +19,11 @@ switch value
         if nChannels~=0
             for n=1:nChannels
                 if strcmp(handles.acquisition.channels(n,1),chName)==1
-                    handles.acquisition.channels{n,6}=value;%1=EM camera mode with correction
+                    handles.acquisition.channels{n,6}=3;%1=EM camera mode with correction. Set to 3 as smart mode not working
                 end
             end
         end
+        set(hObject, 'Value', 3);
     case 2%CCD mode selected
         set(handles.(['startgain' tagEnd]),'Enable','off');
         set(handles.(['volt' tagEnd]),'Enable','off');
