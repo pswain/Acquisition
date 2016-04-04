@@ -12,13 +12,13 @@ pause(1);%Gives enough time for a PFS to switch off - is pretty slow
 if iscell(zref)
     zref=cell2mat(zref);
 end
-obj.setZ(zref+obj.microscope.autofocus.Drift);
+obj.setZ(zref+obj.Autofocus.Drift);
 
 %turn autofocus device on - will correct for any further drift that has occurred since the last
 %time drift was measured.
 obj.Autofocus.switchOn(true);
-obj.Status=obj.getStatus;
-if strcmp(obj.Status,'Locked')==1;
+obj.Autofocus.Status=obj.Autofocus.getStatus;
+if strcmp(obj.Autofocus.Status,'Locked')==1;
     if nargin==4
         if iscell(offset)
             offset=cell2mat(offset);
@@ -37,7 +37,7 @@ if strcmp(obj.Status,'Locked')==1;
         logstring=strcat('correctDrift script. Cumulative drift is:',num2str(drift));writelog(logfile,2,logstring);
     end
 else
-    logstring=strcat('correctDrift script. Autofocus device status is: ',char(obj.Status),'. No change recorded to drift.');writelog(logfile,2,logstring);
+    logstring=strcat('correctDrift script. Autofocus device status is: ',char(obj.Autofocus.Status),'. No change recorded to drift.');writelog(logfile,2,logstring);
 end
 
 end

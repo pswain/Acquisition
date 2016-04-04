@@ -37,18 +37,15 @@ groups=[acqData.points{:,6}];%the list of groups
 gp=find(groups==groupid);%gp is the (logical) index to the entry for this group in CHsets
 
 for ch=1:numChannels%loop through the channels
-    chName=char(CHsets.names(ch,gp));
+    chName=acqData.channels{ch,1};
     %should this channel skip this timepoint or not image because we haven't reached its starttp?
     if rem(t-1,CHsets.skip(ch))==0 && t>=acqData.channels{ch,5}%never skip time point 1. Using t-1  instead of t makes this happen.
         
         %create a filename - includes the channel name and the path via folder
         filename=strcat(folder,'\',expName,'_',sprintf('%06d',t),'_',chName);
-        
-        %set offset
-        offset=cell2mat(acqData.channels(ch,5));%WILL USE THIS ONE DAY
-        
+                
         %get exposure time
-        expos=CHsets.values(ch,5,gp);
+        expos=str2num(acqData.points{pos,6+ch});%Removed ref to CHsets - needs put back in to get changing exposures in EMsmart mode to work
         
         %Only capture anything if exposure time is not zero
         if expos~=0
@@ -88,12 +85,12 @@ for ch=1:numChannels%loop through the channels
                 E=1;
             end
             
-            [resultStack,maxValue]=acqData.microscope.captureStack(filename,zsect,acqData.z,0,EM,E,acqData.imagesize(1),acqData.imagesize(2));
+            [resultStack,maxValue]=acqData.microscope.captureStack(filename,zsect,acqData.z,0,EM,E,acqData.points(pos));
             
             
             if strcmp(acqData.points(pos,ch+6),'double')==1%This position needs a double exposure - to monitor bleaching
                 filename2=strcat(filename,'_2ndexposure');
-                [resultStack maxValue]=acqData.microscope.captureStack(filename2,zsect,acqData.z,0,EM,E,acqData.imagesize(1),acqData.imagesize(2));%z stack capture
+                [resultStack maxValue]=acqData.microscope.captureStack(filename2,zsect,acqData.z,0,EM,E,acqData.points(pos));%z stack capture
             end
             
             %assign data to the positionData array - gets returned to calling program

@@ -176,17 +176,23 @@ for t=1:numTimepoints%start of timepoint loop.
            %using the PFS and things are moving (either in z or xy) - need to switch it off for capture - therefore need to correct for drift
            acqData.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
            if acqData.z(4)~=0% == 1 if any channel does z sectioning.
-               %Call correct drift with the z position of this point as
-               %the input reference position - will calculate drift
+               %Call correct drift with the z position of the bottom of the
+               %stack as the input reference position - will calculate drift
                %relative to where the lens was when the point was
-               %marked.
+               %marked and set the focus to the bottom of the stack.
                if acqData.z(6)==1
                    logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-                   acqData.microscope=acqData.microscope.correctDrift(logfile,acqData.points(pos,4),acqData.points(pos,5));
-
+                   %Calculate position of the bottom of the stack - call
+                   %correctDrift with that as the input.
+                   startPos=acqData.points{pos,4};%Z drive position
+                   sliceInterval=acqData.z(2);
+                   nSlices=acqData.z(1);
+                   firstSlice=startPos-((nSlices-1)*sliceInterval);                  
+                   acqData.microscope=acqData.microscope.correctDrift(logfile,firstSlice,acqData.points(pos,5));
                    %
                    %
-                   %CALL TO VISITZ ADDED HERE
+                   %CALL TO VISITZ REPLACED BY THE CALL TO CORRECTDRIFT - Z
+                   %POSITION WILL BE SET IN THAT FUNCTION
                    %startingZ=visitZ(logfile,acqData.z,acqData.points(pos,:)); % This has been (re)added 4_4_14 - needs to be tested
                    %
                    %               
@@ -219,7 +225,7 @@ for t=1:numTimepoints%start of timepoint loop.
            %position and no z sectioning - in this case the PFS
            %can stay on all the time and do all the drift
            %correcting itself.
-           logstring=strcat('Single position and Z section. No call to correctDrift');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+           logstring=strcat('Single position and Z section or the PFS is off. No call to correctDrift');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
            acqData.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
 
            
@@ -238,17 +244,19 @@ for t=1:numTimepoints%start of timepoint loop.
                        end
                    catch
                    end
-               end
-               
-           else
-               logstring=strcat('No call to visitZ - no points do z sectioning',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+               end                 
            end
+       
+           
        end
        if numPositions>1
            posFolder=posDirectories(pos);
        else
            posFolder=exptFolder;
        end
+       
+       
+       
        positionData=acqData.microscope.capturePosition(acqData,logfile,posFolder,pos,t,CHsets);%data for all channels stored for this position in the position variable
        
        %Record the maximum value measured for each channel - if it is the highest of
@@ -277,6 +285,9 @@ for t=1:numTimepoints%start of timepoint loop.
 %        %Assign image from this position to the timepoint image array
 %        %for display - This may be useful one day - leave commented
 %        timepointData(pos,:,:,:)=positionData.images;
+if acqData.z(3)==1
+    acqData.microscope.Autofocus.switchOn;
+end
    end%Of the positions capture loop
    
    
