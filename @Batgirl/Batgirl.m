@@ -3,7 +3,12 @@ classdef Batgirl<Microscope
         function obj=Batgirl
             obj.Name='Batgirl';
             obj.nameImage=imread('Batgirl.jpg');
-            obj.Config='C:\Micromanager config files\Batgirl11_9_15pHluorin.cfg';
+            user=returnUserName;
+            if any(strcmp(user,{'Elco','Ivan'}))
+                obj.Config='C:\Micromanager config files\Batgirl06_04_16Elco.txt';
+            else
+                obj.Config='C:\Micromanager config files\Batgirl11_9_15pHluorin.cfg';
+            end
             obj.InitialChannel='DIC';
             obj.Autofocus=Autofocus('PFS');
             obj.pumpComs(1).com='COM5';%pump1
