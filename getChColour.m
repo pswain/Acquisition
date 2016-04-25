@@ -9,6 +9,8 @@ switch chName
         colour=[1 1 1];
     case 'GFP'
         colour=[0.6078    0.8863    0.6745];
+    case 'GFP2'
+        colour=[0.5078    0.7863    0.5745];
     case 'YFP'
         colour=[1.0000    1.0000    0.8000];
     case 'CFP'
