@@ -149,6 +149,14 @@ handles.acquisition.time=[1 300 180 54000];
 p1=pump(handles.acquisition.microscope.pumpComs(1).com,handles.acquisition.microscope.pumpComs(1).baud);p2=pump(handles.acquisition.microscope.pumpComs(2).com,handles.acquisition.microscope.pumpComs(2).baud);
 handles.acquisition.flow={'2% raffinose in SC' '2% galactose in SC' 1 [p1 p2],flowChanges({p1, p2})};
 %info entry is already initialised above
+
+%Initialise fields to keep track of whether tags and experiment description
+%have been changed
+handles.tagsChanged=false;
+handles.descriptionWritten=false;
+
+
+
 end
 set(handles.live,'BackgroundColor',[0.2 .9 0.2]);
 %Open serial ports of the pumps
@@ -173,11 +181,8 @@ users=[swain tyers millar];
 %Initialize the Omero projects and tags lists
 %First get Omero info and set path
 addpath(genpath(handles.acquisition.microscope.OmeroCodePath));
-load([handles.acquisition.microscope.OmeroInfoPath 'dbInfoSkye.mat']);
-
 handles.aquisition.omero=struct('project',{}, 'tags',{}, 'object',{});
-handles.acquisition.omero.object=obj2;
-
+handles.acquisition.omero.object=OmeroDatabase('upload','skye.bio.ed.ac.uk',false);
 
 %Display the projects
 proj=handles.acquisition.omero.object.getProjectNames;
@@ -199,18 +204,6 @@ set(handles.OmeroProjects,'Value', defaultValue);
 %run:
 handles.acquisition.omero.project='Default project';
 
-%Same thing for the tags list:
-
-%Retrieve recorded tag names:
-tags=handles.acquisition.omero.object.getTagNames(false);   
-%Sort alphabetically (case insensitive, hence use of upper)
-[sorted, indices]=sort(upper(tags));
-tags=tags(indices);
-%Add a menu item for making new tags:
-tags{end+1}='Add a new tag';
-%Set menu items:
-set(handles.OmeroTags,'String',tags);
-set(handles.OmeroTags,'Value', length(tags));
 
 %Define the date tag as the only one to be used (so far) when the
 %experiment is run:
