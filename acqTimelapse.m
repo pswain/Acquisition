@@ -180,7 +180,7 @@ for t=1:numTimepoints%start of timepoint loop.
                %stack as the input reference position - will calculate drift
                %relative to where the lens was when the point was
                %marked and set the focus to the bottom of the stack.
-               if acqData.z(6)==1
+               if acqData.z(6)==1%Visiting the bottom of the stack only works if the PFS is off
                    logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
                    %Calculate position of the bottom of the stack - call
                    %correctDrift with that as the input.
