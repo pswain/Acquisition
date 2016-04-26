@@ -17,6 +17,16 @@ else
     return;
 end
 
+if ~handles.descriptionWritten
+    disp('Please write a description of your experiment for the log file');
+   enterDetails_Callback(handles.gui); 
+end
+
+if ~handles.tagsChanged
+    disp('Please annotate your experiment with Omero tags');
+    OmeroTags_Callback(handles.gui);
+end
+
 %Then - display a modal dialog box showing the experimental settings with a
 %click to continue or return
 
