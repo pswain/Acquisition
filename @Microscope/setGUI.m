@@ -141,7 +141,7 @@ switch obj.Name
     case 'Robin'
         batText='New programmatic GUI running on Robin. Ask Ivan (07748450511, ivan.clark@ed.ac.uk) if there are any problems.';
     case 'Batgirl'
-        batText='New programmatic GUI running on Batgirl. Ask Ivan (07748450511, ivan.clark@ed.ac.uk) if there are any problems. You can now set the LED voltage through the GUI. The default values give the same current that the front panel dials were set to on 22/6/15';
+        batText='tdTomato is now available on Batgirl, YFP not. Ask Ivan (07748450511, ivan.clark@ed.ac.uk) if there are any problems/bug reports/feature requests.';
 end
 set(handles.news,'String',batText);
 
