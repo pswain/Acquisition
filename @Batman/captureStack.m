@@ -1,4 +1,4 @@
-function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,point)
+function [stack,maxValue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,point)
 %Captures and saves a Z stack on Batman. There are 3
 %alternative methods for moving in Z, determined by zInfo(6).
 
@@ -39,15 +39,16 @@ stack=zeros(height,width,nSlices);
 %Image capture code. First determine if this is a stack
 %acquisition
 if thisZ==0
-    %If any of the channels in this acquisition do z sectioning then need
-    %to use the sectioning device to position focus to the middle of the stack. If not
-    %then just capture an image. This only applies if the PFS
-    %is to be switched off
+    %If any of the channels in this acquisition do z sectioning then the
+    %focus should have been positioned at the bottom of the stack before
+    %captureStack is called. In this case you need to use the PIFOC to
+    %return to the middle of the stack. This only applies if the PFS
+    %is off (ie z sectioning method 1)
     if zInfo(6)==1
         startPos=mmc.getPosition('PIFOC');
         if anyZ==1
             z=nSlices/2;
-            slicePosition=startPos+(p*((z-1)*sliceInterval));
+            slicePosition=startPos+(2*((z-1)*sliceInterval));%Multiplied by 2 because PIFOC divides all distances sent to it in half.
             mmc.setPosition('PIFOC',slicePosition);
             pause(0.005);
         end
@@ -56,7 +57,7 @@ if thisZ==0
     mmc.snapImage();
     img=mmc.getImage;
     img2=typecast(img,'uint16');
-    maxvalue=max(img2);%need to record the maximum measured value
+    maxValue=max(img2);%need to record the maximum measured value
     img2=E.*img2;
     img2=reshape(img2,[height,width]);
     stack(:,:,1)=img2;
@@ -70,9 +71,9 @@ else
     %Split into different methods to keep code simpler
     switch zInfo(6)
         case 1
-            [stack, maxValue]=obj.captureStackPIFOC(filename,EM,E);
+            [stack, maxValue]=obj.captureStackPIFOC(filename,zInfo,EM,E);
         case 2
-            [stack, maxValue]=obj.captureStackPFSOn(filename,thisZ,zInfo,offset,EM,E,point);
+            [stack, maxValue]=obj.captureStackPFSOn(filename,zInfo,offset,EM,E);
         case 3
             [stack, maxValue]=obj.captureStackPFS(filename,thisZ,zInfo,offset,EM,E,point);
     end

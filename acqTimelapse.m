@@ -187,7 +187,7 @@ for t=1:numTimepoints%start of timepoint loop.
                    startPos=acqData.points{pos,4};%Z drive position
                    sliceInterval=acqData.z(2);
                    nSlices=acqData.z(1);
-                   firstSlice=startPos-((nSlices-1)*sliceInterval);                  
+                   firstSlice=startPos-((nSlices-1)/2*sliceInterval);                  
                    acqData.microscope=acqData.microscope.correctDrift(logfile,firstSlice,acqData.points(pos,5));
                    %
                    %
@@ -227,36 +227,45 @@ for t=1:numTimepoints%start of timepoint loop.
            %correcting itself.
            logstring=strcat('Single position and Z section or the PFS is off. No call to correctDrift');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
            acqData.microscope.visitXY(logfile,acqData.points(pos,:),acqData.z(3),acqData.logtext);%sets the xy position of the stage
-
-           
-           
+ 
            if acqData.z(4)~=0%anyZ = 1 if any channel does z sectioning.
                %At least one channel does z sectioning.
                %Does any channel at this position do z sectioning?
                anyZThisPos=false;
                for n=1:size(acqData.channels,1)
-                   try
-                       if str2num(char(acqData.points(pos,7)))>0 && cell2mat(acqData.channels(n,4))==1
-                           %Channel number n does z sectioning and
-                           %has a nonzero exposure time at this
-                           %timepoint
-                           anyZThisPos=true;
-                       end
-                   catch
+                   if str2num(char(acqData.points(pos,7)))>0 && cell2mat(acqData.channels(n,4))==1
+                       %Channel number n does z sectioning and
+                       %has a nonzero exposure time at this
+                       %timepoint
+                       anyZThisPos=true;
                    end
-               end                 
+                   
+               end
+               if anyZThisPos
+                  %Need to move the Z drive to the bottom of the stack. The
+                  %PFS must be off or the code above (involving the call to
+                  %correctDrift) would have been run
+                  startPos=acqData.points{pos,4};%Z drive position
+                  sliceInterval=acqData.z(2);
+                  nSlices=acqData.z(1);
+                  firstSlice=startPos-((nSlices-1)/2*sliceInterval);
+                  acqData.microscope.setZ(firstSlice);
+               else
+                  %No z sectioning at this position, move the Z drive and PFS if in use to
+                  %the defined position
+                  acqData.setZ(acqData.points{pos,4}+acqData.z{5});%Set z drive position + any recorded drift
+                  if acqData.z{3}==1
+                      acqData.microscope.setAutofocusOffset(acqData.points{pos,5});
+                  end
+               end
            end
-       
-           
        end
        if numPositions>1
            posFolder=posDirectories(pos);
        else
            posFolder=exptFolder;
        end
-       
-       
-       
+              
        positionData=acqData.microscope.capturePosition(acqData,logfile,posFolder,pos,t,CHsets);%data for all channels stored for this position in the position variable
        
        %Record the maximum value measured for each channel - if it is the highest of

@@ -18,8 +18,9 @@ else
 end
 
 if ~handles.descriptionWritten
-    disp('Please write a description of your experiment for the log file');
-   enterDetails_Callback(handles.gui); 
+   disp('Please write a description of your experiment for the log file');
+   enterDetails_Callback(handles.gui);
+   handles.descriptionWritten=true;
 end
 
 if ~handles.tagsChanged

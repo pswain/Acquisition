@@ -33,63 +33,25 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
             height=obj.ImageSize(1);
             width=obj.ImageSize(2);
             stack=zeros(height,width,nSlices);
-            %Set the device used for sectioning
-            switch obj.Name
-                case 'Batman'
-                    switch zInfo(6)
-                        case 1
-                            sectDevice='PIFOC';
-                            keepPFSON=false;
-                        case 2
-                            sectDevice='PIFOC';
-                            keepPFSON=true;
-                        case 3
-                            sectDevice='PFS';
-                            sectDevice='TIPFSOffset';
-                    end
-                case 'Robin'
-                    sectDevice='ZStage';
-                case 'Batgirl'
-                    switch zInfo(6)
-                        case 1
-                            sectDevice='ZStage';
-                            keepPFSON=false;
-                        case 2
-                            sectDevice='ZStage';
-                            keepPFSON=true;
-                    end
-                    sectDevice='ZStage';
+            switch zInfo(6)
+                case 1
+                    keepPFSON=false;
+                case 2
+                    keepPFSON=true;
             end
+            sectDevice='ZStage';
             %Wait until the device is ready before getting position (not
             %convinced this line does anything, hence the pause for Robin
             %next.
             
-            if ~strcmp(sectDevice,'TIPFSOffset')
-                if ~keepPFSON
-                    mmc.waitForDevice(sectDevice);
-                end
+            if ~keepPFSON
+                mmc.waitForDevice(sectDevice);
             end
             
             startPos=mmc.getPosition(sectDevice);%starting position of the sectioning device (microns)
             maxvalue=0;
-            %Need to multiply distances by 2 if using PIFOC because for some reason PIFOC moves 0.5microns when you tell it
-            %to move 1.
-            if strcmp(sectDevice,'PIFOC')
-                p=2;
-                %Also PIFOC can't accept negative numbers - so define an
-                %offset to compensate for that
-                %Calculate the first slice position (lowest focus position
-                %in the stack)
-                z=1;
-                firstSlice=startPos-((nSlices-1)*p*sliceInterval)/2+(p*((z-1)*sliceInterval));
-                offset=abs(firstSlice);
-            elseif strcmp(sectDevice,'TIPFSOffset')
-                p=8;
-                offset=0;
-            else
-                p=1;
-                offset=0;
-            end
+            p=1;
+            offset=0;
             if thisZ==1%this is a stack acquisition
                 %make sure the PFS or other focus device is off
                 if ~keepPFSON

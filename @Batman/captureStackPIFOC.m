@@ -1,5 +1,14 @@
-function [stack,maxvalue]=captureStackPIFOC(obj,filename,EM,E)
-
+function [stack,maxvalue]=captureStackPIFOC(obj,filename,zInfo,EM,E)
+%Captures and saves a z stack on Batman using the PIFOC sectioning device.
+%The focus position should be moved to the bottom of the stack before this
+%function is called
+global mmc;
+nSlices=zInfo(1);
+sliceInterval=zInfo(2);
+anyZ=zInfo(4);
+height=obj.ImageSize(1);
+width=obj.ImageSize(2);
+stack=zeros(height,width,nSlices);
 
 startPos=mmc.getPosition('PIFOC');%starting position of the sectioning device
 maxvalue=0;
