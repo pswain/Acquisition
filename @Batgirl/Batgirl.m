@@ -16,7 +16,7 @@ classdef Batgirl<Microscope
             obj.pumpComs(1).baud=19200;
             obj.pumpComs(2).baud=19200;
             obj.OmeroInfoPath='C:/AcquisitionDataBatgirl/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/';
-            obj.OmeroCodePath='C:/OmeroCode';
+            obj.OmeroCodePath='C:/Omero';
             obj.DataPath='D:/AcquisitionDataBatgirl';
             obj.XYStage='XYStage';
             obj.ZStage='TIZDrive';
