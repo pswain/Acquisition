@@ -3,4 +3,5 @@ function enterDetails_Callback(hObject,eventdata)
 handles=guidata(hObject);
 previous=char(handles.acquisition.info(4));
 handles.acquisition.info(4)=cellstr(enterDetails(previous));
+handles.descriptionWritten=true;
 guidata(hObject, handles);

@@ -52,7 +52,6 @@ for ch=1:length(chNames)
             if ~isempty(valueLine)
                 valueLine=confData{valueLine};
                 valueLine=textscan(valueLine,'%s','Delimiter','"');
-                valueLine=textscan(valueLine,'%s','BufSize',20000,'Delimiter','"');
                 valueLine=valueLine{:};
                 obj.Filters.(chName){n,1}=[deviceLine{2} valueLine{2}];
             end

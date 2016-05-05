@@ -141,9 +141,15 @@ classdef flowChanges
             [nextSwitchTime ind]=min(obj.times(obj.switched==false));
             ind=min(find(obj.switched==false));
             if currTime>=nextSwitchTime
-                if obj.switchedTo(ind)>0
+                if length(obj.switchedTo<ind)
+                    obj.switchedTo(ind)=0;
+                end
+                    
+                    %if obj.switchedTo(ind)>0
                     %Experiment requires switching with fast infuse/withdraw
                     %step
+                if obj.switchedTo(ind)>0
+
                     if ind==1
                         obj.setSwitchPhases;
                     end
@@ -172,10 +178,9 @@ classdef flowChanges
                     fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
                     fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);
                     fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-                    fprintf(p1,['RAT' num2str(obj.flowPostSwitch(1,ind)) 'UM']);fprintf(p2,['RAT' num2str(obj.flowPostSwitch(2,ind)) 'UM']);pause(.05);
-                    
-                    %                     fprintf(p1,['RAT' num2str(flowrates(1))]);
-                    %                     fprintf(p2,['RAT' num2str(flowrates(2))]);pause(.05);
+                    %Numbers with too many decimal places are ignored -
+                    %hence sprintf here
+                    fprintf(p1,['RAT' sprintf('%.2f',obj.flowPostSwitch(1,ind)) 'UM']);fprintf(p2,['RAT' sprintf('%.2f',obj.flowPostSwitch(2,ind)) 'UM']);pause(.05);
                     
                     fprintf(p1,'VOL0');fprintf(p2,'VOL0');pause(.05);
                     fprintf(p1,'RUN2');fprintf(p2,'RUN2');
@@ -185,9 +190,8 @@ classdef flowChanges
                     
                 end
                 %Then reset pump flow rates and volumes
-                logstring=['Pump: ' (obj.pumps{1}.pumpName) ' running at: ' num2str(obj.flowPostSwitch(1,ind)) 'ul/min'];acqData.logtext=writelog(logfile,'',logstring);
-                logstring=['Pump: ' (obj.pumps{2}.pumpName) ' running at: ' num2str(obj.flowPostSwitch(2,ind)) 'ul/min'];acqData.logtext=writelog(logfile,'',logstring);
-                
+                %logstring=['Pump: ' (obj.pumps{1}.pumpName) ' running at: ' num2str(obj.flowPostSwitch(1,ind)) 'ul/min'];acqData.logtext=writelog(logfile,'',logstring);
+                %logstring=['Pump: ' (obj.pumps{2}.pumpName) ' running at: ' num2str(obj.flowPostSwitch(2,ind)) 'ul/min'];acqData.logtext=writelog(logfile,'',logstring);
             end
             [nextSwitchTimeSol indSol]=min(obj.timesSwitchSol(obj.switchedSol==false));
             indSol=min(find(obj.switchedSol==false));
@@ -197,7 +201,6 @@ classdef flowChanges
                     obj.solenoidGUI.toggleRelay(relayInd-1);
                 end
             end
-            
         end
         
         

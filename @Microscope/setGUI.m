@@ -115,6 +115,8 @@ switch obj.Name
         set(handles.CCD,'Enable','on');
         handles.acquisition.omero.tags{length(handles.acquisition.omero.tags)+1}='Batman';
         set(handles.bin,'enable','on');
+        set(handles.zMethod,'String', {'PIFOC (recommended)';'PIFOC with PFS on';'PFS'});
+        set(handles.zMethod,'ToolTipString', 'Choose method used for Z sectioning - note exact Z positions will not be known with PIFOC with PFS on method. Not suitable for quantifying fluorescence (but is faster than PIFOC method).');
     case ('Robin')
         set(handles.eye,'Enable','off');
         set(handles.camera,'Enable','off');
@@ -131,6 +133,9 @@ switch obj.Name
         handles.acquisition.omero.tags{length(handles.acquisition.omero.tags)+1}='Batgirl';
         set(handles.bin,'enable','on');
         set(handles.zMethod,'Enable','on');
+        set(handles.zMethod,'String', {'Z stage (recommended)';'Z stage with PFS on';'PFS'});
+        set(handles.zMethod,'ToolTipString', 'Choose method used for Z sectioning - note exact Z positions will not be known with Z stage with PFS on method. Not suitable for quantifying fluorescence (but is faster than Z stage method).');
+
 end
 
 %Set the News text

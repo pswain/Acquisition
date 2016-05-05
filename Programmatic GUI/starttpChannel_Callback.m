@@ -5,7 +5,7 @@ function starttpChannel_Callback(hObject, eventdata)
 handles=guidata(hObject);
 starttp=str2double(get(hObject,'String'));
 sizeChannels=size(handles.acquisition.channels);
-callingTag=get(hObject,'Tag');
+
 %Get the name of the channel
 [channelName tagEnd]=getChannel(hObject,handles);
 if isempty(get(hObject,'String'))~=1;

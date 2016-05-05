@@ -10,6 +10,12 @@ if ~strcmp(handles.acquisition.omero.tags{toDelete},date)
     handles.acquisition.omero.tags(toDelete)=[];
     set(handles.TagList,'Value',toDelete-1);
     set(handles.TagList,'String',handles.acquisition.omero.tags);
+    if isfield(handles.acquisition.omero,'tagCategories')
+        %Newly-defined tags have this too. This will be applied to the
+        %wrong tag if not deleted
+        handles.acquisition.omero.tagCategories(toDelete)=[];
+    end
+
 else
     disp('You cannot delete the date tag');
 end

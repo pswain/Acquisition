@@ -12,7 +12,7 @@ switch name
         name='Matt';
     case 's0880566'
         name='Bruno';
-            case 's1135844'
+    case {'s1135844','ElcoAcquisition'}
         name='Elco';
     case 's1259407'
         name='Luis';

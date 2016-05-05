@@ -4,7 +4,7 @@ if nargin==1
 end
 global mmc;
 switch obj.Name
-    case 'Batman'
+    case {'Batman','Batgirl'}
         mmc.setPosition('TIZDrive',z);
         pause(0.4);
     case 'Robin'
