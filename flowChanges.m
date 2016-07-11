@@ -141,7 +141,7 @@ classdef flowChanges
             [nextSwitchTime ind]=min(obj.times(obj.switched==false));
             ind=min(find(obj.switched==false));
             if currTime>=nextSwitchTime
-                if length(obj.switchedTo<ind)
+                if length(obj.switchedTo)<ind
                     obj.switchedTo(ind)=0;
                 end
                     
