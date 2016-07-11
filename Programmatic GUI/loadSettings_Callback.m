@@ -12,7 +12,7 @@ if exist (lastSavedPath,'file')==2
     acqFilePath=acqFilePath{:};
     defaultPath=char(acqFilePath);
 else
-    defaultPath='C:\AcquisitionData';
+    defaultPath=handles.acquisition.microscope.DataPath;
 end
 [filename,pathname]=uigetfile('*.txt','Choose acquisition settings file',defaultPath);
 handles.acquisition=loadAcquisition(strcat(pathname,filename));

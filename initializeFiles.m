@@ -12,7 +12,7 @@
 function [logFile,exptFolder,directories]=initializeFiles(acqData)
 %Make experiment directory
 root=acqData.info(3);
-acqName=acqData.info(1);
+acqName=acqData.info{1};
 dir=char(strcat(root,'/',acqName));
 exptNum=0;
 exptNumString=sprintf('%02d',exptNum);
@@ -28,64 +28,63 @@ mkdir(exptFolder);
 saveAcquisition(acqData,exptFolder);
 %Open log file and write preliminary stuff
 logname=char(strcat(exptFolder,'/',acqName,'log.txt'));
-logFile=fopen(logname,'w');%Then can write to logfile later using fprintf(logfile,'string goes here');
+logFile=fopen(logname,'wt');%Then can write to logfile later using fprintf(logfile,'string goes here');
 fprintf(logFile,'%s','Swain Lab microscope experiment log file');
-fprintf(logFile,'\r\n');
+fprintf(logFile,'\n');
 a=fopen('version.txt');
 v=textscan(a,'%s');
 v=v{:};
 v=v{end};
 fprintf(logFile,'%s',['Swain lab microscope control software version ' v]);
-fprintf(logFile,'\r\n');
+fprintf(logFile,'\n');
 today=date;
 fprintf(logFile,'%s',today);
-fprintf(logFile,'\r\n');
+fprintf(logFile,'\n');
 fprintf(logFile,'%s',['Microscope name is: ' acqData.microscope.Name]);
-fprintf(logFile,'\r\n');
+fprintf(logFile,'\n');
 fprintf(logFile,'%s','Acquisition settings are saved in:');
-fprintf(logFile,'\r\n');
-acqName=acqData.info(1);
+fprintf(logFile,'\n');
 acqFileName=char(strcat(exptFolder,'/',acqName,'Acq.txt'));
 fprintf(logFile,'%s',acqFileName);
-fprintf(logFile,'\r\n');
+fprintf(logFile,'\n');
 fprintf(logFile,'%s','Experiment details:');
-fprintf(logFile,'\r\n');
+fprintf(logFile,'\n');
 % if iscell(acqData.info(4))
 %      acqData.info(4)=acqData.info{4};
 % end
-fprintf(logFile,'%s',char(acqData.info(4)));
-fprintf(logFile,'\r\n');
+fprintf(logFile,'%s',acqData.info{4});
+fprintf(logFile,'\n');
 
 %Record omero project name and tag information
 if isfield(acqData,'omero')
    if ~isempty(acqData.omero.project)
         fprintf(logFile,'%s','Omero project:');
-        fprintf(logFile,'\r\n');
+        fprintf(logFile,'\n');
         try
             fprintf(logFile,'%s',acqData.omero.project.name);
         catch
             fprintf(logFile,'%s',acqData.omero.project);
         end
-        fprintf(logFile,'\r\n');
+        fprintf(logFile,'\n');
    end
    if ~isempty(acqData.omero.tags)
         fprintf(logFile,'%s','Omero tags:');
-        fprintf(logFile,'\r\n');
+        fprintf(logFile,'\n');
         for n=1:length(acqData.omero.tags)
             fprintf(logFile,'%s',acqData.omero.tags{n});
             fprintf(logFile,'%s',',');
         end
-        fprintf(logFile,'\r\n');
+        fprintf(logFile,'\n');
    end
    if isfield (acqData.omero,'tagCategories')
        if ~isempty(acqData.omero.tagCategories)
            fprintf(logFile,'%s','Omero tag descriptions:');
-           fprintf(logFile,'\r\n');
+           fprintf(logFile,'\n');
            for tc=1:length(acqData.omero.tagCategories)
                fprintf(logFile,'%s',acqData.omero.tagCategories{tc});
                fprintf(logFile,'%s',',');
            end
-           fprintf(logFile,'\r\n');
+           fprintf(logFile,'\n');
        end
    end 
 end
@@ -105,7 +104,11 @@ if numPositions>0
 end
 %save the point list (if there is one)
 if numPositions>0
-   savePoints(acqData,exptFolder);
+    %Open the position file
+    posFileName=fullfile(exptFolder,strcat(acqName,'Pos.txt'));
+    posFile=fopen(posFileName,'wt');
+    savePoints(acqData,posFile);
+    fclose(posFile);
 end
 
 %Create a temporary file to indicate that the experiment is in progress -
@@ -113,6 +116,6 @@ end
 tempname=char(strcat(exptFolder,'/temp_InProgress.txt'));
 tempFile=fopen(tempname,'w');
 fprintf(tempFile,'%s',[exptFolder,'/',char(acqName)]);
-fprintf(tempFile,'\r\n');
+fprintf(tempFile,'\n');
 fprintf(tempFile,'%s','This experiment is in progress. Will not be uploaded to Omero database.');
 fclose (tempFile);

@@ -4,7 +4,7 @@ classdef Batgirl<Microscope
             obj.Name='Batgirl';
             obj.nameImage=imread('Batgirl.jpg');
             user=returnUserName;
-            if any(strcmp(user,{'Elco','Ivan'}))
+            if any(strcmp(user,{'Elco','Alejandro'}))
                 obj.Config='C:\Micromanager config files\Batgirl06_04_16Elco.txt';
             else
                 obj.Config='C:\Micromanager config files\Batgirl11_9_15pHluorin.cfg';

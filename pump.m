@@ -85,8 +85,8 @@ classdef pump
            %represented by the input file identifier. Must refer to a
            %valid, open text file. Used, eg., for writing details to a
            %microscope experiment Acq file.
-           fprintf(file,'\r\n');
-           fprintf(file,[obj.pumpName ':,' num2str(obj.diameter) ','  num2str(obj.currentRate) ',' obj.direction ',' num2str(obj.running) ',' obj.contents]); 
+           fprintf(file,'%s:,%.2f,%.2f,%s,%i,%s',obj.pumpName,obj.diameter,...
+               obj.currentRate,obj.direction,obj.running,obj.contents); 
            fprintf(file,'\r\n');
 
        end

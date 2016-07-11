@@ -20,7 +20,7 @@ switch choice
         defaults{3}=num2str(max(handles.acquisition.flow{5}.flowPostSwitch(:,1)));
         defaults{4}=num2str(min(handles.acquisition.flow{5}.flowPostSwitch(:,1)));
         %Get user input
-        answers=inputdlg({'Enter switching times in min after start of timelapse (separated by commas): ','Which pump has the higher flow rate initially?','Enter flow rates (after switching) of pump to switch to (in ul/min, separated by commas)','Enter flow rates (after switching) of pump to switch from (in ul/min, separated by commas)'},'Switching parameters',1,defaults);
+        answers=inputdlg({'Enter switching times in min after start of timelapse (separated by commas): ','Which pump has the higher flow rate initially?','Enter flow rate (after switching) of pump to switch to (in ul/min)','Enter flow rate (after switching) of pump to switch from (in ul/min)'},'Switching parameters',1,defaults);
         %Process switching times
         times=answers{1};
         %CONVERT TO VECTOR OF DOUBLES

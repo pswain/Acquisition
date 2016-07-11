@@ -5,6 +5,47 @@
 
 function [acqData]=loadAcquisition(filename)
 fid=fopen(filename);
+currentState='';
+currentLine=fgetl(fid);
+counter=1;
+while currentLine~=-1
+   if strcmp(currentLine,'Channels:')
+       currentState='Channels';
+       fgetl(fid);%To skip the heading line
+       currentLine=fgetl(fid);
+       counter=1;
+       continue;
+   end
+   
+   if strcmp(currentLine,'Z_sectioning:')
+       currentState='Z sectioning';
+       currentLine=fgetl(fid);
+   end
+   
+    if strcmp(currentLine,'Time_settings:')
+       currentState='Time settings';
+       currentLine=fgetl(fid);
+   end
+   
+   
+   switch currentState
+       case 'Channels'
+           chanCell=textscan(currentLine,'%12s%13u%4u%7u%10u%11u%7u%7.3f\n','Delimiter',{', '});
+           chanCell{1}=char(chanCell{1});
+           acqData.channels(counter,:)=chanCell;
+           counter=counter+1;
+       case 'Z sectioning'
+           zVect=textscan(currentLine,'%2f%2.3f\n','Delimiter',{','});
+           zVect=cell2mat(zVect);
+           acqData.z=zVect;
+       case 'Time settings'
+           tVect=textscan(currentLine,'%1u%4u%4u%8u\n','Delimiter',{','});
+           tVect=cell2mat(tVect);
+           acqDat.t=tVect;
+   end
+    currentLine=fgetl(fid);
+end
+
 rawdata = textscan(fid,'%s');
 rawdata=rawdata{:};
 channelPlace = strmatch('Channels:',rawdata);
