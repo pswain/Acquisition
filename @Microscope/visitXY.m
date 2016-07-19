@@ -18,7 +18,11 @@ y=cell2mat(point(3));
 global mmc;
 %move to XY position defined in point input.
 mmc.setXYPosition('XYStage',x,y);
+try
 mmc.waitForDevice('XYStage');
+catch
+    pause (2);
+end
 logstring=strcat('Moved to X:',num2str(x),', Y:',num2str(y));writelog(logfile,texthandle,logstring);
 
 switch obj.Autofocus.Type
