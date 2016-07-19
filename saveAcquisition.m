@@ -56,13 +56,13 @@ end
 %timelapse settings
 fprintf(acqFile,'%s','Time_settings:');
 fprintf(acqFile,'\n');
-fprintf(acqFile,'%d',acqData.time(1));%use timelapse (1 or 0)
+fprintf(acqFile,'%u',acqData.time(1));%use timelapse (1 or 0)
 fprintf(acqFile,'%s',',');
-fprintf(acqFile,'%f',acqData.time(2));%interval in s
+fprintf(acqFile,'%u',acqData.time(2));%interval in s
 fprintf(acqFile,'%s',',');
-fprintf(acqFile,'%d',acqData.time(3));%number of time points
+fprintf(acqFile,'%u',acqData.time(3));%number of time points
 fprintf(acqFile,'%s',',');
-fprintf(acqFile,'%d',acqData.time(4));%total time in s
+fprintf(acqFile,'%u',acqData.time(4));%total time in s
 fprintf(acqFile,'\n');
 %Points to visit
 fprintf(acqFile,'Points:\n');%need to check if any point visiting with an
