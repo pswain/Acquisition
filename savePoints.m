@@ -1,32 +1,22 @@
-function [posFileName]=savePoints(acqData,exptFolder)
+function savePoints(acqData,outputFile)
 
-if nargin>1
-    directory=exptFolder;
-else
-    startDir=char(acqData.info(3));
-    if exist (startDir,'dir')~=7
-        mkdir(startDir);
-    end
-    directory=uigetdir(startDir,'Choose directory to save points');
+
+fprintf(outputFile,'Position name, X position, Y position, Z position, PFS offset, Group');
+for channel=1:size(acqData.channels,1)
+    fprintf(outputFile,', %10s',acqData.channels{channel,1});
 end
-%Open the position file
-acqName=char(acqData.info(1));
-posFileName=strcat(directory,'\',acqName,'Pos.txt');
-posFile=fopen(posFileName,'wt');
-
+fprintf(outputFile,'\n');
 for n=1:size(acqData.points,1)
-   fprintf(posFile,'%s',char(acqData.points(n,1)));%1. position name
-   fprintf(posFile,'%s',',');
-   fprintf(posFile,'%d',cell2mat(acqData.points(n,2)));%2. X stage position
-   fprintf(posFile,'%s',',');
-   fprintf(posFile,'%d',cell2mat(acqData.points(n,3)));%3. Y stage position
-   fprintf(posFile,'%s',',');
-   fprintf(posFile,'%d',cell2mat(acqData.points(n,4)));%4. Z drive position
-   fprintf(posFile,'%s',',');
-   fprintf(posFile,'%f',cell2mat(acqData.points(n,5)));%5. PFS offset
-   fprintf(posFile,'%s',',');
-   fprintf(posFile,'%d',cell2mat(acqData.points(n,6)));%6. Exposure time (for expose by point)
-   fprintf(posFile,'\r\n');
+    fprintf(outputFile,'%13s, %10.2f, %10.2f, %10.3f, %10.3f, %5u',...
+        char(acqData.points{n,1}),... %1. position name
+        acqData.points{n,2},... %2. X stage position
+        acqData.points{n,3},... %3. Y stage position
+        acqData.points{n,4},... %4. Z drive position
+        acqData.points{n,5},... %5. PFS offset
+        acqData.points{n,6}); %6. Group number
+    for channel=1:size(acqData.channels,1)
+        % Output the exposure for each channel:
+        fprintf(outputFile,', %10u',str2double(acqData.points{n,6+channel}));
+    end
+    fprintf(outputFile,'\n');
 end
-
-fclose(posFile);

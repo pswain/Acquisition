@@ -80,14 +80,20 @@ classdef pump
            end
        end
        
-       function writePumpDetails(obj,file)
+       function obj=writePumpDetails(obj,file)
            %Records the details contained in the pump object in the file
            %represented by the input file identifier. Must refer to a
            %valid, open text file. Used, eg., for writing details to a
-           %microscope experiment Acq file.
-           fprintf(file,'\r\n');
-           fprintf(file,[obj.pumpName ':,' num2str(obj.diameter) ','  num2str(obj.currentRate) ',' obj.direction ',' num2str(obj.running) ',' obj.contents]); 
-           fprintf(file,'\r\n');
+           %microscope experiment Acq file.         
+           fprintf(file,'Pump name, Diameter, Current rate, Direction, Running, Contents\n');
+           fprintf(file,'%9s, %8.2f, %12.2f, %9s, %7u, %s\n',...
+        obj.pumpName, ...
+        obj.diameter, ...
+        obj.currentRate, ...
+        obj.direction, ...
+        obj.running, ...
+        obj.contents);
+           
 
        end
        
@@ -120,7 +126,47 @@ classdef pump
                %open command - to allow the software to run.
                obj.serial='Pump open';
            end
-        end
+       end
+       function reply=returnRate(obj)
+           %Queries the pump to return the rate at which it is pumping.
+           %This can be eg, written to the log file, or used to detect
+           %pumping errors such as a stall
+           %reply is a string, normally 'OOI*flowrate*UM', where flowrate
+           %is the flow rate the pump is set at and UM is the units, in
+           %this case microlitres/min
+           %If the pump is in an error state (eg stalled) it will return:
+           %  ' OOA?S'
+           fprintf(obj.serial,'RAT');
+           reply=fscanf(obj.serial);
+       end
+       function [obj warnings]=refreshPumpDetails(obj)
+           disp('Getting pump status, please wait...');
+           warnings='';
+           %Queries the pump to set the correct values for all of the pump object properties
+           %First 4 characters are always:
+           % ' 00W' - pump is running
+           % ' 00P' - paused (not running)
+           % ' 00A?S - stalled
+           %Diameter
+           fprintf(obj.serial,'DIA');
+           reply=fscanf(obj.serial);
+           reply=textscan(reply,'%4s%f');
+           obj.diameter=str2double(reply(5:end-1));
+           %Rate
+           fprintf(obj.serial,'RAT');
+           reply=fscanf(obj.serial);
+           reply=textscan(reply,'%4s%f');
+           obj.currentRate=reply{2};
+           %Direction
+           fprintf(p2.serial,'DIR');
+           reply=fscanf(p2.serial);
+           if ~isempty(strfind(reply,'INF'))
+                obj.direction='INF';
+           end
+           if ~isempty(strfind(reply,'WDR'))
+                obj.direction='WDR';
+           end
+      end
    end
    methods (Static)
         function diameter=getDiameter(volString) 

@@ -5,6 +5,79 @@
 
 function [acqData]=loadAcquisition(filename)
 fid=fopen(filename);
+currentState='';
+currentLine=fgetl(fid);
+counter=1;
+while currentLine~=-1
+   if strcmp(currentLine,'Channels:')
+       currentState='Channels';
+       fgetl(fid);%To skip the heading line
+       currentLine=fgetl(fid);
+       counter=1;
+       continue;
+   end
+   
+   if strcmp(currentLine,'Z_sectioning:')
+       currentState='Z sectioning';
+       currentLine=fgetl(fid);
+   end
+   
+    if strcmp(currentLine,'Time_settings:')
+       currentState='Time settings';
+       currentLine=fgetl(fid);
+   end
+   if strcmp(currentLine,'Points:')
+       currentState='Points';
+       currentLine=fgetl(fid);      
+   end
+   if strcmp('currentLine','Flow_control:'
+       currentState='Flow';
+       currentLine=fgetl(fid);
+   end
+     
+   switch currentState
+       case 'Channels'
+           chanCell=textscan(currentLine,'%12s%13u%4u%7u%10u%11u%7u%7.3f\n','Delimiter',{', '});
+           chanCell{1}=char(chanCell{1});
+           acqData.channels(counter,:)=chanCell;
+           counter=counter+1;
+       case 'Z sectioning'
+           zVect=textscan(currentLine,'%2f%2.3f\n','Delimiter',{','});
+           zVect=cell2mat(zVect);
+           acqData.z=zVect;
+       case 'Time settings'
+           tVect=textscan(currentLine,'%u%u%u%u\n','Delimiter',{','});
+           tVect=cell2mat(tVect);
+           acqData.t=tVect;
+       case 'Points'
+           acqData.points={};
+           done=false;%Keep track of whether all points have yet been read
+           while ~done
+               currentLine=fgetl(fid);
+               if isempty(currentLine)
+                   done=true;
+               else
+                   currentLine=textscan(currentLine,'%s','Delimiter',',');
+                   currentLine=currentLine{:};
+                   acqData.points{size(acqData.points,1)+1,1}=currentLine{1};
+                   acqData.points{size(acqData.points,1),2}=str2double(currentLine{2});
+                   acqData.points{size(acqData.points,1),3}=str2double(currentLine{3});
+                   acqData.points{size(acqData.points,1),4}=str2double(currentLine{4});
+                   acqData.points{size(acqData.points,1),5}=str2double(currentLine{5});
+                   acqData.points{size(acqData.points,1),6}=str2double(currentLine{6});
+                   for channel=1:size(acqData.channels,1)
+                       %Exposure for each channel:
+                       acqData.points{size(acqData.points,1),6+channel}=currentLine{6+channel};
+                   end
+              end
+           end
+       case 'Flow'
+  
+           
+   end
+   
+currentLine=fgetl(fid);
+end
 rawdata = textscan(fid,'%s');
 rawdata=rawdata{:};
 channelPlace = strmatch('Channels:',rawdata);
