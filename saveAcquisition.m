@@ -15,43 +15,37 @@ acqFile=fopen(acqFileName,'wt');
 %Channels
 fprintf(acqFile,'%s','Channels:');
 nChannels=size(acqData.channels,1);%number of channels
-fprintf(acqFile,'\r\n');
+fprintf(acqFile,'\n');
+fprintf(acqFile,'Channel name, Exposure time, Skip, Z sect., Start time, Camera mode, EM gain, Voltage\n');
 for n=1:nChannels
-   fprintf(acqFile,'%s',char(acqData.channels(n,1)));%1. channel name
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%d',cell2mat(acqData.channels(n,2)));%2. exposure time in ms
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%d',cell2mat(acqData.channels(n,3)));%3. exposure by point 1 or 0
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%d',cell2mat(acqData.channels(n,4)));%4. use z sectioning 1 or 0
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%f',cell2mat(acqData.channels(n,5)));%5. z offset in microns
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%d',cell2mat(acqData.channels(n,6)));%6. Camera mode (1 or 2)
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%f',cell2mat(acqData.channels(n,7)));%7. Starting EM gain
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%f',cell2mat(acqData.channels(n,8)));%8. Starting EPG
-   fprintf(acqFile,'\r\n');
+    fprintf(acqFile,'%12s, %13u, %4u, %7u, %10u, %11u, %7u, %7.3f\n',...
+        char(acqData.channels(n,1)), ... 1. channel name
+        cell2mat(acqData.channels(n,2)), ... 2. exposure time in ms
+        cell2mat(acqData.channels(n,3)),... 3. skip number
+        cell2mat(acqData.channels(n,4)), ... 4. use z sectioning 1 or 0
+        cell2mat(acqData.channels(n,5)),... 5. starting timepoint
+        cell2mat(acqData.channels(n,6)),... 6. Camera mode (1, 2 or 3)
+        cell2mat(acqData.channels(n,7)),... 7. Starting EM gain
+        cell2mat(acqData.channels(n,8)));%8. LED voltage
 end
 %Z sectioning
 fprintf(acqFile,'%s','Z_sectioning:');
-fprintf(acqFile,'\r\n');
+fprintf(acqFile,'\n');
 fprintf(acqFile,'%d',acqData.z(1));%number of sections (integer)
 fprintf(acqFile,'%s',',');
 fprintf(acqFile,'%f',acqData.z(2));%section spacing (microns)
-fprintf(acqFile,'\r\n');
+fprintf(acqFile,'\n');
 if size(acqData.z)>2
     fprintf(acqFile,'%f',acqData.z(3));%PFS on (1 or 0)
-    fprintf(acqFile,'\r\n');
+    fprintf(acqFile,'\n');
 end
 if size(acqData.z)>3
     fprintf(acqFile,'%f',acqData.z(4));%AnyZ
-    fprintf(acqFile,'\r\n');
+    fprintf(acqFile,'\n');
 end
 if size(acqData.z)>4
     fprintf(acqFile,'%f',acqData.z(5));%Check PFS after moving stage
-    fprintf(acqFile,'\r\n');
+    fprintf(acqFile,'\n');
 end
 
 
@@ -61,44 +55,32 @@ end
 
 %timelapse settings
 fprintf(acqFile,'%s','Time_settings:');
-fprintf(acqFile,'\r\n');
-fprintf(acqFile,'%d',acqData.time(1));%use timelapse (1 or 0)
+fprintf(acqFile,'\n');
+fprintf(acqFile,'%u',acqData.time(1));%use timelapse (1 or 0)
 fprintf(acqFile,'%s',',');
-fprintf(acqFile,'%f',acqData.time(2));%interval in s
+fprintf(acqFile,'%u',acqData.time(2));%interval in s
 fprintf(acqFile,'%s',',');
-fprintf(acqFile,'%d',acqData.time(3));%number of time points
+fprintf(acqFile,'%u',acqData.time(3));%number of time points
 fprintf(acqFile,'%s',',');
-fprintf(acqFile,'%d',acqData.time(4));%total time in s
-fprintf(acqFile,'\r\n');
+fprintf(acqFile,'%u',acqData.time(4));%total time in s
+fprintf(acqFile,'\n');
 %Points to visit
-fprintf(acqFile,'%s','Points:');%need to check if any point visiting with an
+fprintf(acqFile,'Points:\n');%need to check if any point visiting with an
 %if statement
 pointSize=size(acqData.points);
 nPoints=pointSize(1);
-if nPoints~=0
-    for n=1:nPoints
-        fprintf(acqFile,'\r\n');
-   fprintf(acqFile,'%s',char(acqData.points(n,1)));%position name
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%f',cell2mat(acqData.points(n,2)));%x stage position(microns)
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%f',cell2mat(acqData.points(n,3)));%y stage position (microns)
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%f',cell2mat(acqData.points(n,4)));%z drive position (microns)
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%f',cell2mat(acqData.points(n,5)));%PFS offset position (microns)
-   fprintf(acqFile,'%s',',');
-   fprintf(acqFile,'%f',cell2mat(acqData.points(n,6)));%exposure time for expose by point (ms)
-   end
+if nPoints>0
+    savePoints(acqData,acqFile);
 end
 
 %Flow control
-fprintf(acqFile,'\r\n');
+fprintf(acqFile,'\n');
 fprintf(acqFile,'%s','Flow_control:');
-fprintf(acqFile,'\r\n');
+fprintf(acqFile,'\n');
 
 %Call functions to write details from the pump and flowChanges objects
 fprintf(acqFile,'%s',['Syringe pump details: ' num2str(length(acqData.flow{4})) ' pumps.']);
+fprintf(acqFile,'\r\nPump states at beginning of experiment:\r\n');
 for n=1:length(acqData.flow{4})
     acqData.flow{4}(n).writePumpDetails(acqFile);
 end

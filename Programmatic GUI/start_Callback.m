@@ -22,11 +22,11 @@ if ~handles.descriptionWritten
    enterDetails_Callback(handles.gui);
    handles.descriptionWritten=true;
 end
-
-if ~handles.tagsChanged
-    disp('Please annotate your experiment with Omero tags');
-    OmeroTags_Callback(handles.gui);
-end
+% 
+% if ~handles.tagsChanged
+%     disp('Please annotate your experiment with Omero tags');
+%     OmeroTags_Callback(handles.gui);
+% end
 
 %Then - display a modal dialog box showing the experimental settings with a
 %click to continue or return

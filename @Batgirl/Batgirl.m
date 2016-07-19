@@ -4,7 +4,7 @@ classdef Batgirl<Microscope
             obj.Name='Batgirl';
             obj.nameImage=imread('Batgirl.jpg');
             user=returnUserName;
-            if any(strcmp(user,{'Elco','Ivan'}))
+            if any(strcmp(user,{'Elco'}))
                 obj.Config='C:\Micromanager config files\Batgirl06_04_16Elco.txt';
             else
                 obj.Config='C:\Micromanager config files\Batgirl11_9_15pHluorin.cfg';
@@ -16,7 +16,7 @@ classdef Batgirl<Microscope
             obj.pumpComs(1).baud=19200;
             obj.pumpComs(2).baud=19200;
             obj.OmeroInfoPath='C:/AcquisitionDataBatgirl/Swain Lab/Ivan/software in progress/omeroinfo_donottouch/';
-            obj.OmeroCodePath='C:/OmeroCode';
+            obj.OmeroCodePath='C:/Omero';
             obj.DataPath='D:/AcquisitionDataBatgirl';
             obj.XYStage='XYStage';
             obj.ZStage='TIZDrive';
