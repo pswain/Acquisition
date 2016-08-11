@@ -334,31 +334,29 @@ classdef flowChanges
             %represented by the input file identifier. Must refer to a
             %valid, open text file. Used, eg., for writing details to a
             %microscope experiment Acq file.
-            fprintf(file,'\r\n');
-            fprintf(file,'Dynamic flow details:');
-            fprintf(file,'\r\n');
-            fprintf(file,['Number of pump changes:' num2str(obj.numChanges)]);
-            fprintf(file,'\r\n');
-            fprintf(file,['Switching parameters:' num2str(obj.switchParams.withdrawVol) ',' num2str(obj.switchParams.rate)]);
-            fprintf(file,'\r\n');
+            fprintf(file,'\n');
+            fprintf(file,'Dynamic flow details:\n');
+            fprintf(file,['Number of pump changes:\n' num2str(obj.numChanges)]);
+            fprintf(file,'\n');
+            fprintf(file,['Switching parameters:\n' num2str(obj.switchParams.withdrawVol) ',' num2str(obj.switchParams.rate)]);
+            fprintf(file,'\n');
             timeString=obj.makeString(obj.times);
-            fprintf(file,['Times:' timeString]);
-            fprintf(file,'\r\n');
-            fprintf(file,'Pump names:');
+            fprintf(file,['Times:\n' timeString]);
+            fprintf(file,'\n');
+            fprintf(file,'Pump names:\n');
             for n=1:length(obj.pumps)
                 if n>1 fprintf(file,','); end
                 fprintf(file, obj.pumps{n}.pumpName);
             end
-            fprintf(file,'\r\n');
+            fprintf(file,'\n');
             switchedToString=obj.makeString(obj.switchedTo);
-            fprintf(file,['Switched to:' switchedToString]);
-            fprintf(file,'\r\n');
+            fprintf(file,['Switched to:\n' switchedToString]);
+            fprintf(file,'\n');
             switchedFromString=obj.makeString(obj.switchedFrom);
-            fprintf(file,['Switched from:' switchedFromString]);
-            fprintf(file,'\r\n');
-            fprintf(file,['Flow post switch:']);
+            fprintf(file,['Switched from:\n' switchedFromString]);
+            fprintf(file,'\n');
+            fprintf(file,['Flow post switch:\n']);
             for n=1:size(obj.flowPostSwitch,1)
-                fprintf(file,'\r\n');
                 fprintf(file, obj.makeString(obj.flowPostSwitch(n,:)));
             end
         end

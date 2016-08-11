@@ -8,7 +8,7 @@ fid=fopen(filename);
 currentState='';
 currentLine=fgetl(fid);
 counter=1;
-while currentLine~=-1
+while ischar(currentLine)
    if strcmp(currentLine,'Channels:')
        currentState='Channels';
        fgetl(fid);%To skip the heading line
@@ -16,7 +16,6 @@ while currentLine~=-1
        counter=1;
        continue;
    end
-   
    if strcmp(currentLine,'Z_sectioning:')
        currentState='Z sectioning';
        currentLine=fgetl(fid);
@@ -30,25 +29,33 @@ while currentLine~=-1
        currentState='Points';
        currentLine=fgetl(fid);      
    end
-   if strcmp('currentLine','Flow_control:'
-       currentState='Flow';
+   if strcmp(currentLine,'Flow_control:')
+       currentState='Pumps';
        currentLine=fgetl(fid);
    end
-     
+   if strcmp(currentLine,'Dynamic flow details:')
+       currentState='Dynamic flow';
+       currentLine=fgetl(fid);      
+   end
+   
+   
    switch currentState
        case 'Channels'
            chanCell=textscan(currentLine,'%12s%13u%4u%7u%10u%11u%7u%7.3f\n','Delimiter',{', '});
            chanCell{1}=char(chanCell{1});
            acqData.channels(counter,:)=chanCell;
            counter=counter+1;
+           currentState='None';
        case 'Z sectioning'
            zVect=textscan(currentLine,'%2f%2.3f\n','Delimiter',{','});
            zVect=cell2mat(zVect);
            acqData.z=zVect;
+           currentState='None';
        case 'Time settings'
            tVect=textscan(currentLine,'%u%u%u%u\n','Delimiter',{','});
            tVect=cell2mat(tVect);
            acqData.t=tVect;
+           currentState='None';
        case 'Points'
            acqData.points={};
            done=false;%Keep track of whether all points have yet been read
@@ -71,12 +78,79 @@ while currentLine~=-1
                    end
               end
            end
-       case 'Flow'
-  
+           currentState='None';
+       case 'Pumps'
+           %Get number of pumps (currentLine is eg 'Syringe pump details: 2 pumps.')
+           numPumps=str2double(currentLine(23:end-7));
+           %Move through the next 3 lines which have no data
+           currentLine=fgetl(fid);currentLine=fgetl(fid);currentLine=fgetl(fid);currentLine=fgetl(fid);
+           microscope=chooseScope;
            
+           for p=1:numPumps
+               currentLine=fgetl(fid);
+               currentLine=textscan(currentLine,'%9s%8.2f%12.2f%9s%7u%s\n','Delimiter',{','});
+               pumpName=char(currentLine{1});
+               BR=microscope.pumpComs(p).baud;
+               diameter=currentLine{2};
+               currentRate=currentLine{3};
+               direction=char(currentLine{4});
+               running=currentLine{5};
+               contents=char(currentLine{6});
+               pumpArray(p)=pump(pumpName,BR,diameter, currentRate, direction, running, contents);
+           end
+           acqData.flow{4}=pumpArray;
+           currentState='None';
+       case 'Dynamic flow'
+           dynamicFlow=flowChanges(pumpArray);
+           flowState='';
+           done=false;
+           while ~done
+               if strcmp(currentLine,'Number of pump changes:')
+                   flowState='Number';
+                   currentLine=fgetl(fid);
+               end
+               if strcmp(currentLine,'Switching parameters:')
+                   flowState='Params';
+                   currentLine=fgetl(fid);
+               end
+               if strcmp(currentLine,'Times:')
+                   flowState='Times';
+                   currentLine=fgetl(fid);
+
+               end
+               if strcmp(currentLine,'Switched to:')
+                   flowState='Switched to';
+               end
+               if strcmp(currentLine,'Switched from:')
+                   flowState='Switched from';
+               end
+               if strcmp(currentLine,'Flow post switch:')
+                   flowState='Flow post switch';
+               end
+
+               switch flowState 
+                   case 'Number'
+                       dynamicFlow.numChanges=str2double(currentLine);
+                   case 'Params'
+                       currentLine=textscan(currentLine,'%f%f','Delimiter',{','});
+                       dynamicFlow.switchParams.withdrawVol=currentLine{1};
+                       dynamicFlow.switchParams.rate=currentLine{2};
+                   case 'Times'
+                       
+                   case 'Switched to'
+                   case 'Switched from:'
+                   case 'Flow post switch'                  
+                        done=true;
+               end
+               currentLine=fgetl(fid);
+           end
+           
+           
+           acqData.flow{5}=dynamicFlow;
    end
    
 currentLine=fgetl(fid);
+
 end
 rawdata = textscan(fid,'%s');
 rawdata=rawdata{:};
@@ -177,6 +251,7 @@ pumpLine=strncmp('Syringe pump details: ',rawdata,22);
 split=textscan(rawdata{pumpLine},'%s','Delimiter',' ');
 split=split{:};
 nPumps=str2num(split{4});
+microscope=chooseScope;
 %Load the pumps
 for n=1:nPumps
     if n==1
@@ -184,8 +259,8 @@ for n=1:nPumps
     else
         pumpN=pump(['Aladdin' num2str(n)]);;
     end
-    pumpN.loadPumpDetails(fid);
-    acqData.flow{4}(n)=pumpN;
+    pump.loadPumpDetails(fid);
+    acqData.flow{4}(n)=pump;
 end
 
 %Load dynamic flow object:

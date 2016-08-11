@@ -77,14 +77,13 @@ end
 fprintf(acqFile,'\n');
 fprintf(acqFile,'%s','Flow_control:');
 fprintf(acqFile,'\n');
-
 %Call functions to write details from the pump and flowChanges objects
 fprintf(acqFile,'%s',['Syringe pump details: ' num2str(length(acqData.flow{4})) ' pumps.']);
 fprintf(acqFile,'\r\nPump states at beginning of experiment:\r\n');
+fprintf(acqFile,'Pump port, Diameter, Current rate, Direction, Running, Contents\n');
 for n=1:length(acqData.flow{4})
     acqData.flow{4}(n).writePumpDetails(acqFile);
 end
-fprintf(acqFile,'%s','Dynamic flow details:');
 acqData.flow{5}.writeChangeDetails(acqFile);
 fclose(acqFile);
 
