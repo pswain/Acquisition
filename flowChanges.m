@@ -134,7 +134,7 @@ classdef flowChanges
             %Checks if switching should occur at the input time and does the
             %switching
             %Inputs:
-            %obj = object of class switches
+            %obj = object of class flowChanges
             %currTime = double, time in minutes
             %logFile = double, identifier of the log file
             global mmc;
@@ -230,33 +230,45 @@ classdef flowChanges
             %the units to nl on that pump - will be a disaster if someone
             %does this...
             
+            %Determine which switch is being performed - this will
+            %determine the switching parameters. It's the first zero entry
+            %in obj.switched.
+            thisSwitch=find(obj.switched==0, 1);
+            
             %Correct volume for units on pump1(obj.switchParams.withdrawVol
             %is in ul)
             switch obj.pumps{1}.model
                 case 'AL-1000'
                     if obj.pumps{1}.diameter>=14.4
                         %Pump volume units will be ml.
-                        wVol1=num2str(obj.switchParams.withdrawVol/1e3);
+                        wVol1=num2str(obj.switchParams.withdrawVol(thisSwitch)/1e3);
                     else
-                        wVol1=num2str(obj.switchParams.withdrawVol);
+                        wVol1=num2str(obj.switchParams.withdrawVol(thisSwitch));
                     end
                 case 'AL-1002X'
-                    wVol1=num2str(obj.switchParams.withdrawVol);
+                    wVol1=num2str(obj.switchParams.withdrawVol(thisSwitch));
             end
+            
+            
+            
             
             switch obj.pumps{2}.model
                 case 'AL-1000'
                     if obj.pumps{2}.diameter>=14.4
                         %Pump volume units will be ml.
-                        wVol2=num2str(obj.switchParams.withdrawVol/1e3);
+                        wVol2=num2str(obj.switchParams.withdrawVol(thisSwitch)/1e3);
                     else
-                        wVol2=num2str(obj.switchParams.withdrawVol);
+                        wVol2=num2str(obj.switchParams.withdrawVol(thisSwitch));
                     end
                 case 'AL-1002X'
-                    wVol2=num2str(obj.switchParams.withdrawVol);
+                    wVol2=num2str(obj.switchParams.withdrawVol(thisSwitch));
             end
             
+            
+            
             %Determine the high and low post-switch flow rates
+            %At some point the next two lines could be changed to read
+            %obj.flowPostSwitch(1or2,thisSwitch). This would allow different post-switch flow rates to be used for each of the switching events 
             [fastFlowRate,~] = max(abs(obj.flowPostSwitch(:)));
             [slowFlowRate,slowIndex] = min(abs(obj.flowPostSwitch(:)));
             %The direction of the slow pump can be withdraw - for mixer
@@ -282,7 +294,7 @@ classdef flowChanges
                     overallPostSwitchFlowRate = ...
                         str2double(fastFlowRate) + str2double(slowFlowRate);
             end
-            switchParamRate = obj.switchParams.rate;
+            switchParamRate = obj.switchParams.rate(thisSwitch);
             switchToFlowRate =  switchParamRate + overallPostSwitchFlowRate;
             switchFromFlowRate = switchParamRate;
             switchToVol1 = sprintf('%u',round(str2double(wVol1) * switchToFlowRate/switchParamRate));
@@ -324,9 +336,13 @@ classdef flowChanges
             %runs user dialogue to determine the parameters for switching.
             defaults={'50','100'};
             answers=inputdlg({'Volume for fast pumping stage of switch (ul)','Flow rate for fast pumping stage of switch (ul/min)'},'Switching parameters',1,defaults);
-            obj.switchParams.withdrawVol=str2num(answers{1});
-            obj.switchParams.rate=str2num(answers{2});
-            
+            obj.switchParams.withdrawVol=str2double(answers{1});
+            obj.switchParams.rate=str2double(answers{2});
+            %This dialog asks for a single pair of parameters. The
+            %following lines copy those numbers so that the same parameters
+            %are used for each switch            
+            obj.switchParams.withdrawVol=repmat(str2double(answers{1}),[1,length(obj.times)]);
+            obj.switchParams.rate=repmat(str2double(answers{2}),[1,length(obj.times)]);          
         end
         
         function writeChangeDetails(obj,file)

@@ -258,4 +258,14 @@ if dispFlowChanges
     handles.acquisition.flow{5}.displayFlowChanges;
 end
 
+%Set the switchParams array
+%Needs to have an entry for each switch - this is to allow different
+%parameters to be used for each switch if required.
+%Here all entries are set to be identical - equal to the first entry in the
+%existing array
+withdrawVol=handles.acquisition.flow{5}.switchParams.withdrawVol(1);
+rate=handles.acquisition.flow{5}.switchParams.rate(1);
+handles.acquisition.flow{5}.switchParams.withdrawVol=repmat(withdrawVol,[1,length(handles.acquisition.flow{5}.times)]);
+handles.acquisition.flow{5}.switchParams.rate=repmat(rate,[1,length(handles.acquisition.flow{5}.times)]);
+
 guidata(hObject, handles)
