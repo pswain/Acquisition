@@ -354,16 +354,14 @@ classdef flowChanges
             fprintf(file,'Dynamic flow details:\n');
             fprintf(file,['Number of pump changes:\n' num2str(obj.numChanges)]);
             fprintf(file,'\n');
-            fprintf(file,['Switching parameters:\n' num2str(obj.switchParams.withdrawVol) ',' num2str(obj.switchParams.rate)]);
+            fprintf(file,'Switching parameters:\n');
+            fprintf(file,'Infuse/withdraw volumes:\n');
+            fprintf(file,[obj.makeString(obj.switchParams.withdrawVol) '\n']);
+            fprintf(file,'Infuse/withdraw rates:\n');
+            fprintf(file,obj.makeString(obj.switchParams.rate));
             fprintf(file,'\n');
             timeString=obj.makeString(obj.times);
-            fprintf(file,['Times:\n' timeString]);
-            fprintf(file,'\n');
-            fprintf(file,'Pump names:\n');
-            for n=1:length(obj.pumps)
-                if n>1 fprintf(file,','); end
-                fprintf(file, obj.pumps{n}.pumpName);
-            end
+            fprintf(file,['Times:\n' timeString]);          
             fprintf(file,'\n');
             switchedToString=obj.makeString(obj.switchedTo);
             fprintf(file,['Switched to:\n' switchedToString]);
@@ -374,65 +372,11 @@ classdef flowChanges
             fprintf(file,['Flow post switch:\n']);
             for n=1:size(obj.flowPostSwitch,1)
                 fprintf(file, obj.makeString(obj.flowPostSwitch(n,:)));
+                fprintf(file,'\n');
+
             end
         end
-        
-        function obj=loadChangeDetails(obj,file)
-            %Reads the details for a flowChanges object from the input
-            %file identifier , which should refer to file in which details
-            %have been written by the writeChangeDetails method.
-            rawdata = textscan(file,'%s','Delimiter','\n');
-            rawdata=rawdata{:};
-            
-            numLine=strncmp('Number of pump changes:',rawdata,23);
-            obj.numChanges=str2num(rawdata{numLine}(24:end));
-            
-            paramLine=strncmp('Switching parameters:',rawdata,21);paramLine=find(paramLine);paramLine=paramLine(end);
-            params=textscan(rawdata{paramLine},'%s','Delimiter',',');
-            params{1}=strrep(params{1},'Switching parameters:','');
-            params=params{1};
-            params=str2double(params);
-            obj.switchParams.withdrawVol=params(1);
-            obj.switchParams.rate=params(2);
-            
-            timesLine=strncmp('Times:',rawdata,6);timesLine=find(timesLine);timesLine=timesLine(end);
-            times=textscan(rawdata{timesLine},'%s','Delimiter',',');
-            times{1}=strrep(times{1},'Times:','');
-            times=times{1};
-            times=str2double(times);
-            obj.times=times';
-            
-            %Pumps created using the pump class - should be assigned to the
-            %flowChanges object.pumps elsewhere
-            
-            switchedToLine=strncmp('Switched to:',rawdata,12);switchedToLine=find(switchedToLine);switchedToLine=switchedToLine(end);
-            switchedTo=textscan(rawdata{switchedToLine},'%s','Delimiter',',');
-            switchedTo{1}=strrep(switchedTo{1},'Switched to:','');
-            switchedTo=switchedTo{1};
-            switchedTo=str2double(switchedTo);
-            obj.switchedTo=switchedTo';
-            
-            switchedFromLine=strncmp('Switched from:',rawdata,14);switchedFromLine=find(switchedFromLine);switchedFromLine=switchedFromLine(end);
-            switchedFrom=textscan(rawdata{switchedFromLine},'%s','Delimiter',',');
-            switchedFrom{1}=strrep(switchedFrom{1},'Switched from:','');
-            switchedFrom=switchedFrom{1};
-            switchedFrom=str2double(switchedFrom);
-            obj.switchedFrom=switchedFrom';
-            
-            flowPostLine=strncmp('Flow post switch:',rawdata,17);flowPostLine=find(flowPostLine);flowPostLine=flowPostLine(end)
-            pump1=textscan(rawdata{flowPostLine+1},'%s','Delimiter',',');
-            pump1{1}=strrep(pump1{1},'Flow post switch:','');
-            pump1=pump1{1};
-            pump1=str2double(pump1);
-            obj.flowPostSwitch=pump1';
-            
-            pump2=textscan(rawdata{flowPostLine+2},'%s','Delimiter',',');
-            pump2{1}=strrep(pump2{1},'Flow post switch:','');
-            pump2=pump2{1};
-            pump2=str2double(pump2);
-            obj.flowPostSwitch(2,:)=pump2';
-        end
-        
+               
         function obj=displayFlowChanges(obj)
             %Displays the information contained in the object - should allow
             %the user to check if things are correctly set up

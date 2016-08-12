@@ -1,5 +1,4 @@
 classdef Batman<Microscope
-    
     methods
         function obj=Batman
             obj.Name='Batman';
@@ -16,6 +15,15 @@ classdef Batman<Microscope
             obj.DataPath='D:/AcquisitionDataBatman';
             obj.XYStage='XYStage';
             obj.ZStage='TIZDrive';
+            obj.BrightnessControls(1).chName='DIC';
+            obj.BrightnessControls(1).device='';%Cannot control the brightness of this channel on Batman
+            obj.BrightnessControls(1).property='';
+            obj.BrightnessControls(1).chName='Brightfield';
+            obj.BrightnessControls(1).device='';%Cannot control the brightness of this channel on Batman
+            obj.BrightnessControls(1).property='';
+            %Remaining channels need to be defined - need access to Batman
+            %config file
+
         end
     end
     

@@ -15,12 +15,7 @@ else
     defaultPath=handles.acquisition.microscope.DataPath;
 end
 [filename,pathname]=uigetfile('*.txt','Choose acquisition settings file',defaultPath);
-handles.acquisition=loadAcquisition(strcat(pathname,filename));
-%need to initialise the experimental info here - not loaded from the
-%acquisition file
-user=getenv('USERNAME');
-root=makeRoot(user, handles.acquisition.microscope);%this provides a root directory based on the name and date
-handles.acquisition.info={'exp' user root 'Aim:   Strain:  Comments:'};%Initialise the experimental info - exp name and details may be altered later when refreshGUI is called but root and user stay the same
+handles.acquisition=loadAcquisition(handles.acquisition,strcat(pathname,filename));
 
 %then import the data from the handles.acquisition structure into the GUI:
 refreshGUI(handles);

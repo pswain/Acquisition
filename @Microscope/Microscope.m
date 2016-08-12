@@ -21,6 +21,7 @@ classdef (Abstract) Microscope<handle
         ImageSize;
         pinchComPort %com port for the pinch valve relays
     end
+  
     
     methods (Abstract)
         initializeScope(obj);

@@ -1,5 +1,7 @@
 classdef Robin<Microscope
-    
+    properties (Constant)
+        BrightnessControls=struct('BrightField',struct('device','','property',''),'GFP',struct('device','','property',''));           
+    end
     methods 
         function obj=Robin
             obj.Name='Robin';

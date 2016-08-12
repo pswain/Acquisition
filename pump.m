@@ -66,13 +66,14 @@ classdef pump
            %             mmc.setProperty((obj.pumpName),'Volume-uL',num2str(0));%Zero volume = pump indefinitely
            %             mmc.setProperty((obj.pumpName),'Direction',obj.direction);
            %             mmc.setProperty((obj.pumpName),'Run',num2str(obj.running));
-           
+           disp(['Setting pump ' obj.pumpName '...']);
            fprintf(obj.serial,'STP');pause(.1);
            fprintf(obj.serial,['DIA' num2str(obj.diameter)]);pause(.1);
-           
+           disp(['Diameter' num2str(obj.diameter)]);
            fprintf(obj.serial,'PHN1');pause(.1);
            fprintf(obj.serial,'FUNRAT');pause(.1);
            fprintf(obj.serial,['RAT' num2str(obj.currentRate) 'UM']);pause(.1);
+           disp(['Rate' num2str(obj.currentRate)]);
            fprintf(obj.serial,'VOL0');pause(.1);
            fprintf(obj.serial,['DIR' obj.direction]);pause(.1);
            if obj.running
@@ -142,33 +143,41 @@ classdef pump
            reply=fscanf(obj.serial);
        end
        function [obj warnings]=refreshPumpDetails(obj)
-           disp('Getting pump status, please wait...');
+           disp(['Getting pump status for ' obj.pumpName '. Please wait...']);
            warnings='';
            %Queries the pump to set the correct values for all of the pump object properties
            %First 4 characters are always:
            % ' 00W' - pump is running
            % ' 00P' - paused (not running)
            % ' 00A?S - stalled
+           %Error messages and warnings should be added to this function -
+           %now only works for pumps that are switched on, connected and not stalled.
            %Diameter
            fprintf(obj.serial,'DIA');
            reply=fscanf(obj.serial);
            reply=textscan(reply,'%4s%f');
            obj.diameter=str2double(reply(5:end-1));
-           %Rate
+           %Rate (and running or not)
            fprintf(obj.serial,'RAT');
            reply=fscanf(obj.serial);
            reply=textscan(reply,'%4s%f');
            obj.currentRate=reply{2};
+           pumpStatus=reply{1};
+           pumpStatus=pumpStatus{:};                    
+           obj.running=strcmp(pumpStatus(end),'W');
            %Direction
-           fprintf(p2.serial,'DIR');
-           reply=fscanf(p2.serial);
+           fprintf(obj.serial,'DIR');
+           reply=fscanf(obj.serial);
            if ~isempty(strfind(reply,'INF'))
                 obj.direction='INF';
            end
            if ~isempty(strfind(reply,'WDR'))
                 obj.direction='WDR';
            end
-      end
+       end
+      
+      
+       
    end
    methods (Static)
         function diameter=getDiameter(volString) 

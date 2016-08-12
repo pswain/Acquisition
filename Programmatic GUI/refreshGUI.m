@@ -15,193 +15,60 @@ if nChannels~=0
     set(handles.useCh5,'Value',0);
     set(handles.useCh6,'Value',0);
     set(handles.useCh7,'Value',0);
-    useDIC=0;
-    useCFP=0;
-    useGFP=0;
-    useYFP=0;
-    usemCh=0;
-    usetd=0;
-    usecy5=0;
-    
+ 
     for ch=1:nChannels
         chName=char(handles.acquisition.channels(ch,1));
-        switch chName
-            case 'DIC'
-                useDIC=1;%variable to check later if DIC is used
-                set(handles.expCh1,'Enable','on');
-                set(handles.useCh1,'Value',1);
-                set(handles.ZsectCh1,'Enable','on');
-                set(handles.starttpCh1,'Enable','on');
-                set(handles.cammodeCh1,'Enable','on');
-                set(handles.startgainCh1,'Enable','on');
-                set(handles.voltCh1,'Enable','on');
-                set(handles.expCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
-                set(handles.ZsectCh1,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-                set(handles.starttpCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-                set(handles.cammodeCh1,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-                set(handles.startgainCh1,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-                set(handles.voltCh1,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
-                
-                
-            case 'CFP'
-                useCFP=1;
-                set(handles.expCh2,'Enable','on');
-                set(handles.useCh2,'Value',1);
-                set(handles.ZsectCh2,'Enable','on');
-                set(handles.starttpCh2,'Enable','on');
-                set(handles.cammodeCh2,'Enable','on');
-                set(handles.startgainCh2,'Enable','on');
-                set(handles.voltCh2,'Enable','on');
-                set(handles.expCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
-                set(handles.ZsectCh2,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-                set(handles.starttpCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-                set(handles.cammodeCh2,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-                set(handles.startgainCh2,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-                set(handles.voltCh2,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
-            case 'GFP'
-                useGFP=1;
-                set(handles.expCh3,'Enable','on');
-                set(handles.useCh3,'Value',1);
-                set(handles.ZsectCh3,'Enable','on');
-                set(handles.starttpCh3,'Enable','on');
-                set(handles.cammodeCh3,'Enable','on');
-                set(handles.startgainCh3,'Enable','on');
-                set(handles.voltCh3,'Enable','on');
-                set(handles.expCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-                set(handles.ZsectCh3,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-                set(handles.starttpCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-                set(handles.cammodeCh3,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-                set(handles.startgainCh3,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-                set(handles.voltCh3,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
-            case 'YFP'
-                set(handles.expCh4,'Enable','on');
-                set(handles.useCh4,'Value',1);
-                set(handles.ZsectCh4,'Enable','on');
-                set(handles.starttpCh4,'Enable','on');
-                set(handles.cammodeCh4,'Enable','on');
-                set(handles.startgainCh4,'Enable','on');
-                set(handles.voltCh4,'Enable','on');
-                set(handles.expCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-                set(handles.ZsectCh4,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-                set(handles.starttpCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-                set(handles.cammodeCh4,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-                set(handles.startgainCh4,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-                set(handles.voltCh4,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
-            case 'mCherry'
-                set(handles.expCh5,'Enable','on');
-                set(handles.useCh5,'Value',1);
-                set(handles.skipCh5,'Enable','on');
-                set(handles.ZsectCh5,'Enable','on');
-                set(handles.starttpCh5,'Enable','on');
-                set(handles.cammodeCh5,'Enable','on');
-                set(handles.startgainCh5,'Enable','on');
-                set(handles.voltCh5,'Enable','on');
-                set(handles.expCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-                set(handles.ZsectCh5,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-                set(handles.starttpCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-                set(handles.cammodeCh5,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-                set(handles.startgainCh5,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-                set(handles.voltCh5,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
-            case 'tdTomato'
-                usetd=1;
-                set(handles.expCh6,'Enable','on');
-                set(handles.useCh6,'Value',1);
-                set(handles.tdskip,'Enable','on');
-                set(handles.ZsectCh6,'Enable','on');
-                set(handles.starttpCh6,'Enable','on');
-                set(handles.cammodeCh6,'Enable','on');
-                set(handles.startgainCh6,'Enable','on');
-                set(handles.voltCh6,'Enable','on');
-                set(handles.expCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-                set(handles.ZsectCh6,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-                set(handles.starttpCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-                set(handles.cammodeCh6,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-                set(handles.startgainCh6,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-                set(handles.voltCh6,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
-            case 'cy5'
-                usetd=1;
-                set(handles.expCh7,'Enable','on');
-                set(handles.useCh7,'Value',1);
-                set(handles.skipCh7,'Enable','on');
-                set(handles.ZsectCh7,'Enable','on');
-                set(handles.starttpCh7,'Enable','on');
-                set(handles.cammodeCh7,'Enable','on');
-                set(handles.startgainCh7,'Enable','on');
-                set(handles.voltCh7,'Enable','on');
-                set(handles.expCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,2))))
-                set(handles.ZsectCh7,'Value',cell2mat(handles.acquisition.channels(ch,4)));
-                set(handles.starttpCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
-                set(handles.cammodeCh7,'Value',cell2mat(handles.acquisition.channels(ch,6)));
-                set(handles.startgainCh7,'Value',cell2mat(handles.acquisition.channels(ch,7)));
-                set(handles.voltCh7,'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
-        end%end of channel name switch
+        %Need to work out which set of channel controls refers to this
+        %channel
+        for chControl=1:8
+           if strcmp(get(handles.(['useCh' num2str(chControl)]),'String'),chName)
+               chTagString=['Ch' num2str(chControl)];
+           end
+        end
+        set(handles.(['exp' chTagString]),'Enable','on');
+        set(handles.(['use' chTagString]),'Value',1);
+        set(handles.(['Zsect' chTagString]),'Enable','on');
+        set(handles.(['starttp' chTagString]),'Enable','on');
+        set(handles.(['skip' chTagString]),'Enable','on');
+        set(handles.(['snap' chTagString]),'Enable','on');
+        %Enable camera mode and gain control on microscopes with EM cameras
+        if ~strcmp(handles.acquisition.microscope.Name,'Robin')
+            set(handles.(['cammode' chTagString]),'Enable','on');
+            set(handles.(['startgain' chTagString]),'Enable','on');
+        end
+        %Enable volt control for channels in which brightness can
+        %be controlled
+        if ~isempty(handles.acquisition.microscope.BrightnessControls.(chName).device)
+            set(handles.(['volt' chTagString]),'Enable','on');
+        end
+        %Set values for the controls       
+        set(handles.(['exp' chTagString]),'String',num2str(cell2mat(handles.acquisition.channels(ch,2))));
+        set(handles.(['Zsect' chTagString]),'Value',cell2mat(handles.acquisition.channels(ch,4)));
+        set(handles.(['starttp' chTagString]),'String',num2str(cell2mat(handles.acquisition.channels(ch,5))));
+        set(handles.(['cammode' chTagString]),'Value',cell2mat(handles.acquisition.channels(ch,6)));
+        set(handles.(['startgain' chTagString]),'Value',cell2mat(handles.acquisition.channels(ch,7)));
+        set(handles.(['volt' chTagString]),'String',num2str(cell2mat(handles.acquisition.channels(ch,8))));
+        set(handles.(['skip' chTagString]),'String',num2str(cell2mat(handles.acquisition.channels(ch,3))));
     end%end of loop through the channels
 end%end of if statment - if number of channels isn't zero
 
-%if any channel is not used make sure all channel options are disabled
-if useDIC==0
-    set(handles.expCh1,'Enable','off');
-    set(handles.skipCh1,'Enable','off');
-    set(handles.ZsectCh1,'Enable','off');
-    set(handles.starttpCh1,'Enable','off');
-    set(handles.cammodeCh1,'Enable','off');
-    set(handles.startgainCh1,'Enable','off');
-    set(handles.voltCh1,'Enable','off');
+%if any channel is not used make sure all channel options are disabled and
+%the use button is unclicked
+if nChannels<8
+    for n=nChannels+1:8
+        set(handles.(['expCh' num2str(n)]),'Enable','off');
+        set(handles.(['skipCh' num2str(n)]),'Enable','off');
+        set(handles.(['ZsectCh' num2str(n)]),'Enable','off');
+        set(handles.(['starttpCh' num2str(n)]),'Enable','off');
+        set(handles.(['cammodeCh' num2str(n)]),'Enable','off');
+        set(handles.(['startgainCh' num2str(n)]),'Enable','off');
+        set(handles.(['voltCh'  num2str(n)]),'Enable','off');
+        set(handles.(['useCh'  num2str(n)]),'Value',0);
+        set(handles.(['snapCh'  num2str(n)]),'Enable','off');
+    end
 end
-if useCFP==0
-    set(handles.expCh2,'Enable','off');
-    set(handles.skipCh2,'Enable','off');
-    set(handles.ZsectCh2,'Enable','off');
-    set(handles.starttpCh2,'Enable','off');
-    set(handles.cammodeCh2,'Enable','off');
-    set(handles.startgainCh2,'Enable','off');
-    set(handles.voltCh2,'Enable','off');
-end
-if useGFP==0
-    set(handles.expCh3,'Enable','off');
-    set(handles.skipCh3,'Enable','off');
-    set(handles.ZsectCh3,'Enable','off');
-    set(handles.starttpCh3,'Enable','off');
-    set(handles.cammodeCh3,'Enable','off');
-    set(handles.startgainCh3,'Enable','off');
-    set(handles.voltCh3,'Enable','off');
-end
-if useYFP==0
-    set(handles.expCh4,'Enable','off');
-    set(handles.skipCh4,'Enable','off');
-    set(handles.ZsectCh4,'Enable','off');
-    set(handles.starttpCh4,'Enable','off');
-    set(handles.cammodeCh4,'Enable','off');
-    set(handles.startgainCh4,'Enable','off');
-    set(handles.voltCh4,'Enable','off');
-end
-if usemCh==0
-    set(handles.expCh5,'Enable','off');
-    set(handles.skipCh5,'Enable','off');
-    set(handles.ZsectCh5,'Enable','off');
-    set(handles.starttpCh5,'Enable','off');
-    set(handles.cammodeCh5,'Enable','off');
-    set(handles.startgainCh5,'Enable','off');
-    set(handles.voltCh5,'Enable','off');
-end
-if usetd==0
-    set(handles.expCh6,'Enable','off');
-    set(handles.skipCh6,'Enable','off');
-    set(handles.ZsectCh6,'Enable','off');
-    set(handles.starttpCh6,'Enable','off');
-    set(handles.cammodeCh6,'Enable','off');
-    set(handles.startgainCh6,'Enable','off');
-    set(handles.voltCh6,'Enable','off');
-end
-if usecy5==0
-    set(handles.expCh7,'Enable','off');
-    set(handles.skipCh7,'Enable','off');
-    set(handles.ZsectCh7,'Enable','off');
-    set(handles.starttpCh7,'Enable','off');
-    set(handles.cammodeCh7,'Enable','off');
-    set(handles.startgainCh7,'Enable','off');
-    set(handles.voltCh7,'Enable','off');
-end
+
+
 
 % Z settings - active only if at least one channel is doing z sectioning
 nSections=handles.acquisition.z(1);
@@ -261,16 +128,19 @@ else
 end
 
 
-%flow settings
-set(handles.contentsP1,'String',char(handles.acquisition.flow(1)));
-set(handles.contentsP2,'String',char(handles.acquisition.flow(2)));
-if cell2mat(handles.acquisition.flow(3))==1
-    set(handles.start1,'Value',1);
-    set(handles.start2,'Value',0);
-else
-    set(handles.start1,'Value',0);
-    set(handles.start2,'Value',1);
+%Flow settings
+%Update the gui controls
+for p=1:length(handles.acquisition.flow{4})
+    set(handles.(['contentsP' num2str(p)]),'String',char(handles.acquisition.flow{4}(p).contents));
+    set(handles.(['diameterP' num2str(p)]),'String',pump.getVolString(handles.acquisition.flow{4}(p).diameter));
+    set(handles.(['flowRateP' num2str(p)]),'String',num2str((handles.acquisition.flow{4}(p).currentRate)));
+%    set(handles.(['runP'
+%    num2str(p)]),'Value',num2str((handles.acquisition.flow{4}(p).running)));
+%    No point in doing this - would have to check if pump is running for it
+%    to make sense but that is slow.
 end
+
+
 %Experimental info
 set(handles.exptName,'String',char(handles.acquisition.info(1)));
 %user and root are set automatically in the start up script of the gui

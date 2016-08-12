@@ -24,8 +24,8 @@ for ch=1:length(presets)-1
         obj.Channels.(chName)(p).device=line{4};
         obj.Channels.(chName)(p).property=line{5};
         obj.Channels.(chName)(p).value=line{6};
-        
-        
+        %Record here the device and property to control the brightness of
+        %this device (ie the LED voltage) - this is listed in a 
     end
 end
 %Loop through the channels, defining the filters
