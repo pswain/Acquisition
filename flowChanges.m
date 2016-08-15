@@ -150,10 +150,8 @@ classdef flowChanges
                     %step
                 if obj.switchedTo(ind)>0
 
-                    if ind==1
-                        obj.setSwitchPhases;
-                    end
-                    logstring=['Switching pumps at ',datestr(clock) '. Fast infusion/withdrawal step: Rate=' num2str(obj.switchParams.rate) '. Volume=' num2str(obj.switchParams.withdrawVol)];acqData.logtext=writelog(logfile,'',logstring);
+                    obj.setSwitchPhases;
+                    logstring=['Switching pumps at ',datestr(clock) '. Fast infusion/withdrawal step: Rate=' num2str(obj.switchParams.rate(ind)) '. Volume=' num2str(obj.switchParams.withdrawVol(ind))];acqData.logtext=writelog(logfile,'',logstring);
                     obj.switchFast(ind);
                     obj.switched(ind)=true;
                     obj.timesSwitched(ind)=currTime;
@@ -224,17 +222,22 @@ classdef flowChanges
             p1=obj.pumps{1}.serial;
             p2=obj.pumps{2}.serial;
             
-            %The next part is necessary because NE100 pumps pumps switch
-            %their vol units from ul to ml if using 10ml syringes (diam 14.43)
-            %or bigger. You can manually change
-            %the units to nl on that pump - will be a disaster if someone
-            %does this...
-            
             %Determine which switch is being performed - this will
             %determine the switching parameters. It's the first zero entry
             %in obj.switched.
             thisSwitch=find(obj.switched==0, 1);
             
+            %The next part is necessary because NE100 pumps pumps switch
+            %their vol units from ul to ml if using 10ml syringes (diam 14.43)
+            %or bigger. You can manually change
+            %the units to nl on that pump - will be a disaster if someone
+            %does this...
+            %If this happens - to switch it back - unplug the RS232
+            %connector and switch the pump on and off. Then press volume
+            %button twice - this should show 0.000 on the LCD display you
+            %can then change the volume units by pressing the right arrow
+            %key 
+                   
             %Correct volume for units on pump1(obj.switchParams.withdrawVol
             %is in ul)
             switch obj.pumps{1}.model
@@ -266,11 +269,17 @@ classdef flowChanges
             
             
             
-            %Determine the high and low post-switch flow rates
-            %At some point the next two lines could be changed to read
-            %obj.flowPostSwitch(1or2,thisSwitch). This would allow different post-switch flow rates to be used for each of the switching events 
-            [fastFlowRate,~] = max(abs(obj.flowPostSwitch(:)));
-            [slowFlowRate,slowIndex] = min(abs(obj.flowPostSwitch(:)));
+            %get the post-switch flow rates - These lines will need
+            %modified if more than 2 pumps are used
+            p1PostRate = obj.flowPostSwitch(1,thisSwitch);
+            p2PostRate = obj.flowPostSwitch(2,thisSwitch);
+            %Which pump will have the slower flow rate after the switch -
+            %again will need to modify for more pumps.
+            if p1PostRate>=p2PostRate
+                slowIndex=2;
+            else
+                slowIndex=1;
+            end
             %The direction of the slow pump can be withdraw - for mixer
             %experiments where you want to avoid any possibility of leakage
             %of media from the slow pump into the mixer. Set the flow post
@@ -281,11 +290,10 @@ classdef flowChanges
             else
                 slowDirection = 'DIRINF';
             end
-            fastFlowRate = num2str(fastFlowRate);
-            slowFlowRate = num2str(slowFlowRate);
             
-            % Determine the high and low fast withdrawal/infusion step flow
-            % rates; balance these to maintain a consistent flow to device:
+            fastFlowRate = num2str(max([p1PostRate p2PostRate]));
+            slowFlowRate = num2str(min([p1PostRate p2PostRate]));
+            %Overall flow rate post switch:
             switch slowDirection
                 case 'DIRWDR'
                     overallPostSwitchFlowRate = ...
@@ -294,6 +302,9 @@ classdef flowChanges
                     overallPostSwitchFlowRate = ...
                         str2double(fastFlowRate) + str2double(slowFlowRate);
             end
+            
+            % Determine the high and low fast withdrawal/infusion step flow
+            % rates; balance these to maintain a consistent flow to device:
             switchParamRate = obj.switchParams.rate(thisSwitch);
             switchToFlowRate =  switchParamRate + overallPostSwitchFlowRate;
             switchFromFlowRate = switchParamRate;
@@ -304,6 +315,11 @@ classdef flowChanges
             switchToFlowRate = num2str(switchToFlowRate);
             switchFromFlowRate = num2str(switchFromFlowRate);
             
+%             %Write the appropriate phases to each pump
+%             sFrom=obj.pumps{obj.switchedFrom(ind)}.serial;
+%             sTo=obj.pumps{obj.switchedTo(ind)}.serial;
+            
+            %First stop both 
             fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
             %Start of phase 2 (PHN2, pump switched to, fast withdrawal/infusion step)
             fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);
