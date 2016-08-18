@@ -1,6 +1,5 @@
 classdef Batgirl<Microscope
-    
-    methods
+   methods
         function obj=Batgirl
             obj.Name='Batgirl';
             obj.nameImage=imread('Batgirl.jpg');

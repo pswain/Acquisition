@@ -143,6 +143,7 @@ classdef pump
            reply=fscanf(obj.serial);
        end
        function [obj warnings]=refreshPumpDetails(obj)
+           warnings={''};
            disp(['Getting pump status for ' obj.pumpName '. Please wait...']);
            warnings='';
            %Queries the pump to set the correct values for all of the pump object properties
@@ -155,24 +156,49 @@ classdef pump
            %Diameter
            fprintf(obj.serial,'DIA');
            reply=fscanf(obj.serial);
-           reply=textscan(reply,'%4s%f');
-           obj.diameter=str2double(reply(5:end-1));
+           reply=textscan(reply,'%4s%f');  
+           disp(['Diameter:' num2str(reply{2})]);
+           switch obj.model
+               case 'AL-1000'
+                   obj.diameter=reply{2};
+               case 'AL-1002X'
+                   obj.diameter=str2double(reply(5:end-1));
+           end
            %Rate (and running or not)
            fprintf(obj.serial,'RAT');
            reply=fscanf(obj.serial);
            reply=textscan(reply,'%4s%f');
            obj.currentRate=reply{2};
-           pumpStatus=reply{1};
-           pumpStatus=pumpStatus{:};                    
+           pumpDetails=reply{1};          
+           pumpStatus=pumpDetails{1};
+           rateUnits=pumpDetails{2};
+           disp(['Status: ' pumpStatus]);
+           disp(['Flow rate: ' num2str(reply{2})]);
+           disp(['Rate units: ' rateUnits]);
+           if isempty(strfind(rateUnits,'UM'))
+               warnings{length(warnings)+1}='Pumping rate units are not microlitres/min! Reset before continuing.';
+           end
            obj.running=strcmp(pumpStatus(end),'W');
+           %Get the direction and volume in order to issue warnings if
+           %necessary
            %Direction
            fprintf(obj.serial,'DIR');
            reply=fscanf(obj.serial);
+           disp(['Direction: ' reply])
            if ~isempty(strfind(reply,'INF'))
                 obj.direction='INF';
            end
            if ~isempty(strfind(reply,'WDR'))
                 obj.direction='WDR';
+                warnings{length(warnings)+1}='Pump is set to withdraw!';
+           end
+           %Volume
+           fprintf(obj.serial,'VOL');
+           reply=fscanf(obj.serial);
+           disp(['Volume: ' reply])
+           if isempty(strfind(reply,'UL'))
+                obj.direction='WDR';
+                warnings{length(warnings)+1}='Volume units are not microlitres! This will wreck any fast infuse/withdraw steps - set to microlitres before running.';
            end
        end
       
@@ -206,6 +232,7 @@ classdef pump
            %Returns a string giving the model of Becton Dickinson syringes
            %with the input diameter. Data is from the Aladdin pump manual:
            %http://www.wpiinc.com/clientuploads/pdf/Aladdin-IM.pdf p60
+           
            switch diameter
                case 4.699
                    volString='1ml';

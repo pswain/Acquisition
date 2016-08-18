@@ -13,6 +13,7 @@ classdef flowChanges
         solenoidGUI=[];
         timesSwitchSol=0;
         switchedSol=true;
+        logRealInfo%logical - whether or not to retrieve real information about the status of the pumps to log during acquisition.
     end
     
     methods

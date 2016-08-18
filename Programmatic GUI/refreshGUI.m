@@ -38,7 +38,15 @@ if nChannels~=0
         end
         %Enable volt control for channels in which brightness can
         %be controlled
-        if ~isempty(handles.acquisition.microscope.BrightnessControls.(chName).device)
+        %Use getLED with verbose output of config object to determine this
+        global mmc;
+        config=mmc.getConfigData('Channel',chName);
+        verbose=config.getVerbose;
+        LED=handles.acquisition.microscope.getLED(verbose);
+        if ~isempty(LED)
+            [device, voltProp]=handles.acquisition.microscope.getLEDVoltProp(LED);
+        end
+        if ~isempty(device)
             set(handles.(['volt' chTagString]),'Enable','on');
         end
         %Set values for the controls       
@@ -139,6 +147,13 @@ for p=1:length(handles.acquisition.flow{4})
 %    No point in doing this - would have to check if pump is running for it
 %    to make sense but that is slow.
 end
+
+%Points
+set(handles.pointsTable,'Data',handles.acquisition.points);
+columnName={'Name','x (microns)','y (microns)','z drive position (microns)','PFS Offset','Group'};
+columnName=[columnName handles.acquisition.channels(:,1)'];
+set(handles.pointsTable,'ColumnName',columnName);
+msgbox('Note: saved Z positions are not loaded into the positions table (to avoid potential lens crashes through the coverslip). Look at the pos.txt file for original Z positions.');
 
 
 %Experimental info

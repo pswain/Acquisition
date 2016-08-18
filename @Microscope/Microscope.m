@@ -31,7 +31,7 @@ classdef (Abstract) Microscope<handle
         setInitialChannel(obj)
         handles=setGUI(obj, handles)
         lightToCamera(obj)
-        LED=getLED(obj)
+        LED=getLED(obj,verbose)
         [device, voltProp]=getLEDVoltProp(obj,LED)
         setLEDVoltage(obj, voltage)
         figTitle=setCamMode(obj, mode,figTitle,EMgain)

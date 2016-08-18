@@ -1,10 +1,10 @@
 function z=getZ(obj)
 global mmc;
 switch obj.Name
-    case 'Batman'
+    case {'Batman'; 'Batgirl'};
         z=mmc.getPosition('TIZDrive');
     case 'Robin'
-        z=mmc.setPosition('ZStage');
+        z=mmc.getPosition('ZStage');
 end
 
 end

@@ -58,6 +58,11 @@ while ischar(currentLine)
            acqData.t=tVect;
            currentState='None';
        case 'Points'
+           %When loading the points - need to be careful about z positions
+           %- set all Z positions to the current Z - this will avoid
+           %potentially visiting points that are too high up and smashing
+           %through the coverslip.
+           currentZ=acqData.microscope.getZ;
            acqData.points={};
            done=false;%Keep track of whether all points have yet been read
            while ~done
@@ -70,7 +75,7 @@ while ischar(currentLine)
                    acqData.points{size(acqData.points,1)+1,1}=currentLine{1};
                    acqData.points{size(acqData.points,1),2}=str2double(currentLine{2});
                    acqData.points{size(acqData.points,1),3}=str2double(currentLine{3});
-                   acqData.points{size(acqData.points,1),4}=str2double(currentLine{4});
+                   acqData.points{size(acqData.points,1),4}=currentZ;
                    acqData.points{size(acqData.points,1),5}=str2double(currentLine{5});
                    acqData.points{size(acqData.points,1),6}=str2double(currentLine{6});
                    for channel=1:size(acqData.channels,1)
