@@ -21,13 +21,7 @@ classdef Batgirl<Microscope
             obj.XYStage='XYStage';
             obj.ZStage='TIZDrive';
             obj.pinchComPort=9;
-            obj.BrightnessControls(1).chName='DIC';
-            obj.BrightnessControls(1).device='';%Cannot control the brightness of this channel
-            obj.BrightnessControls(1).property='';
-            obj.BrightnessControls(1).chName='Brightfield';
-            obj.BrightnessControls(1).device='';%Cannot control the brightness of this channel
-            obj.BrightnessControls(1).property='';
-            %Remaining channels need to be defined - need access to config file
+           
         end
     end
 end

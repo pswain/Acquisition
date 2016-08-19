@@ -25,7 +25,20 @@ if get(hObject,'Value')==1
 
         case {'Batman' , 'Batgirl'}
             set(handles.(['cammode' tagEnd]),'Enable','on');
-            set(handles.(['volt' tagEnd]),'Enable','on');
+            %Activate the voltage control if the voltage can be changed for
+            %this channel
+            global mmc;
+            config=mmc.getConfigData('Channel',chName);
+            verbose=config.getVerbose;
+            LED=handles.acquisition.microscope.getLED(verbose);
+            if ~isempty(LED)
+                [device, voltProp]=handles.acquisition.microscope.getLEDVoltProp(LED);
+            end
+            if ~isempty(device)
+                set(handles.(['volt' tagEnd]),'Enable','on');
+            end
+            
+            
         case 'Robin'
     end
     %camera settings - enable controls

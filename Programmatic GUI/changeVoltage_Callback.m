@@ -19,7 +19,7 @@ input=get(hObject,'String');
 input=str2num(input);
 %Following code checks values are in range
 %Could make this more sophisticated by defining the overload points of all
-%LEDs and using a Microscope method to return limits for each channel.
+%LEDs and using a Microscope method or property to return limits for each channel.
 switch handles.acquisition.microscope.Name
     case 'Batman'
         upLimit=4;
@@ -33,7 +33,16 @@ if ~isempty(input)
     if input>lowLimit && input<=upLimit
         ok=true;
         handles.acquisition.channels{channelRow,8}=input;
-    end
+        %Set the appropriate device voltage
+        global mmc;
+        %Get the LED, to determine which device and property change the
+        %voltage
+        config=mmc.getConfigData('Channel',chanName);
+        verbose=config.getVerbose;
+        LED=handles.acquisition.microscope.getLED(verbose);
+        [device, voltProp]=handles.acquisition.microscope.getLEDVoltProp(LED);
+        mmc.setProperty(device,voltProp,input);
+   end
 end
 if ~ok
     set(handles.(tag),'String', num2str(oldValue));
