@@ -2,8 +2,14 @@ function [tiles handles] = makeTiles (nRows,nColumns, rowSpacing, colSpacing, gr
 
 Points=nRows*nColumns;%number of points
 
-%define a default group (the group of the previous point +1 if there is one,
+%define a default group number(the group of the previous point +1 if there is one,
 %otherwise 1)
+%Points in a tile are assigned to the same group by default
+if ~isempty(handles.acquisition.points)
+    group=max([handles.acquisition.points{:,6}])+1;
+else
+    group=1;
+end
 headings={'Name','x (microns)','y (microns)','z (microns)', 'PFS offset', 'Group'};
 numChannels=size(handles.acquisition.channels,1);
 editable=[true true true true true true];
@@ -86,8 +92,7 @@ for row=1:nRows
         zDisplacementY=yDistance*ySlope;      
         tiles{number,4}=startZ+zDisplacementX+zDisplacementY;
         tiles{number,5}=handles.acquisition.microscope.Autofocus.getOffset;
-        tiles{number,6}=number;
-        
+        tiles{number,6}=group;        
         %The first 6 columns of the points table have been defined. The remaining
         %columns are exposure times, one for each channel. Need the channels
         %selected and default exposure times.

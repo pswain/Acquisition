@@ -18,7 +18,7 @@ for n=1:size(eventdata.Indices,1)
     table=get(hObject,'Data');
     groupno=cell2mat(table(row,6));
     groups=cell2mat(table(:,6));
-    group=groups==groupno;
+    group=groups==groupno;%logical index to all members of the group
     %If one of the exposure times has been altered:
     if column>6%ie an exposure time
         %1. If to a new numeric value - change all others of the same group to that
@@ -40,7 +40,6 @@ for n=1:size(eventdata.Indices,1)
             else%the entry is a non-numeric string that is not double
                 errordlg('Please enter an exposure time (ms) or ''double'' for a double exposure','Incorrect entry in exposure time for point');
                 table(row,column)={eventdata.PreviousData};
-                
             end
         else%the entry is numeric - a new exposure time
             %set all group members to this (rounded) exposure time - unless their
@@ -97,7 +96,38 @@ for n=1:size(eventdata.Indices,1)
             end
         end
     end
-    
+    if column==1
+       %The position name has been edited 
+        oldName=handles.acquisition.points{row,1};
+        pointNumber=oldName(end-2:end);%String with 3 digits
+        newName=table{row,column};
+        if strcmp(pointNumber,newName(end-2:end))
+            %Only the prefix has been edited
+            newPrefix=newName(1:end-3);
+        else
+            %Part of the number has also been removed - use the whole input
+            %string as the new prefix
+            newPrefix=newName;
+            newName=[newPrefix pointNumber];
+            table{row,column}=newName;
+        end
+        %If the point is part of a group, offer to change the other points
+        %in the group
+        if nnz(group)>1
+            changeGroup=questdlg('Do you want to change the names of all points in this group?');
+            if strcmp(changeGroup,'Yes')
+                groupInd=find(group);
+                for n=1:nnz(group)
+                    thisPointNumber=table{groupInd(n)}(end-2:end);
+                    table{groupInd(n),1}=[newPrefix thisPointNumber];
+                end
+            else
+                msgbox('This point will be removed from the group');
+                table{row,6}=max([table{:,6}])+1;
+            end
+            
+        end
+    end
 end
 
 %if there is a change to a group - need to make sure the new entry has the
