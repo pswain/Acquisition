@@ -179,6 +179,9 @@ while ischar(currentLine)
                        dynamicFlow.flowPostSwitch=[];
                        %There will be a line for each pump
                        for p=1:numPumps
+                           if isempty(currentLine)%This is needed to allow loading of files saved by an older version
+                               currentLine=fgetl(fid);
+                           end
                            currentLine=textscan(currentLine,'%s','Delimiter',',');
                            currentLine=currentLine{:};
                            dynamicFlow.flowPostSwitch(p,:)=str2double(currentLine)';
