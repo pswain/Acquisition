@@ -94,21 +94,19 @@ while ischar(currentLine)
            %Move through the next 3 lines which have no data
            currentLine=fgetl(fid);currentLine=fgetl(fid);currentLine=fgetl(fid);currentLine=fgetl(fid);
            microscope=chooseScope;
-           for p=1:length(acqData.flow{4})
-               fclose(acqData.flow{4}(p).serial);
-           end
+           pumpArray=acqData.flow{4};
+%            for p=1:length(acqData.flow{4})
+%                fclose(acqData.flow{4}(p).serial);
+%            end
            for p=1:numPumps
                currentLine=fgetl(fid);
                currentLine=textscan(currentLine,'%9s%8.2f%12.2f%9s%7u%s\n','Delimiter',{','});
-               pumpName=char(currentLine{1});
-               BR=microscope.pumpComs(p).baud;
-               diameter=currentLine{2};
-               currentRate=currentLine{3};
-               direction=char(currentLine{4});
-               running=currentLine{5};
-               contents=char(currentLine{6});
-               pumpArray(p)=pump(pumpName,BR,diameter, currentRate, direction, running, contents);
-               fopen(pumpArray(p).serial);
+               pumpArray(p).pumpName=char(currentLine{1});
+               pumpArray(p).diameter=currentLine{2};
+               pumpArray(p).currentRate=currentLine{3};
+               pumpArray(p).direction=char(currentLine{4});
+               pumpArray(p).running=currentLine{5};
+               pumpArray(p).contents=char(currentLine{6});
            end
            acqData.flow{4}=pumpArray;
            %Update the pumps with the new settings
