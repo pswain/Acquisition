@@ -12,7 +12,6 @@ for n=1:nPumps
     handles.acquisition.flow{4}(n).currentRate=str2num(get(handles.(['flowRateP' num2str(n)]),'String'));
     handles.acquisition.flow{4}(n).running=get(handles.(['runP' num2str(n)]),'Value');
     handles.acquisition.flow{4}(n).updatePumps;%sends information to the syringe pumps
-    handles.acquisition.flow{5}.pumps{n}=handles.acquisition.flow{4}(n);
     handles.acquisition.flow{6}=get(handles.stoppumps,'Value');
 end
 guidata(hObject, handles)

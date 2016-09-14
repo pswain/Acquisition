@@ -140,12 +140,10 @@ end
 %Update the gui controls
 for p=1:length(handles.acquisition.flow{4})
     set(handles.(['contentsP' num2str(p)]),'String',char(handles.acquisition.flow{4}(p).contents));
-    set(handles.(['diameterP' num2str(p)]),'String',pump.getVolString(handles.acquisition.flow{4}(p).diameter));
+    diameter=pump.getVolString(handles.acquisition.flow{4}(p).diameter);
+    diaValue=find(strcmp(get(handles.(['diameterP' num2str(p)]),'String'),diameter),1);
+    set(handles.(['diameterP' num2str(p)]),'Value',diaValue);
     set(handles.(['flowRateP' num2str(p)]),'String',num2str((handles.acquisition.flow{4}(p).currentRate)));
-%    set(handles.(['runP'
-%    num2str(p)]),'Value',num2str((handles.acquisition.flow{4}(p).running)));
-%    No point in doing this - would have to check if pump is running for it
-%    to make sense but that is slow.
 end
 
 %Points

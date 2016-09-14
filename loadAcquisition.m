@@ -18,6 +18,7 @@ while ischar(currentLine)
    end
    if strcmp(currentLine,'Z_sectioning:')
        currentState='Z sectioning';
+       fgetl(fid);%To skip the heading line
        currentLine=fgetl(fid);
    end
    
@@ -48,8 +49,8 @@ while ischar(currentLine)
            %currentState is still 'Channels' - this will allow subsequent
            %channels lines to be recorded
        case 'Z sectioning'
-           zVect=textscan(currentLine,'%2f%2.3f\n','Delimiter',{','});
-           zVect=cell2mat(zVect);
+           zVect=textscan(currentLine,'%8u%7.2f%6u%5u%5u%6u\n','Delimiter',{','});
+           zVect=cellfun(@double,zVect);
            acqData.z=zVect;
            currentState='None';
        case 'Time settings'
@@ -88,16 +89,13 @@ while ischar(currentLine)
        case 'Pumps'
            %Get number of pumps (currentLine is eg 'Syringe pump details: 2 pumps.')
            numPumps=str2double(currentLine(23:end-7));
-           %Close serial connection to existing pump objects - these will
-           %be replaced
+           
+           
            
            %Move through the next 3 lines which have no data
            currentLine=fgetl(fid);currentLine=fgetl(fid);currentLine=fgetl(fid);currentLine=fgetl(fid);
            microscope=chooseScope;
            pumpArray=acqData.flow{4};
-%            for p=1:length(acqData.flow{4})
-%                fclose(acqData.flow{4}(p).serial);
-%            end
            for p=1:numPumps
                currentLine=fgetl(fid);
                currentLine=textscan(currentLine,'%9s%8.2f%12.2f%9s%7u%s\n','Delimiter',{','});
@@ -105,7 +103,6 @@ while ischar(currentLine)
                pumpArray(p).diameter=currentLine{2};
                pumpArray(p).currentRate=currentLine{3};
                pumpArray(p).direction=char(currentLine{4});
-               pumpArray(p).running=currentLine{5};
                pumpArray(p).contents=char(currentLine{6});
            end
            acqData.flow{4}=pumpArray;
@@ -115,7 +112,7 @@ while ischar(currentLine)
            end
            currentState='None';
        case 'Dynamic flow'
-           dynamicFlow=flowChanges(pumpArray);
+           dynamicFlow=flowChanges({pumpArray(1),pumpArray(2)});%Pump array is input and saved as a cell array in flowChanges object.
            flowState='';
            done=false;
            while ~done

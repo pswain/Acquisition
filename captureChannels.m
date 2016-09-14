@@ -108,11 +108,11 @@ for ch=1:numChannels%loop through the channels
     end
 end
 
-%assign data to the positionData array - gets returned to calling program
-if size(resultStack,3)==1
-    returnData.images(ch,:,:)=resultStack;
-else
-    midsection=floor(acqData.z(1)/2);
-    returnData.images(ch,:,:)=resultStack(acqData.imagesize(1),acqData.imagesize(2),midsection);
-end
-returnData.max(ch)=maxValue;%the maximum recorded value for each channel (before applying any corrections based on E)
+% %assign data to the positionData array - gets returned to calling program
+% if size(resultStack,3)==1
+%     returnData.images(ch,:,:)=resultStack;
+% else
+%     midsection=floor(acqData.z(1)/2);
+%     returnData.images(ch,:,:)=resultStack(acqData.imagesize(1),acqData.imagesize(2),midsection);
+% end
+% returnData.max(ch)=maxValue;%the maximum recorded value for each channel (before applying any corrections based on E)

@@ -133,7 +133,8 @@ switch obj.Name
         handles.acquisition.omero.tags{length(handles.acquisition.omero.tags)+1}='Batgirl';
         set(handles.bin,'enable','on');
         set(handles.zMethod,'Enable','on');
-        set(handles.zMethod,'String', {'Z stage (recommended)';'Z stage with PFS on';'PFS'});
+        set(handles.zMethod,'String', {'Z stage (recommended)';'Z stage with PFS on'});
+        set(handles.zMethod,'Value', handles.acquisition.z(6));
         set(handles.zMethod,'ToolTipString', 'Choose method used for Z sectioning - note exact Z positions will not be known with Z stage with PFS on method. Not suitable for quantifying fluorescence (but is faster than Z stage method).');
 
 end

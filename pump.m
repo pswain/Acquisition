@@ -1,4 +1,4 @@
-classdef pump
+classdef pump<handle
    
    properties
       diameter%double, in mm
@@ -119,17 +119,7 @@ classdef pump
            obj.running=str2num(pumpDetails{5});
            obj.contents=pumpDetails{6};
        end
-       function openPump(obj)
-           %Opens the pump for sending and receiving commands
-           [idum,hostname]= system('hostname');
-           if strfind(hostname,'SCE-BIO-C02471')>0                
-                fopen(obj.serial);
-           else
-               %Not running on the microscope computer - create a false
-               %open command - to allow the software to run.
-               obj.serial='Pump open';
-           end
-       end
+       
        function reply=returnRate(obj)
            %Queries the pump to return the rate at which it is pumping.
            %This can be eg, written to the log file, or used to detect
@@ -200,6 +190,12 @@ classdef pump
                 obj.direction='WDR';
                 warnings{length(warnings)+1}='Volume units are not microlitres! This will wreck any fast infuse/withdraw steps - set to microlitres before running.';
            end
+       end
+       function delete(obj)
+          if isa(obj.serial,'serial')
+          fclose(obj.serial);
+          end
+           
        end
       
       

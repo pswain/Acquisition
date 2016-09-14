@@ -29,29 +29,15 @@ for n=1:nChannels
         cell2mat(acqData.channels(n,8)));%8. LED voltage
 end
 %Z sectioning
-fprintf(acqFile,'%s','Z_sectioning:');
-fprintf(acqFile,'\n');
-fprintf(acqFile,'%d',acqData.z(1));%number of sections (integer)
-fprintf(acqFile,'%s',',');
-fprintf(acqFile,'%f',acqData.z(2));%section spacing (microns)
-fprintf(acqFile,'\n');
-if size(acqData.z)>2
-    fprintf(acqFile,'%f',acqData.z(3));%PFS on (1 or 0)
-    fprintf(acqFile,'\n');
-end
-if size(acqData.z)>3
-    fprintf(acqFile,'%f',acqData.z(4));%AnyZ
-    fprintf(acqFile,'\n');
-end
-if size(acqData.z)>4
-    fprintf(acqFile,'%f',acqData.z(5));%Check PFS after moving stage
-    fprintf(acqFile,'\n');
-end
-
-
-%Last 2 lines commented because currently this setting is used only if the
-%PFS is on and locked when the experiment starts - will add an option for
-%this later in the GUI.
+fprintf(acqFile,'Z_sectioning:\n');
+fprintf(acqFile,'Sections,Spacing,PFSon?,AnyZ?,Drift,Method\n');
+fprintf(acqFile,'%8u,%7.2f,%6u,%5u,%5u,%6u\n',...
+    acqData.z(1), ... 1. Sections
+    acqData.z(2), ... 2. Spacing
+    acqData.z(3), ... 3. PFS on
+    acqData.z(4), ... 4. Any Z
+    acqData.z(5), ... 5. Drift (always zero at start of expt)
+    acqData.z(6));  % 6. Sectioning method
 
 %timelapse settings
 fprintf(acqFile,'%s','Time_settings:');
@@ -67,8 +53,7 @@ fprintf(acqFile,'\n');
 %Points to visit
 fprintf(acqFile,'Points:\n');%need to check if any point visiting with an
 %if statement
-pointSize=size(acqData.points);
-nPoints=pointSize(1);
+nPoints=size(acqData.points,1);
 if nPoints>0
     savePoints(acqData,acqFile);
 end

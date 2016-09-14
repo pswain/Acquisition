@@ -317,8 +317,8 @@ classdef flowChanges
             switchFromFlowRate = num2str(switchFromFlowRate);
             
 %             %Write the appropriate phases to each pump
-%             sFrom=obj.pumps{obj.switchedFrom(ind)}.serial;
-%             sTo=obj.pumps{obj.switchedTo(ind)}.serial;
+%             sFrom=obj.pumps(obj.switchedFrom(ind)}.serial;
+%             sTo=obj.pumps(obj.switchedTo(ind)}.serial;
             
             %First stop both 
             fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
@@ -440,8 +440,9 @@ classdef flowChanges
             end
             
             
-            l={['Pump1: ' obj.pumps{1}.contents] ['Pump2: ' obj.pumps{2}.contents]};
-            legend(l,'Location','NorthOutside');
+%            l={['Pump1: ' obj.pumps(1}.contents] ['Pump2: ' obj.pumps{2}.contents]};
+ 
+%           legend(l,'Location','NorthOutside');
             
             
         end
