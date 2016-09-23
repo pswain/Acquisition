@@ -207,8 +207,11 @@ classdef flowChanges
             %Fast pump/withdraw phase to remove hysteresis
             sFrom=obj.pumps{obj.switchedFrom(ind)}.serial;
             sTo=obj.pumps{obj.switchedTo(ind)}.serial;
+            %NB: the above should be removed in favour of simply setting
+            %both pumps 1 and 2 to PHN2 (i.e., 'RUN2') since the program
+            %now handles different values at each switch
             
-            fprintf(sFrom,'RUN4');
+            fprintf(sFrom,'RUN2');
             fprintf(sTo,'RUN2');
             
             %Check that both pumps are set to the correct rate and
@@ -274,47 +277,51 @@ classdef flowChanges
             %modified if more than 2 pumps are used
             p1PostRate = obj.flowPostSwitch(1,thisSwitch);
             p2PostRate = obj.flowPostSwitch(2,thisSwitch);
-            %Which pump will have the slower flow rate after the switch -
-            %again will need to modify for more pumps.
-            if p1PostRate>=p2PostRate
-                slowIndex=2;
+            overallPostSwitchFlowRate = p1PostRate + p2PostRate;
+            
+            % Determine which direction the fast withdrawal/infusion step
+            % should go and balance the withdrawal/infusion flow
+            % rates to maintain a consistent flow to device:
+            switchParamRate = obj.switchParams.rate(thisSwitch);
+            switchToRate =  switchParamRate + overallPostSwitchFlowRate;
+            switchFromRate = switchParamRate;
+            if p1PostRate>p2PostRate
+                % Switching TO p1:
+                p1SwitchRate = num2str(switchToRate);
+                p1SwitchDirection = 'DIRINF';
+                p1SwitchVol = sprintf('%u',round(str2double(wVol1) * switchToRate/switchParamRate));
+                % Switching FROM p2:
+                p2SwitchRate = num2str(switchFromRate);
+                p2SwitchDirection = 'DIRWDR';
+                p2SwitchVol = sprintf('%u',round(str2double(wVol2) * switchFromRate/switchParamRate));
             else
-                slowIndex=1;
+                % Switching FROM p1:
+                p1SwitchRate = num2str(switchFromRate);
+                p1SwitchDirection = 'DIRWDR';
+                p1SwitchVol = sprintf('%u',round(str2double(wVol1) * switchFromRate/switchParamRate));
+                % Switching TO p2:
+                p2SwitchRate = num2str(switchToRate);
+                p2SwitchDirection = 'DIRINF';
+                p2SwitchVol = sprintf('%u',round(str2double(wVol2) * switchToRate/switchParamRate));
             end
-            %The direction of the slow pump can be withdraw - for mixer
+            
+            %The direction of either pump can be withdraw by specifying a
+            %negative value. Use for mixer
             %experiments where you want to avoid any possibility of leakage
             %of media from the slow pump into the mixer. Set the flow post
             %switch to be negative for this.
-            fastDirection = 'DIRINF';
-            if sign(obj.flowPostSwitch(slowIndex))<0
-                slowDirection = 'DIRWDR';
-            else
-                slowDirection = 'DIRINF';
+            p1Direction = 'DIRINF';
+            if p1PostRate<0
+                p1Direction = 'DIRWDR';
+                p1PostRate = abs(p1PostRate);
             end
-            
-            fastFlowRate = num2str(max([p1PostRate p2PostRate]));
-            slowFlowRate = num2str(min([p1PostRate p2PostRate]));
-            %Overall flow rate post switch:
-            switch slowDirection
-                case 'DIRWDR'
-                    overallPostSwitchFlowRate = ...
-                        str2double(fastFlowRate) - str2double(slowFlowRate);
-                otherwise
-                    overallPostSwitchFlowRate = ...
-                        str2double(fastFlowRate) + str2double(slowFlowRate);
+            p2Direction = 'DIRINF';
+            if p2PostRate<0
+                p2Direction = 'DIRWDR';
+                p2PostRate = abs(p2PostRate);
             end
-            
-            % Determine the high and low fast withdrawal/infusion step flow
-            % rates; balance these to maintain a consistent flow to device:
-            switchParamRate = obj.switchParams.rate(thisSwitch);
-            switchToFlowRate =  switchParamRate + overallPostSwitchFlowRate;
-            switchFromFlowRate = switchParamRate;
-            switchToVol1 = sprintf('%u',round(str2double(wVol1) * switchToFlowRate/switchParamRate));
-            switchToVol2 = sprintf('%u',round(str2double(wVol2) * switchToFlowRate/switchParamRate));
-            switchFromVol1 = sprintf('%u',round(str2double(wVol1) * switchFromFlowRate/switchParamRate));
-            switchFromVol2 = sprintf('%u',round(str2double(wVol2) * switchFromFlowRate/switchParamRate));
-            switchToFlowRate = num2str(switchToFlowRate);
-            switchFromFlowRate = num2str(switchFromFlowRate);
+            p1PostRate = num2str(p1PostRate);
+            p2PostRate = num2str(p2PostRate);
             
 %             %Write the appropriate phases to each pump
 %             sFrom=obj.pumps(obj.switchedFrom(ind)}.serial;
@@ -322,31 +329,18 @@ classdef flowChanges
             
             %First stop both 
             fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
-            %Start of phase 2 (PHN2, pump switched to, fast withdrawal/infusion step)
+            %Start of phase 2 (PHN2, fast withdrawal/infusion step)
             fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);
             fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-            fprintf(p1,['RAT' switchToFlowRate  'UM']);fprintf(p2,['RAT' switchToFlowRate 'UM']);pause(.05);
-            fprintf(p1,['VOL' switchToVol1]);fprintf(p2,['VOL' switchToVol2]);pause(.05);
-            fprintf(p1,'DIRINF');fprintf(p2,'DIRINF');pause(.05);
-            %Phase 3 - flow post-switch, pump switched to.
+            fprintf(p1,['RAT' p1SwitchRate 'UM']);fprintf(p2,['RAT' p2SwitchRate 'UM']);pause(.05);
+            fprintf(p1,['VOL' p1SwitchVol]);fprintf(p2,['VOL' p2SwitchVol]);pause(.05);
+            fprintf(p1,p1SwitchDirection);fprintf(p2,p2SwitchDirection);pause(.05);
+            %Once complete, continues to Phase 3 (PHN3, flow post-switch)
             fprintf(p1,'PHN3');fprintf(p2,'PHN3');pause(.05);
             fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-            fprintf(p1,['RAT' fastFlowRate 'UM']);fprintf(p2,['RAT' fastFlowRate 'UM']);pause(.05);
+            fprintf(p1,['RAT' p1PostRate 'UM']);fprintf(p2,['RAT' p2PostRate 'UM']);pause(.05);
             fprintf(p1,'VOL0');fprintf(p2,'VOL0');pause(.05);
-            fprintf(p1,fastDirection);fprintf(p2,fastDirection);pause(.05);
-                        
-            %Start of phase 4 (PHN4, pump switched from, fast withdrawal/infusion step)
-            fprintf(p1,'PHN4');fprintf(p2,'PHN4');pause(.05);
-            fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-            fprintf(p1,['RAT' switchFromFlowRate 'UM']);fprintf(p2,['RAT' switchFromFlowRate 'UM']);pause(.05);
-            fprintf(p1,['VOL' switchFromVol1]);fprintf(p2,['VOL' switchFromVol2]);pause(.05);
-            fprintf(p1,'DIRWDR');fprintf(p2,'DIRWDR');pause(.05);
-            %Phase 5 - flow post-switch, pump switched from.          
-            fprintf(p1,'PHN5');fprintf(p2,'PHN5');pause(.05);
-            fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
-            fprintf(p1,['RAT' slowFlowRate  'UM']);fprintf(p2,['RAT' slowFlowRate 'UM']);pause(.05);
-            fprintf(p1,'VOL0');fprintf(p2,'VOL0');pause(.05);
-            fprintf(p1,slowDirection);fprintf(p2,slowDirection);pause(.05);
+            fprintf(p1,p1Direction);fprintf(p2,p2Direction);pause(.05);
         end
         
         function obj=setSwitchParams(obj)

@@ -12,45 +12,34 @@ switch choice
         %Define default values (based on contents of the switching object)
         %Times (as comma, separated string)
         defaults{1}=commaString(handles.acquisition.flow{5}.times);
-        %Initially-dominant pump
-        defaults{2}=num2str(handles.acquisition.flow{5}.initialPump);
         %Post-switch flow rates
         %Pump to switch to is the highest flow rate between the first two
         %entries in switches.flowPostSwitch
-        defaults{3}=num2str(max(handles.acquisition.flow{5}.flowPostSwitch(:,1)));
-        defaults{4}=num2str(min(handles.acquisition.flow{5}.flowPostSwitch(:,1)));
+        flowPostSwitch = handles.acquisition.flow{5}.flowPostSwitch;
+        defaults{2} = strjoin(arrayfun(@num2str,flowPostSwitch(1,:),'UniformOutput',false),',');
+        defaults{3} = strjoin(arrayfun(@num2str,flowPostSwitch(2,:),'UniformOutput',false),',');
         %Get user input
-        answers=inputdlg({'Enter switching times in min after start of timelapse (separated by commas): ','Which pump has the higher flow rate initially?','Enter flow rate (after switching) of pump to switch to (in ul/min)','Enter flow rate (after switching) of pump to switch from (in ul/min)'},'Switching parameters',1,defaults);
+        answers=inputdlg({'Enter switching times in min after start of timelapse (separated by commas): ',...
+            'Enter flow rates (after switching) of PUMP 1 (in ul/min; separated by commas)',...
+            'Enter flow rates (after switching) of PUMP 2 (in ul/min; separated by commas)'},...
+            'Switching parameters',1,defaults);
         %Process switching times
         times=answers{1};
         %CONVERT TO VECTOR OF DOUBLES
         txtTimes=textscan(times,'%f','Delimiter',',');
         txtTimes=cell2mat(txtTimes);
         regTimes=regexp(times,[','],'Split');
-        %Initial pump
-        initialPump=answers{2};
-        initialPump=str2num(initialPump);
-        if isempty(initialPump)
-            problem=true;
-            errorMessage='Initial pump must be either 1 or 2';
-        else
-            if ~(initialPump==2||initialPump==1)
-                problem=true;
-                errorMessage='Initial pump must be either 1 or 2';
-            end
-        end
-        
-        
+                
         %Flow rates
-        hFlw=answers{3};
-        highFlow=textscan(hFlw,'%f','Delimiter',',');
-        highFlow=cell2mat(highFlow)';
-        lFlw=answers{4};
-        lowFlow=textscan(lFlw,'%f','Delimiter',',');
-        lowFlow=cell2mat(lowFlow)';
-        if ~any(isnan([highFlow lowFlow]))
+        p1Flw=answers{2};
+        p1Flow=textscan(p1Flw,'%f','Delimiter',',');
+        p1Flow=cell2mat(p1Flow)';
+        p2Flw=answers{3};
+        p2Flow=textscan(p2Flw,'%f','Delimiter',',');
+        p2Flow=cell2mat(p2Flow)';
+        if ~any(isnan([p1Flow p2Flow]))
             if length(txtTimes)==length(regTimes)
-                flowRates=[highFlow; lowFlow];
+                flowRates=[p1Flow; p2Flow];
                 if size(flowRates,2)==1
                     %A single pair of flow rates has been entered -
                     %alternate these at each switch
@@ -59,26 +48,11 @@ switch choice
                     flowRates=repmat(flowRates,1,length(txtTimes));
                     %Now all entries are the same - first flow input
                     %followed by second. Swap the even entries
-                    
-                    if initialPump==1
-                        flowRates(1,ind)=oldFlow(2);%The lower flow rate - for times 1, 3, 5 etc.
-                        flowRates(1,logical(1-ind))=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc.
-                        flowRates(2,ind)=oldFlow(1);%The higher flow rate - for times 1, 3, 5 etc
-                        flowRates(2,logical(1-ind))=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc
-                        
-                    else
-                        %Pump 2 is dominant at the start of the experiment
-                        %- 1st switch is to pump 1 - so that has the higher
-                        %rate after the odd numbered switches.
-                        flowRates(1,ind)=oldFlow(1);%The higher flow rate - for switches 1, 3, 5 etc.
-                        flowRates(1,logical(1-ind))=oldFlow(2);%The lower flow rate - for times 2, 4, 6 etc.
-                        flowRates(2,ind)=oldFlow(2);%The lower flow rate - for times 1, 3, 5 etc
-                        flowRates(2,logical(1-ind))=oldFlow(1);%The higher flow rate - for times 2, 4, 6 etc
-                        
-                    end
+                    flowRates(1,~ind)=oldFlow(2);%The pump2 flow rate - for times 2, 4, 6 etc.
+                    flowRates(2,~ind)=oldFlow(1);%The pump1 flow rate - for times 2, 4, 6 etc
                 end
                 if ~problem
-                    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setSwitchTimes(txtTimes,flowRates,initialPump);
+                    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setSwitchTimes(txtTimes,flowRates,2);
                 end
             else
                 problem=true;
@@ -98,10 +72,10 @@ switch choice
         switchInterval=str2double(interval);
         switchStart=str2double(input{2});
         switchStop=str2double(input{3});
-        highFlow=str2double(input{4});
-        lowFlow=str2double(input{5});
-        if ~any(isnan([switchInterval switchStart switchStop highFlow lowFlow]))
-            handles.acquisition.flow{5}=handles.acquisition.flow{5}.setPeriodic(switchInterval,switchStart,switchStop,highFlow, lowFlow);
+        p2Flow=str2double(input{4});
+        p1Flow=str2double(input{5});
+        if ~any(isnan([switchInterval switchStart switchStop p2Flow p1Flow]))
+            handles.acquisition.flow{5}=handles.acquisition.flow{5}.setPeriodic(switchInterval,switchStart,switchStop,p2Flow, p1Flow);
         else
             errordlg('All inputs must be numbers');
         end
@@ -112,11 +86,11 @@ switch choice
         input = inputdlg({'Start ramp at....min','End ramp at... min','Flow rate at high end of ramp (ul/min)','Flow rate at low end of ramp (ul/min)','Starting Pump High','Ending Pump High'},'Create linear flow ramp',1,defaults);
         rampStart=str2double(input{1});
         rampStop=str2double(input{2});
-        highFlow=str2double(input{3});
-        lowFlow=str2double(input{4});
+        p2Flow=str2double(input{3});
+        p1Flow=str2double(input{4});
         startPump=str2double(input{5});
         endPump=str2double(input{6});
-        handles.acquisition.flow{5}=handles.acquisition.flow{5}.makeLinearRamp(rampStart,rampStop,highFlow,lowFlow,startPump,endPump);
+        handles.acquisition.flow{5}=handles.acquisition.flow{5}.makeLinearRamp(rampStart,rampStop,p2Flow,p1Flow,startPump,endPump);
         
     case 'Design flow transition'
         d=transitionGUI;
@@ -163,11 +137,11 @@ switch choice
         txtTimes=cell2mat(txtTimes);
         regTimes=regexp(times,[','],'Split');
         %Flow rates
-        hFlw=answers{2};
-        pump1flow=textscan(hFlw,'%f','Delimiter',',');
+        p2Flw=answers{2};
+        pump1flow=textscan(p2Flw,'%f','Delimiter',',');
         pump1flow=cell2mat(pump1flow)';
-        lFlw=answers{3};
-        pump2flow=textscan(lFlw,'%f','Delimiter',',');
+        p1Flw=answers{3};
+        pump2flow=textscan(p1Flw,'%f','Delimiter',',');
         pump2flow=cell2mat(pump2flow)';
         if ~any(isnan([pump1flow pump2flow]))
             if length(txtTimes)==length(regTimes)
@@ -227,11 +201,11 @@ switch choice
         txtTimes=cell2mat(txtTimes);
         regTimes=regexp(times,[','],'Split');
         %Flow rates
-        hFlw=answers{2};
-        pump1flow=textscan(hFlw,'%f','Delimiter',',');
+        p2Flw=answers{2};
+        pump1flow=textscan(p2Flw,'%f','Delimiter',',');
         pump1flow=cell2mat(pump1flow)';
-        lFlw=answers{3};
-        pump2flow=textscan(lFlw,'%f','Delimiter',',');
+        p1Flw=answers{3};
+        pump2flow=textscan(p1Flw,'%f','Delimiter',',');
         pump2flow=cell2mat(pump2flow)';
         solSwT=answers{4};
         solSwitchTimes=textscan(solSwT,'%f','Delimiter',',');
