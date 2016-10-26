@@ -174,6 +174,8 @@ classdef flowChanges
                     %Set the new flow rates
                     %Numbers with too many decimal places are ignored -
                     %hence sprintf here
+                    %The abs commands allow negative values to be entered
+                    %(for pump withdrawal) without giving an error
                     fprintf(p1,['RAT' sprintf('%.2f',abs(obj.flowPostSwitch(1,ind))) 'UM']);fprintf(p2,['RAT' sprintf('%.2f',abs(obj.flowPostSwitch(2,ind))) 'UM']);pause(.05);
                     %Ensure the direction is set correctly - should be
                     %infuse if the flow rate is positive, withdraw if
