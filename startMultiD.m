@@ -182,7 +182,7 @@ users=[swain tyers millar];
 %First get Omero info and set path
 addpath(genpath(handles.acquisition.microscope.OmeroCodePath));
 handles.aquisition.omero=struct('project',{}, 'tags',{}, 'object',{});
-handles.acquisition.omero.object=OmeroDatabase('upload','skye.bio.ed.ac.uk',false);
+handles.acquisition.omero.object=OmeroDatabase('upload','sce-bio-c04287.bio.ed.ac.uk',false);
 
 %Display the projects
 proj=handles.acquisition.omero.object.getProjectNames;
