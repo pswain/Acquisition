@@ -305,8 +305,8 @@ classdef flowChanges
                 p2SwitchVol = sprintf('%u',round(str2double(wVol2) * switchToRate/switchParamRate));
             end
             
-            %The direction of either pump can be withdraw by specifying a
-            %negative value. Use for mixer
+            %Post-switch the direction of either pump can be withdraw by
+            %specifying a negative value. Use for mixer
             %experiments where you want to avoid any possibility of leakage
             %of media from the slow pump into the mixer. Set the flow post
             %switch to be negative for this.
