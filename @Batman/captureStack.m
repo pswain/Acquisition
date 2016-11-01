@@ -62,7 +62,7 @@ if thisZ==0
     img2=reshape(img2,[height,width]);
     stack(:,:,1)=img2;
     sliceFileName=strcat(filename,'_',sprintf('%03d'),'.png');
-    if EM==1
+    if EM==1 || EM==3
         img2=flipud(img2);
     end
     imwrite(img2,char(sliceFileName));
