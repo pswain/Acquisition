@@ -133,8 +133,9 @@ classdef flowChanges
         end
         
         function obj=shouldChange(obj, currTime, logfile)
-            %Checks if switching should occur at the input time and does the
-            %switching
+            %Checks if any flow changes should occur at the input time and
+            %does them
+            
             %Inputs:
             %obj = object of class flowChanges
             %currTime = double, time in minutes
@@ -162,27 +163,40 @@ classdef flowChanges
                     logstring=['Dominant medium is now: ' obj.pumps{obj.switchedTo(ind)}.contents];acqData.logtext=writelog(logfile,'',logstring);
                 else
                     %Not a switching experiment - just need to alter the
-                    %pump rates.
-                    %Stop the pumps in preparation for changing pumping
-                    %rates
-                    flowrates=[obj.flowPostSwitch(1,ind) obj.flowPostSwitch(2,ind)];
-                    ratioFlow=max(flowrates)/min(flowrates);
-                    if ratioFlow>3
-                        flowrates=flowrates * 1.5/6*(ratioFlow-3)+.5;
-                    else
-                        flowrates=flowrates*.5;
-                    end
-                    
+                    %pump rates.                                      
                     p1=obj.pumps{1}.serial;
                     p2=obj.pumps{2}.serial;
+                    %Stop the pumps
                     fprintf(p1,'STP');fprintf(p2,'STP');pause(.05);
+                    %Set to the current running phase (phase 2)
                     fprintf(p1,'PHN2');fprintf(p2,'PHN2');pause(.05);
+                    %Set the current function to RATE
                     fprintf(p1,'FUNRAT');fprintf(p2,'FUNRAT');pause(.05);
+                    %Set the new flow rates
                     %Numbers with too many decimal places are ignored -
                     %hence sprintf here
-                    fprintf(p1,['RAT' sprintf('%.2f',obj.flowPostSwitch(1,ind)) 'UM']);fprintf(p2,['RAT' sprintf('%.2f',obj.flowPostSwitch(2,ind)) 'UM']);pause(.05);
-                    
+                    %The abs commands allow negative values to be entered
+                    %(for pump withdrawal) without giving an error
+                    fprintf(p1,['RAT' sprintf('%.2f',abs(obj.flowPostSwitch(1,ind))) 'UM']);fprintf(p2,['RAT' sprintf('%.2f',abs(obj.flowPostSwitch(2,ind))) 'UM']);pause(.05);
+                    %Ensure the direction is set correctly - should be
+                    %infuse if the flow rate is positive, withdraw if
+                    %negative
+                    if obj.flowPostSwitch(1,ind)>=0
+                        dirString1='DIRINF';
+                    else
+                        dirString1='DIRWDR';
+                    end
+                    if obj.flowPostSwitch(2,ind)>=0
+                        dirString2='DIRINF';
+                    else
+                        dirString2='DIRWDR';
+                    end
+                    fprintf(p1,dirString1);fprintf(p2,dirString2);pause(.05);
+                    %Set volume to zero - this will ensure continuous
+                    %pumping until the next command is sent to the pumps
+                    %(no volume limit)
                     fprintf(p1,'VOL0');fprintf(p2,'VOL0');pause(.05);
+                    %Restart the pumps at the new rate
                     fprintf(p1,'RUN2');fprintf(p2,'RUN2');
                     
                     obj.switched(ind)=true;
@@ -306,8 +320,8 @@ classdef flowChanges
                 p2SwitchVol = sprintf('%u',round(str2double(wVol2) * switchToRate/switchParamRate));
             end
             
-            %The direction of either pump can be withdraw by specifying a
-            %negative value. Use for mixer
+            %Post-switch the direction of either pump can be withdraw by
+            %specifying a negative value. Use for mixer
             %experiments where you want to avoid any possibility of leakage
             %of media from the slow pump into the mixer. Set the flow post
             %switch to be negative for this.
