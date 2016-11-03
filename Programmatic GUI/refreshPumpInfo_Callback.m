@@ -12,6 +12,6 @@ for p=1:length(handles.acquisition.flow{4})
         warndlg(warnings{n});
    end
 end
-
+disp('Completed retrieval of pump information');
 
 end

@@ -132,9 +132,16 @@ classdef pump<handle
            fprintf(obj.serial,'RAT');
            reply=fscanf(obj.serial);
        end
-       function [obj warnings]=refreshPumpDetails(obj)
+       
+       function [obj warnings]=refreshPumpDetails(obj, logfile)
+           %Input logfile is a handle to a text file in which to write the
+           %output - optional
            warnings={''};
            disp(['Getting pump status for ' obj.pumpName '. Please wait...']);
+           if nargin>1
+                      fprintf(logfile,['Getting pump status for ' obj.pumpName]);
+                      fprintf(logfile,'\r\n');
+           end
            warnings='';
            %Queries the pump to set the correct values for all of the pump object properties
            %First 4 characters are always:
@@ -148,11 +155,17 @@ classdef pump<handle
            reply=fscanf(obj.serial);
            reply=textscan(reply,'%4s%f');  
            disp(['Diameter:' num2str(reply{2})]);
+           if nargin>1
+                fprintf(logfile,['Diameter:' num2str(reply{2})]);
+                fprintf(logfile,'\r\n');
+           end
+           if ~isempty(reply{2})
            switch obj.model
                case 'AL-1000'
                    obj.diameter=reply{2};
                case 'AL-1002X'
-                   obj.diameter=str2double(reply(5:end-1));
+                  obj.diameter=reply{2};
+           end
            end
            %Rate (and running or not)
            fprintf(obj.serial,'RAT');
@@ -162,9 +175,24 @@ classdef pump<handle
            pumpDetails=reply{1};          
            pumpStatus=pumpDetails{1};
            rateUnits=pumpDetails{2};
+           if strcmp(pumpStatus(end),'I') || strcmp(pumpStatus(end),'W')
+               obj.running=true;
+           else
+               obj.running=false;
+           end
+           
+           %Report the results
            disp(['Status: ' pumpStatus]);
            disp(['Flow rate: ' num2str(reply{2})]);
            disp(['Rate units: ' rateUnits]);
+           if nargin>1
+                fprintf(logfile,['Status: ' pumpStatus]);
+                fprintf(logfile,'\r\n');
+                fprintf(logfile,['Flow rate: ' num2str(reply{2})]);
+                fprintf(logfile,'\r\n');
+                fprintf(logfile,['Rate units: ' rateUnits]);
+                fprintf(logfile,'\r\n');
+           end
            if isempty(strfind(rateUnits,'UM'))
                warnings{length(warnings)+1}='Pumping rate units are not microlitres/min! Reset before continuing.';
            end
@@ -175,6 +203,10 @@ classdef pump<handle
            fprintf(obj.serial,'DIR');
            reply=fscanf(obj.serial);
            disp(['Direction: ' reply])
+           if nargin>1
+               fprintf(logfile,['Direction: ' reply]);
+               fprintf(logfile,'\r\n');
+           end
            if ~isempty(strfind(reply,'INF'))
                 obj.direction='INF';
            end
@@ -186,9 +218,18 @@ classdef pump<handle
            fprintf(obj.serial,'VOL');
            reply=fscanf(obj.serial);
            disp(['Volume: ' reply])
+           if nargin>1
+               fprintf(logfile,['Volume: ' reply]);           
+               fprintf(logfile,'\r\n');                           
+           end
+           
            if isempty(strfind(reply,'UL'))
                 obj.direction='WDR';
                 warnings{length(warnings)+1}='Volume units are not microlitres! This will wreck any fast infuse/withdraw steps - set to microlitres before running.';
+           end
+           if ~isempty(warnings) && nargin>1
+               fprintf(logfile,['Warning: ' char(warnings)]);           
+               fprintf(logfile,'\r\n'); 
            end
        end
        function delete(obj)

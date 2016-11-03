@@ -32,6 +32,7 @@ classdef flowChanges
             %Define default switching parameters
             obj.switchParams.withdrawVol=50;%vol in microlitres
             obj.switchParams.rate=100;%rate of pumping during switching in microlitres/min
+            obj.logRealInfo=0;
         end
         
         function obj=setSwitchTimes(obj, times, flowRate, initialPump)
