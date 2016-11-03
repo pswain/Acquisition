@@ -1,4 +1,4 @@
-function [stack,maxvalue]=captureStackPFSOn(obj,filename,zInfo,EM,E, point)
+function [stack,maxvalue]=captureStackPFSOn(obj,filename,zInfo,EM,E)
 %Captures and saves a z stack on Batman using the PIFOC sectioning device
 %with the PFS switched on. The PFS will attempt to compensate for the
 %movements of the PIFOC by moving the microscope Z drive so the images are
@@ -60,14 +60,15 @@ for z=1:nSlices%start of z sectioning loop
             maxthisz=max(img2);
             maxvalue=max([maxthisz maxvalue]);
             img2=reshape(img2,[height,width]);
-            sliceFileName=strcat(filename,'_',sprintf('%03d',index(z)),'.png');
             if EM==1 || EM==3
                 img2=flipud(img2);
             end
             img2=E.*img2;
             stack(:,:,index(z))=img2;
-            imwrite(img2,char(sliceFileName));
-
+            if ~isempty(filename)
+                sliceFileName=strcat(filename,'_',sprintf('%03d',index(z)),'.png');
+                imwrite(img2,char(sliceFileName));
+            end
     end
 
 %Restore z position

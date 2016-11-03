@@ -60,12 +60,15 @@ if thisZ==0
     maxValue=max(img2);%need to record the maximum measured value
     img2=E.*img2;
     img2=reshape(img2,[height,width]);
-    stack(:,:,1)=img2;
-    sliceFileName=strcat(filename,'_',sprintf('%03d'),'.png');
     if EM==1 || EM==3
         img2=flipud(img2);
     end
-    imwrite(img2,char(sliceFileName));
+    stack(:,:,1)=img2;
+    %Save the image if a filename was input
+    if ~isempty(filename)
+        sliceFileName=strcat(filename,'_',sprintf('%03d'),'.png');
+        imwrite(img2,char(sliceFileName));
+    end
 else
     %Z stack code is different for the three sectioning methods
     %Split into different methods to keep code simpler
@@ -73,9 +76,7 @@ else
         case 1
             [stack, maxValue]=obj.captureStackPIFOC(filename,zInfo,EM,E);
         case 2
-            [stack, maxValue]=obj.captureStackPFSOn(filename,zInfo,offset,EM,E);
-        case 3
-            [stack, maxValue]=obj.captureStackPFS(filename,thisZ,zInfo,offset,EM,E,point);
+            [stack, maxValue]=obj.captureStackPFSOn(filename,zInfo,EM,E);
     end
 end
 

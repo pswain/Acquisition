@@ -42,16 +42,16 @@ for z=1:nSlices%start of z sectioning loop
     maxthisz=max(img2);
     maxvalue=max([maxthisz maxvalue]);
     img2=reshape(img2,[height,width]);
-    
-    sliceFileName=strcat(filename,'_',sprintf('%03d',z),'.png');
-    
     if EM==1 || EM==3
         img2=flipud(img2);
     end
     img2=E.*img2;
     
     stack(:,:,z)=img2;
-    imwrite(img2,char(sliceFileName));
+    if ~isempty(filename)
+        sliceFileName=strcat(filename,'_',sprintf('%03d',z),'.png');
+        imwrite(img2,char(sliceFileName));
+    end
 end
 
 

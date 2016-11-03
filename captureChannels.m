@@ -55,24 +55,22 @@ for ch=1:numChannels%loop through the channels
             mmc.waitForConfig('Channel', chName);
             %Set LED voltage based on information in acqData.channels
             acqData.microscope.setLEDVoltage(acqData.channels{ch,8});
-            
+            %set the camera read mode - based on the information in CHsets.
+            %Don't set if the port is already right - setting the port makes
+            %the next LED exposure (not camera exposure) longer.
+            acqData.microscope.setPort(acqData.channels(ch,:),CHsets,logfile);
+            %Set the EM gain if using EM mode                     
+            if acqData.channels{ch,6}==1 || acqData.channels{6}==3
+                acqData.microscope.setEMGain(acqData.channels{7},CHsets,logfile);
+            end
+                        
             %Uncomment for taking dark field/camera noise images
             %mmc.setProperty('EmissionFilterWheel','Label','Closed2');
             %logstring=strcat('Emission filter wheel closed for dark field image');A=writelog(logfile,1,logstring);
             
-            
             logstring=strcat('Channel:',chName,' set at:',datestr(clock));A=writelog(logfile,1,logstring);
             logstring=strcat('Exposure time:',num2str(expos),'ms');A=writelog(logfile,1,logstring);
-            
-            %set the camera read mode - based on the information in CHsets.
-            %Don't set if the port is already right - setting the port makes
-            %the next LED exposure (not camera exposure) longer.
-            
-            acqData.microscope.setPort(acqData.channels(ch,:),CHsets,logfile);
-            
-            
-            
-            %does this channel do z sectioning?
+
             zsect=cell2mat(acqData.channels(ch,4));
             EM=cell2mat(acqData.channels(ch,6));
             

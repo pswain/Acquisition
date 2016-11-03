@@ -13,7 +13,9 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
             
             %Arguments:
             %1. filename - complete path for a directory to save the files into. Note - a
-            %slice number is added to this filename when each image is saved
+            %slice number is added to this filename when each image is
+            %saved. If empty the stack will be returned but no data will be
+            %saved
             %2. thisZ - 1 if this is a stack
             %3. acqData.z - with the z sectioning information for this experiment -
             %nSlices and interval
@@ -103,11 +105,6 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                     maxthisz=max(img2);
                     maxvalue=max([maxthisz maxvalue]);
                     img2=reshape(img2,[height,width]);
-                    if keepPFSON
-                        sliceFileName=strcat(filename,'_',sprintf('%03d',index(z)),'.png');
-                    else
-                        sliceFileName=strcat(filename,'_',sprintf('%03d',z),'.png');
-                    end
                     if EM==1 || EM==3
                         img2=flipud(img2);
                     end
@@ -117,8 +114,15 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                     else
                         stack(:,:,z)=img2;
                     end
-                    imwrite(img2,char(sliceFileName));
-%                     pause(.1)
+                    %Define the file name and save
+                    if ~isempty(filename)
+                        if keepPFSON
+                            sliceFileName=strcat(filename,'_',sprintf('%03d',index(z)),'.png');
+                        else
+                            sliceFileName=strcat(filename,'_',sprintf('%03d',z),'.png');
+                        end                        
+                        imwrite(img2,char(sliceFileName));
+                    end
                 end
                 
             else%single section acquisition
@@ -138,20 +142,15 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                     maxvalue=max(img2);%need to record the maximum measured value
                     img2=E.*img2;
                     img2=reshape(img2,[height,width]);
-                    stack(:,:,1)=img2;
-                    sliceFileName=strcat(filename,'_',sprintf('%03d'),'.png');
-                    if EM==1
+                    if EM==1 || EM==3
                         img2=flipud(img2);
                     end
-                    imwrite(img2,char(sliceFileName));
-                    %imshow(img2,[]);
-                    %drawnow;
-%                     if ~strcmp(obj.Name, 'Robin')
-%                         mmc.setPosition(sectDevice,startPos);
-%                         if strcmp(obj.Name, 'Robin')
-%                             pause(.02);
-%                         end
-%                     end
+                    stack(:,:,1)=img2;
+                    if ~isempty(filename)
+                        sliceFileName=strcat(filename,'_',sprintf('%03d'),'.png');                        
+                        imwrite(img2,char(sliceFileName));
+                    end
+
                 end
             end
             

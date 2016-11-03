@@ -56,11 +56,6 @@ if thisZ==1%this is a stack acquisition
                     maxthisz=max(img2);
                     maxvalue=max([maxthisz maxvalue]);
                     img2=reshape(img2,[height,width]);
-                    if keepPFSON
-                        sliceFileName=strcat(filename,'_',sprintf('%03d',index(z)),'.png');
-                    else
-                        sliceFileName=strcat(filename,'_',sprintf('%03d',z),'.png');
-                    end
                     if EM==1 || EM==3
                         img2=flipud(img2);
                     end
@@ -70,8 +65,17 @@ if thisZ==1%this is a stack acquisition
                     else
                         stack(:,:,z)=img2;
                     end
-                    imwrite(img2,char(sliceFileName));
-%                     pause(.1)
+                    %Save the image if a filename was input
+                    if ~isempty(filename)
+                        if keepPFSON
+                            sliceFileName=strcat(filename,'_',sprintf('%03d',index(z)),'.png');
+                        else
+                            sliceFileName=strcat(filename,'_',sprintf('%03d',z),'.png');
+                        end
+                        
+                        
+                        imwrite(img2,char(sliceFileName));
+                    end
                 end
                 
             

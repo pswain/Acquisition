@@ -69,7 +69,7 @@ if ~strcmp(acqData.microscope.Name,'Robin')
                 %Don't set if the port is already right - setting the port makes
                 %the next LED exposure (not camera exposure) longer.
                 
-                acqData.microscope.setPort(acqData.channels(ch,:),CHsets);
+                acqData.microscope.setPort(acqData.channels(ch,:),CHsets,logfile);
                 
                 
                 

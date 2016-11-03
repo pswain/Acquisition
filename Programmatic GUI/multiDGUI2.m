@@ -205,7 +205,7 @@ handles.text2=uicontrol('Style','text','Parent',handles.zPanel,'BackgroundColor'
 %Controls
 handles.nZsections=uicontrol('Style','edit','Parent',handles.zPanel,'Units','Normalized','Position',[0.425    0.2    .238   0.276],'String','1','BackgroundColor','w','Callback',@nZsections_Callback,'TooltipString','Number of sections');
 handles.zspacing=uicontrol('Style','edit','Parent',handles.zPanel,'Units','Normalized','Position',[0.700    0.2    .238   0.276],'String','1','BackgroundColor','w','Callback',@zspacing_Callback,'TooltipString','Spacing between sections in micrometres');
-handles.zMethod=uicontrol('Style','popupmenu','Parent',handles.zPanel,'Units','Normalized','Position',[0.0400    0.3000    0.35000    0.2],'String',{'PIFOC';'PIFOC with PFS on';'PFS'},'FontSize',8,'Callback',@zMethod_Callback,'TooltipString','Batman only: Choose method used for Z sectioning - note exact Z positions will not be known with PIFOC with PFS on method');
+handles.zMethod=uicontrol('Style','popupmenu','Parent',handles.zPanel,'Units','Normalized','Position',[0.0400    0.3000    0.35000    0.2],'String',{'PIFOC';'PIFOC with PFS on'},'FontSize',8,'Callback',@zMethod_Callback,'TooltipString','Batman only: Choose method used for Z sectioning - note exact Z positions will not be known with PIFOC with PFS on method');
 
 %Time settings panel
 handles.doTimelapse=uicontrol('Style','radiobutton','Value',1,'BackgroundColor',[0.8 0.8 0.8],'Parent',handles.timePanel,'Units','Normalized','Position',[.098 .862 .732 .094],'String','Time lapse?','FontSize',10,'HorizontalAlignment','Center','Callback',@doTimelapse_Callback);
