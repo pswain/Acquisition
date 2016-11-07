@@ -1,7 +1,5 @@
 function setZ(obj,z)
-if nargin==1
-    drift=0;
-end
+
 global mmc;
 switch obj.Name
     case {'Batman','Batgirl'}
