@@ -53,6 +53,7 @@ for ch=1:numChannels%loop through the channels
             mmc.setExposure(expos);
             mmc.setConfig('Channel', chName);
             mmc.waitForConfig('Channel', chName);
+            
             %Set LED voltage based on information in acqData.channels
             acqData.microscope.setLEDVoltage(acqData.channels{ch,8});
             %set the camera read mode - based on the information in CHsets.
@@ -82,7 +83,7 @@ for ch=1:numChannels%loop through the channels
             else
                 E=1;
             end
-            
+            pause(0.3);
             [resultStack,maxValue]=acqData.microscope.captureStack(filename,zsect,acqData.z,0,EM,E,acqData.points(pos));
             
             

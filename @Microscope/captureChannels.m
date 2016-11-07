@@ -54,6 +54,7 @@ if ~strcmp(acqData.microscope.Name,'Robin')
                 mmc.setExposure(expos);
                 mmc.setConfig('Channel', chName);
                 mmc.waitForConfig('Channel', chName);
+                pause(.05);
                 %Set LED voltage based on information in acqData.channels
                 acqData.microscope.setLEDVoltage(acqData.channels{ch,8});
                 
@@ -165,7 +166,6 @@ elseif strcmp(acqData.microscope.Name,'Robin')
     end
     %Only capture anything if exposure time is not zero
     [resultStack,maxValue]=acqData.microscope.captureStack(filename,thisZ, zInfo, 0);
-    (obj,filename,thisZ,zInfo,offset,EM,E,height,width)
 %Commented this because it doesn't work. - error at line 163 above
    % [resultStack,maxValue]=acqData.microscope.captureStackFastRobin(chInfo,zInfo,acqData);
 end
@@ -179,7 +179,7 @@ else
 end
 returnData.max(ch)=maxValue;%the maximum recorded value for each channel (before applying any corrections based on E)
 
-end of if statement - exposure time zero or not
+end %of if statement - exposure time zero or not
 
 % for ch=1:numChannels%loop through the channels
 %    chName=char(CHsets.names(ch,gp));

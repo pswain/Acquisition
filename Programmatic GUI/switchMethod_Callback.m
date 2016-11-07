@@ -52,7 +52,7 @@ switch choice
                     flowRates(2,~ind)=oldFlow(1);%The pump1 flow rate - for times 2, 4, 6 etc
                 end
                 if ~problem
-                    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setSwitchTimes(txtTimes,flowRates,2);
+                    handles.acquisition.flow{5}=handles.acquisition.flow{5}.setSwitchTimes(txtTimes,flowRates,handles.acquisition.flow{5}.initialPump);
                 end
             else
                 problem=true;

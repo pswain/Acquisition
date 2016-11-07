@@ -130,6 +130,7 @@ end
 
 for t=1:numTimepoints%start of timepoint loop.
     
+%% Log entries for start of the timepoint
     fprintf(logfile,'\r\n');
     acqData.logtext=writelog(logfile,acqData.logtext,'');
     logstring=strcat('------Time point_',num2str(t),'------');acqData.logtext=writelog(logfile,acqData.logtext,logstring);
@@ -142,24 +143,27 @@ for t=1:numTimepoints%start of timepoint loop.
     acqData.logtext=writelog(logfile,acqData.logtext,logString);
     logString=['Memory used by Matlab: ' num2str(m.MemUsedMATLAB)];
     acqData.logtext=writelog(logfile,acqData.logtext,logString);
-      
-    
-    
+%%  Start of the positions loop
    maxgroups=zeros(numGroups,numChannels);
+   
    %loop through the positions
    for pos=1:numPositions
-       %First check if the user has clicked the Stop button
+%% First check if the user has clicked the Stop button
        drawnow;
        guiinfo=guidata(acqData.guihandle);
        if guiinfo.stop==1
           logstring=strcat('Experiment stopped by user at:',num2str(toc(startT)));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
           break%This leaves the position loop
        end
-
-        
-       %Run pump changing function if necessary
+%% Run pump changing function if necessary and log the pump info if requested
        acqData.flow{5}=acqData.flow{5}.shouldChange(toc(startT)/60,logfile);
-       %Determine the position group of the current point
+       if acqData.flow{5}.logRealInfo
+           for pNum=1:length(acqData.flow{4})
+              [acqData.flow{4}(pNum),~]=acqData.flow{4}(pNum).refreshPumpDetails(logfile);
+           end
+       end       
+       
+%% Determine the position group of the current point
        groupid=cell2mat(acqData.points(pos,6));
        groups=[acqData.points{:,6}];%the list of groups
        gp=find(groups)==groupid;%gp is the (logical) index to the entry for this group in CHsets
