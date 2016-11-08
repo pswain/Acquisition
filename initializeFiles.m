@@ -98,9 +98,14 @@ numPositions=sizePoints(1);
 directories={''};
 if numPositions>0
     for n=1:numPositions
-    directories(n)=cellstr(strcat(exptFolder,'\',char(acqData.points(n,1))));
-    mkdir (char(directories(n)));
+        directories(n)=cellstr(strcat(exptFolder,'\',char(acqData.points(n,1))));
+        mkdir (char(directories(n)));
     end
+else
+    %Make a single folder for the position
+    directories{1}=[exptFolder,'\','pos1'];
+    mkdir (directories{1});
+
 end
 %save the point list (if there is one)
 if numPositions>0

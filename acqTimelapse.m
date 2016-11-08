@@ -124,7 +124,12 @@ for ch=1:numChannels
     CHsets.skip(ch)=cell2mat(acqData.channels(ch,3));
 end
 
-
+%Ensure the Z sectioning method is not PFSOn if the PFS isn't on
+if acqData.z(3)==0
+    %Ensure the Z sectioning method is not PFSOn if the PFS isn't on
+    acqData.z(6)=1;
+    logstring='Sectioning method has been set to PFS off because the PFS is not on and locked';acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -167,6 +172,7 @@ for t=1:numTimepoints%start of timepoint loop.
        groupid=cell2mat(acqData.points(pos,6));
        groups=[acqData.points{:,6}];%the list of groups
        gp=find(groups)==groupid;%gp is the (logical) index to the entry for this group in CHsets
+%% Write log entries for this position
        logstring=strcat('Position:',num2str(pos),', ',char(acqData.points(pos,1)));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
        logstring=strcat('Position group:',num2str(groupid)); acqData.logtext=writelog(logfile,acqData.logtext,logstring);
        %% Run acquisition code for this position
