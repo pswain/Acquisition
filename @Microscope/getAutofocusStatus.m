@@ -12,8 +12,7 @@ switch (obj.Autofocus.Type)
                 fprintf(logfile,'%s','PFS is locked');
                 fprintf(logfile,'\r\n');
             end
-        else
-            
+        else            
             status=mmc.getProperty('TIPFSStatus','Status');
             if nargin==2
                 fprintf(logfile,'%s',strcat('PFS status:',char(status),'- will not be used'));
