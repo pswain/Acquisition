@@ -130,9 +130,8 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                 %to use the sectioning device to position focus to the middle of the stack. If not
                 %then just capture an image.
                 if ~strcmp(obj.Name, 'Robin')
-                    if anyZ==1                                              
-                        z=nSlices/2;
-                        slicePosition=startPos+(p*((z-1)*sliceInterval));
+                    if anyZ==1
+                        slicePosition=startPos+(p*((nSlices-1)/2*sliceInterval));
                         mmc.setPosition(sectDevice,slicePosition);
                         pause(0.005);
                     end

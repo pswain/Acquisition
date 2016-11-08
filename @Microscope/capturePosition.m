@@ -30,9 +30,15 @@ logstring=strcat('Position group:',num2str(groupid)); acqData.logtext=writelog(l
     %centre of the stack. Only possible if the PFS is on
     %(acqDat.z(3)==1)
     if acqData.z(3)==1
-        %obj=correctDrift(obj,logfile, zref, PFSOffset);
+        %Run either correctDrift or readDrift, depending on the sectioning
+        %method
+        if acqData.z(6)==1%PFS is off during Z sectioning
         logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
         acqData.microscope=acqData.microscope.correctDrift(logfile,acqData.points{pos,4},acqData.points(pos,5));
+        else
+            logstring=strcat('Call to readDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+            acqData.microscope=acqData.microscope.readDrift(logfile,acqData.points{pos,4},acqData.points(pos,5));
+        end
     else
         %The PFS is not in use - just set the z position (not necessary
         %if any channel does Z sectioning - will be set to the bottom
@@ -46,7 +52,7 @@ logstring=strcat('Position group:',num2str(groupid)); acqData.logtext=writelog(l
     %drift. For Z stack capture need to move to the bottom of the
     %stack (if any channels at this position do sectioning).    
     if anyZThisPos
-        startPos=acqData.points{pos,4}+acqData.microscope.AutoFocus.drift;%Z drive position - centre of stack
+        startPos=acqData.points{pos,4}+acqData.microscope.Autofocus.Drift;%Z drive position - centre of stack
         sliceInterval=acqData.z(2);
         nSlices=acqData.z(1);
         firstSlice=startPos-((nSlices-1)/2*sliceInterval);
