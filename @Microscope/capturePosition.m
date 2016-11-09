@@ -23,25 +23,15 @@ end
 %centre of the stack. Only possible if the PFS is on
 %(acqDat.z(3)==1)
 if acqData.z(3)==1
-    %Run either correctDrift or readDrift, depending on the sectioning
-    %method
-    if acqData.z(6)==1%PFS is off during Z sectioning - call correctDrift
-        logstring=strcat('Call to correctDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-        acqData.microscope=acqData.microscope.correctDrift(logfile,acqData.points{pos,4},acqData.points(pos,5));
-        %The call to correctDrift will turn off the PFS
-    else
-            logstring=strcat('Call to readDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
-            acqData.microscope=acqData.microscope.readDrift(logfile,acqData.points{pos,4},acqData.points(pos,5));
-
+    %Record the drift and make any adjustments to the PFS offset    
+    logstring=strcat('Call to readDrift after moving to position',num2str(pos));acqData.logtext=writelog(logfile,acqData.logtext,logstring);
+    acqData.microscope=acqData.microscope.readDrift(logfile,acqData.points{pos,4},acqData.points(pos,5));
+else
+    %The PFS is not in use - just set the z position
+    if ~anyZThisPos
+        acqData.microscope.setZ(acqData.points{pos,4});
     end
-    else
-        %The PFS is not in use - just set the z position (not necessary
-        %if any channel does Z sectioning - will be set to the bottom
-        %of the stack below
-        if ~anyZThisPos
-            acqData.microscope.setZ(acqData.points{pos,4});
-        end
-    end
+end
     %% Set the Z position for stack capture if necessary
     %Z position has been set to the position entry (corrected for
     %drift. For Z stack capture need to move to the bottom of the
@@ -55,7 +45,6 @@ if acqData.z(3)==1
 %     end
     
     %% Call captureChannels to capture the data
-
     [returnData]=acqData.microscope.captureChannels(acqData,logfile,folder,pos,t,CHsets);
 
 

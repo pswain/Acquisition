@@ -1,16 +1,15 @@
 function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,point)
-            %Captures and saves a Z stack using the current microscope. Z
-            %position is moved using the appropriate device for this
-            %microscope. If Batman is in use then there are 3 alternative
-            %methods for moving in Z, determined by zInfo(6).
+            %Captures and saves a Z stack using the Batgirl Z stage to move
+            %the focus position
             
             %Before calling this function:
             %1. Imaging configuration (LED, exposure time, filter positions etc) must
             %   be set
-            %2. If any channel in the acquisition does z sectioning the z position
-            %should be moved to the bottom of the stack before calling this.
-            %If not, the focus should be positioned at the desired focal position.
-            
+            %2. The TIZDrive should be moved to the set Z position - where
+            % the PFS is in use this should be done automatically by the
+            % PFS but the code must allow enough time for the PFS to make
+            % any adjustments.
+                        
             %Arguments:
             %1. filename - complete path for a directory to save the files into. Note - a
             %slice number is added to this filename when each image is
@@ -41,15 +40,7 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                 case 2
                     keepPFSON=true;
             end
-            sectDevice='ZStage';
-            %Wait until the device is ready before getting position (not
-            %convinced this line does anything, hence the pause for Robin
-            %next.
-            
-            if ~keepPFSON
-                mmc.waitForDevice(sectDevice);
-            end
-            
+            sectDevice='ZStage';            
             startPos=mmc.getPosition(sectDevice);%starting position of the sectioning device (microns)
             maxvalue=0;
             p=1;
@@ -66,10 +57,9 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                 zStep=-floor(nSlices/2)+[0:nSlices-1];
                 zStep=zStep*2*sliceInterval;
                 [b, index]=sort(abs(zStep));
-                                                
+                mmc.waitForSystem();%This should pause until all devices have stopped moving - not sure if it works                          
                 for z=1:nSlices%start of z sectioning loop
-                    %                     %Position of current slice
-                    
+                    %Position of current slice
                     slicePosition=startPos-((nSlices-1)*p*sliceInterval)/2+(p*((z-1)*sliceInterval));
                     if keepPFSON
                         zMov=zStep(index(z));
@@ -78,12 +68,7 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                     else
                         pauseDur=.01;
                     end
-
                     mmc.setPosition(sectDevice,slicePosition+offset);
-%                                         mmc.waitForDevice(sectDevice);
-                    %                     if strcmp(obj.Name, 'Robin')
-                    %                         pause(.01);
-                    %                     end
                     pause(pauseDur);
                     mmc.snapImage();
                     if keepPFSON
@@ -93,12 +78,6 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                         end
                     end
                     img=mmc.getImage;
-%                     if keepPFSON
-%                         pause(pauseDur*5);
-%                     end
-                    
-                    
-                    
                     img2=typecast(img,'uint16');
                     %need to record the maximum measured value to return
                     %This is done before any correction for changes in exposure time
@@ -115,7 +94,7 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                         stack(:,:,z)=img2;
                     end
                     %Define the file name and save
-                    if ~isempty(filename)
+                    if ~isempty(filename)%When snapping a stack the filename input will be empty - image stack is returned but not saved
                         if keepPFSON
                             sliceFileName=strcat(filename,'_',sprintf('%03d',index(z)),'.png');
                         else
@@ -124,36 +103,24 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                         imwrite(img2,char(sliceFileName));
                     end
                 end
-                
             else%single section acquisition
-                %If any of the channels in this acquisition do z sectioning then need
-                %to use the sectioning device to position focus to the middle of the stack. If not
-                %then just capture an image.
-                if ~strcmp(obj.Name, 'Robin')
-                    if anyZ==1
-                        slicePosition=startPos+(p*((nSlices-1)/2*sliceInterval));
-                        mmc.setPosition(sectDevice,slicePosition);
-                        pause(0.005);
-                    end
-                    mmc.snapImage();
-                    img=mmc.getImage;
-                    img2=typecast(img,'uint16');
-                    maxvalue=max(img2);%need to record the maximum measured value
-                    img2=E.*img2;
-                    img2=reshape(img2,[height,width]);
-                    if EM==1 || EM==3
-                        img2=flipud(img2);
-                    end
-                    stack(:,:,1)=img2;
-                    if ~isempty(filename)
-                        sliceFileName=strcat(filename,'_',sprintf('%03d'),'.png');                        
-                        imwrite(img2,char(sliceFileName));
-                    end
-
+                mmc.waitForSystem();%This should pause until all devices have stopped moving                          
+                mmc.snapImage();
+                img=mmc.getImage;
+                img2=typecast(img,'uint16');
+                maxvalue=max(img2);%need to record the maximum measured value
+                img2=E.*img2;
+                img2=reshape(img2,[height,width]);
+                if EM==1 || EM==3
+                    img2=flipud(img2);
+                end
+                stack(:,:,1)=img2;
+                if ~isempty(filename)%When snapping an image the filename input will be empty - image stack is returned but not saved
+                    sliceFileName=strcat(filename,'_',sprintf('%03d'),'.png');
+                    imwrite(img2,char(sliceFileName));
                 end
             end
             
             %Restore z position
             mmc.setPosition(sectDevice,startPos);
-            
-        end
+    end

@@ -8,14 +8,11 @@
 function obj=readDrift(obj,logfile,zref,PFSOffset)
 global mmc;
 
-%move the z drive to the reference position (+drift that has already occured)
 if iscell(zref)
     zref=cell2mat(zref);
 end
-mmc.setPosition('TIZDrive',zref+obj.Autofocus.Drift);
-pause(0.4);
-%turn PFS on - will correct for any further drift that has occurred since the last
-%time drift was measured.
+
+%Set the PFS offset if input before reading the drift value.
 if nargin==4
     if iscell(PFSOffset)
         PFSOffset=cell2mat(PFSOffset);
@@ -26,9 +23,9 @@ if nargin==4
     if PFSOffset~=currentOffset
         logstring=strcat('Setting PFS offset to :',num2str(PFSOffset));writelog(logfile,2,logstring);
         mmc.setPosition('TIPFSOffset',PFSOffset);
-        pause(2);%Movement of the offset is slow - need to wait for that
     end
 end
+
 %get the (corrected) z drive position
 currentZ=mmc.getPosition('TIZDrive');
 newdrift=currentZ-zref;
@@ -41,3 +38,12 @@ else
 end
 
 obj.Autofocus.Drift=drift;
+
+%Finally wait until the PFS has completed refocusing the z drive - this may
+%take some time if the PFSOffset has been changed
+status=char(mmc.getProperty('TIPFSStatus','Status'));
+while ~strcmp(status,'Locked in focus')
+pause(0.05);
+status=char(mmc.getProperty('TIPFSStatus','Status'));
+end
+

@@ -12,6 +12,7 @@ if get(hObject,'Value')==1%make sure z sectioning controls are enabled
     %and copy them to the handles.acquisition.z array to be used
     set(handles.nZsections,'Enable','on');
     set(handles.zspacing,'Enable','on');
+    set(handles.zMethod,'Enable','on');
     switch handles.acquisition.microscope.Name
         case 'Batman'
             set(handles.zMethod,'Enable','on');

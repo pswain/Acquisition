@@ -6,13 +6,15 @@ function status=getAutofocusStatus(obj,logfile)
 global mmc;
 switch (obj.Autofocus.Type)
     case 'PFS'
+        mmc.getProperty('TIPFSStatus','Status')
         if strcmp('Locked in focus',mmc.getProperty('TIPFSStatus','Status'))==1
             status=true;
             if nargin==2
                 fprintf(logfile,'%s','PFS is locked');
                 fprintf(logfile,'\r\n');
             end
-        else            
+        else
+            mmc.getProperty('TIPFSStatus','Status')
             status=mmc.getProperty('TIPFSStatus','Status');
             if nargin==2
                 fprintf(logfile,'%s',strcat('PFS status:',char(status),'- will not be used'));
