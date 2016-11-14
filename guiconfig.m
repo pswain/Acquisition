@@ -1,6 +1,8 @@
 %import org.micromanager.MMStudioMainFrame;
-import org.micromanager.MMStudio;
-import org.micromanager.MainFrame;
+import org.micromanager.MMStudio.*;
+import org.micromanager.MainFrame.*;
+import org.micromanager.MMStudioMainFrame.*;
+
 global gui;
-gui=MMStudio(false);
+%gui=MMStudioMainFrame(false);
 
