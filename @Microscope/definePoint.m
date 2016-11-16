@@ -17,7 +17,11 @@ switch obj.Name
         y=mmc.getYPosition('XYStage');
         z=mmc.getPosition('ZStage');
         AF=0;
-        
+    otherwise
+        x=mmc.getXPosition('XY');
+        y=mmc.getYPosition('XY');
+        z=mmc.getPosition('Z');
+        AF=0;
 end
 
 end

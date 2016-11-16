@@ -131,6 +131,8 @@ classdef (Abstract) Microscope<handle
                         case '4x4'
                             imageSize=[128 128];
                     end
+                otherwise
+                    imageSize=[512 512];
             end
             obj.ImageSize=imageSize;
             

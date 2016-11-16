@@ -3,7 +3,7 @@ classdef Joker<Microscope
         function obj=Joker
             obj.Name='Joker';
             obj.nameImage=imread('joker.jpg');
-            obj.Config='Volumes/Macintosh HD/Applications/Micro-Manager1.4/MMConfig_demo.cfg';
+            obj.Config='MMJokerConfig.cfg';
             obj.InitialChannel='DIC';
             obj.Autofocus=Autofocus('');
             obj.pumpComs(1).com='dummy';%pump1
