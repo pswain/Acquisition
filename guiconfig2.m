@@ -10,8 +10,8 @@ microscope.loadConfig;
 microscope.setInitialChannel;
 mmc.setExposure(10);
 %clear all previous acquisitions
-gui.closeAllAcquisitions();
-gui.clearMessageWindow();
+%gui.closeAllAcquisitions();
+%gui.clearMessageWindow();
 mmc.stopSequenceAcquisition;%Will allow acquisition to run if someone has 
 %forgotten to stop the 'live' mode from the mm GUI
 
