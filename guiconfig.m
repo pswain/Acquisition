@@ -4,5 +4,4 @@ import org.micromanager.MainFrame.*;
 import org.micromanager.MMStudioMainFrame.*;
 
 global gui;
-%gui=MMStudioMainFrame(false);
-
+gui=MMStudioMainFrame(false);

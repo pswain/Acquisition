@@ -88,26 +88,25 @@ if strcmp(pwd,'C:\Users\Public\Microscope Control');
     msgbox('MultiDGUI is running from the shared Microscope Control folder - please do not edit this version of the software!','Running shared software','Warn');
 end
 
+%Create the GUI
+handles=multiDGUI2;
+%Create microscope object - details will depend on which computer is
+%running this
+handles.acquisition.microscope=chooseScope;
+
 %Find out if an mmc and gui object have been initialised - if so can
 %activate the eyepiece and camera buttons and inactivate the launch
 %micromanager button
-isthereagui=exist ('gui','var');
-global gui;
 if ~isa(gui,'org.micromanager.MMStudio')
     fprintf('<a href=""> Starting Micro-manager. Ignore TextCanvas error message </a>\n')
     fprintf('<a href=""> Select (none) when asked to choose configuration file </a>\n')
-    guiconfig;
+    if ~strcmp(handles.acquisition.microscope.Name,'Joker')
+        guiconfig;
+    end
     fprintf('<a href=""> Creating the GUI... </a>\n')
 else
     fprintf('<a href=""> Micromanager GUI already open </a>\n');
 end
-%Create the GUI
-handles=multiDGUI2;
-%Get computer name
-[idum,hostname]= system('hostname');
-%Create microscope object - details will depend on which computer is
-%running this
-handles.acquisition.microscope=chooseScope;
 
 %Get free disk space
 handles.freeDisk=checkDiskSpace(handles.acquisition.microscope.DataPath(1:2));
