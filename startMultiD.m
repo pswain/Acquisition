@@ -97,16 +97,12 @@ handles.acquisition.microscope=chooseScope;
 %Find out if an mmc and gui object have been initialised - if so can
 %activate the eyepiece and camera buttons and inactivate the launch
 %micromanager button
-if ~isa(gui,'org.micromanager.MMStudio')
-    fprintf('<a href=""> Starting Micro-manager. Ignore TextCanvas error message </a>\n')
-    fprintf('<a href=""> Select (none) when asked to choose configuration file </a>\n')
-    if ~strcmp(handles.acquisition.microscope.Name,'Joker')
-        guiconfig;
-    end
-    fprintf('<a href=""> Creating the GUI... </a>\n')
-else
-    fprintf('<a href=""> Micromanager GUI already open </a>\n');
+fprintf('<a href=""> Starting Micro-manager. Ignore TextCanvas error message </a>\n')
+fprintf('<a href=""> Select (none) when asked to choose configuration file </a>\n')
+if ~strcmp(handles.acquisition.microscope.Name,'Joker')
+    guiconfig;
 end
+fprintf('<a href=""> Creating the GUI... </a>\n')
 
 %Get free disk space
 handles.freeDisk=checkDiskSpace(handles.acquisition.microscope.DataPath(1:2));
@@ -181,7 +177,19 @@ users=[swain tyers millar];
 %First get Omero info and set path
 addpath(genpath(handles.acquisition.microscope.OmeroCodePath));
 handles.aquisition.omero=struct('project',{}, 'tags',{}, 'object',{});
-handles.acquisition.omero.object=OmeroDatabase('upload','sce-bio-c04287.bio.ed.ac.uk',true);
+if ~isempty(handles.acquisition.microscope.OmeroInfoPath)
+    %Omero info path is initialised for the microscope computers which
+    %already have local copies of the database information - don't need to
+    %log in to the Omero server when making the OmeroDatabase object.
+    handles.acquisition.omero.object=OmeroDatabase('upload','sce-bio-c04287.bio.ed.ac.uk',false);
+else
+    %With the demo microscope object ('Joker') the omero info path isn't
+    %initialised - need to log in to download the database info from the
+    %database
+    handles.acquisition.omero.object=OmeroDatabase('upload','sce-bio-c04287.bio.ed.ac.uk',true);
+    handles.acquisition.microscope.OmeroInfoPath=handles.acquisition.omero.object.SavePath(1:strfind(handles.acquisition.omero.object.SavePath,'dbInfo')-1);
+end
+
 
 %Display the projects
 proj=handles.acquisition.omero.object.getProjectNames;

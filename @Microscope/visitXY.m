@@ -17,9 +17,9 @@ y=cell2mat(point(3));
 
 global mmc;
 %move to XY position defined in point input.
-mmc.setXYPosition('XYStage',x,y);
+mmc.setXYPosition(obj.XYStage,x,y);
 try
-mmc.waitForDevice('XYStage');
+mmc.waitForDevice(obj.XYStage);
 catch
     pause (2);
 end
@@ -30,10 +30,10 @@ switch obj.Autofocus.Type
         %this makes sure the Z drive is focused at the new point (through
         %adjustments by the PFS)
         if pfsOn==1
-            status=mmc.getProperty('TIPFSStatus','Status');
+            status=obj.getAutofocusStatus;
             while strcmp(status,'Focusing')
                 pause(.2);
-                status=mmc.getProperty('TIPFSStatus','Status');
+                status=obj.getAutofocusStatus;
             end
         end
         

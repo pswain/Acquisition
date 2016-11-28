@@ -46,7 +46,7 @@ classdef (Abstract) Microscope<handle
             switch obj.Name
                 case {'Batman','Batgirl'}
                     gain=str2double(mmc.getProperty('Evolve','MultiplierGain'));
-                case 'Robin'
+                case {'Robin','Joker'}
                     gain=0;
             end
         end

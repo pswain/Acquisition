@@ -24,7 +24,7 @@ switch obj.Name
                 case 8%The mCherry/cy5/tdTomato LED - adjust DAC-3
                     LED='DAC3';
             end
-     else%No config info supplied - get LED from the state of the switch
+        else%No config info supplied - get LED from the state of the switch
             dac=mmc.getProperty('DTOL-Switch','State');
             switch(str2num(dac))
                 case 1
@@ -71,6 +71,9 @@ switch obj.Name
         else
             LED=[];
         end
+    case 'Joker'
+        %There are no demo light sources defined
+        LED=[];
 end
 
 end

@@ -5,15 +5,15 @@ classdef Joker<Microscope
             obj.nameImage=imread('joker.jpg');
             obj.Config='MMJokerConfig.cfg';
             obj.InitialChannel='DIC';
-            obj.Autofocus=Autofocus('');
+            obj.Autofocus=Autofocus('none');
             obj.pumpComs(1).com='dummy';%pump1
             obj.pumpComs(2).com='dummy';%pump2
             obj.pumpComs(1).baud=19200;
             obj.pumpComs(2).baud=19200;
-            obj.OmeroInfoPath='~/OmeroDsTemp/';
+            obj.OmeroInfoPath='';
             obj.OmeroCodePath='~/Documents/Omero code';
-            obj.DataPath=['/Volumes/Users/' char(java.lang.System.getProperty('user.name')) '/OmeroTemp/'];
-            obj.XYStage='DXYStage';
+            obj.DataPath='~/Documents/DemoAcquisitionData';
+            obj.XYStage='XY';
             obj.ZStage='DStage';
         end
     end
