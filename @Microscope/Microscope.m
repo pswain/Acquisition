@@ -46,7 +46,7 @@ classdef (Abstract) Microscope<handle
             switch obj.Name
                 case {'Batman','Batgirl'}
                     gain=str2double(mmc.getProperty('Evolve','MultiplierGain'));
-                case 'Robin'
+                case {'Robin','Joker'}
                     gain=0;
             end
         end
@@ -131,6 +131,8 @@ classdef (Abstract) Microscope<handle
                         case '4x4'
                             imageSize=[128 128];
                     end
+                otherwise
+                    imageSize=[512 512];
             end
             obj.ImageSize=imageSize;
             

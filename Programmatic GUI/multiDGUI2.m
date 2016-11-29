@@ -30,7 +30,7 @@ function handles=multiDGUI2
 %Column 1 - use timelapse (1 for yes, 0 for no)
 %Column 2 - interval in s (300s (5min) default)
 %Column 3 - number of time points (180 default)
-%Column 4 - total time (54000s (15hr) default)
+%Column 4 - total time (54000s (15hr) defaulted)
 
 %Point visiting
 %points. cell array

@@ -148,6 +148,8 @@ switch obj.Name
         batText='New programmatic GUI running on Robin. Ask Ivan (07748450511, ivan.clark@ed.ac.uk) if there are any problems.';
     case 'Batgirl'
         batText='tdTomato is now available on Batgirl, YFP not. Ask Ivan (ivan.clark@ed.ac.uk) if there are any problems/bug reports/feature requests.';
+    case 'Joker'
+        batText='Mwahahaha...';
 end
 set(handles.news,'String',batText);
 

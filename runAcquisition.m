@@ -9,9 +9,11 @@ global mmc;
 global gui;
 
 %clear all previous acquisitions
-gui.closeAllAcquisitions();
-gui.clearMessageWindow();
-mmc.stopSequenceAcquisition;%Will allow acquisition to run if someone has 
+if ~isempty(gui)
+    gui.closeAllAcquisitions();
+    gui.clearMessageWindow();
+end
+mmc.stopSequenceAcquisition;%Will allow acquisition to run if someone has
 %forgotten to stop the 'live' mode from the mm GUI
 pause on;
 
@@ -21,8 +23,7 @@ pause on;
     %this info to acqData and record initial (reference) position of the Z
     %drive
     acqData.z(3)=acqData.microscope.getAutofocusStatus(logfile);
-   
-
+    
     %Do any channels do z sectioning - affects a lot of how things run so
     %recorded now to make it easier to keep track
 
@@ -82,3 +83,5 @@ tempName=char(strcat(exptFolder,'/temp_InProgress.txt'));
 if exist(tempName)==2;
     delete(tempName);
 end
+
+

@@ -1,14 +1,7 @@
 function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,point)
-            %Captures and saves a Z stack using the Batgirl Z stage to move
-            %the focus position
+            %Demo captureStack function for Joker
             
-            %Before calling this function:
-            %1. Imaging configuration (LED, exposure time, filter positions etc) must
-            %   be set
-            %2. The TIZDrive should be moved to the set Z position - where
-            % the PFS is in use this should be done automatically by the
-            % PFS but the code must allow enough time for the PFS to make
-            % any adjustments.
+            
                         
             %Arguments:
             %1. filename - complete path for a directory to save the files into. Note - a
@@ -40,7 +33,7 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                 case 2
                     keepPFSON=true;
             end
-            sectDevice='ZStage';            
+            sectDevice='Z';            
             startPos=mmc.getPosition(sectDevice);%starting position of the sectioning device (microns)
             maxvalue=0;
             p=1;
@@ -124,3 +117,4 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
             %Restore z position
             mmc.setPosition(sectDevice,startPos);
     end
+
