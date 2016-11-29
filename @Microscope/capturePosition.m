@@ -18,7 +18,7 @@ for n=1:size(acqData.channels,1)
     end
 end
 %% Correct for any focus drift
-%Call correct drift will calculate drift relative to where the lens
+%Call read drift will calculate drift relative to where the lens
 %was when the point was marked and set the focus position to the
 %centre of the stack. Only possible if the PFS is on
 %(acqDat.z(3)==1)

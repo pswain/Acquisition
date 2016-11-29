@@ -70,7 +70,7 @@ if thisZ==0
         imwrite(img2,char(sliceFileName));
     end
 else
-    %Z stack code is different for the three sectioning methods
+    %Z stack code is different for the different sectioning methods
     %Split into different methods to keep code simpler
     switch zInfo(6)
         case 1

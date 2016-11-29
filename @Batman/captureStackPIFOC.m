@@ -1,17 +1,29 @@
 function [stack,maxvalue]=captureStackPIFOC(obj,filename,zInfo,EM,E)
-%Captures and saves a z stack on Batman using the PIFOC sectioning device.
-%The focus position should be moved to the bottom of the stack before this
-%function is called
+%Captures and saves a z stack on Batman using the PIFOC sectioning device (with the PFS switched off).
+%% Initialize variables
 global mmc;
 nSlices=zInfo(1);
 sliceInterval=zInfo(2);
-anyZ=zInfo(4);
 height=obj.ImageSize(1);
 width=obj.ImageSize(2);
 stack=zeros(height,width,nSlices);
-
-startPos=mmc.getPosition('PIFOC');%starting position of the sectioning device
 maxvalue=0;
+
+%% make sure the PFS or other focus device is off
+locked=obj.Autofocus.isLocked;
+if locked
+    obj.Autofocus.switchOff;
+end
+
+%% Move the focus position to the bottom of the stack (using the microscope Z
+%drive
+startZDrivePos=obj.getZ;%Z drive position - centre of stack
+nSlices=zInfo(1);
+firstSlice=startZDrivePos-((nSlices-1)/2*sliceInterval);
+obj.setZ(firstSlice);
+
+%% Prepare PIFOC positioning 
+startPos=mmc.getPosition('PIFOC');%starting position of the sectioning device (will be 0 for the PIFOC)
 %Need to multiply distances by 2 if using PIFOC because for some reason PIFOC moves 0.5microns when you tell it
 %to move 1.
 p=2;
@@ -20,17 +32,13 @@ p=2;
 %Calculate the first slice position (lowest focus position
 %in the stack)
 z=1;
-firstSlice=startPos-((nSlices-1)*p*sliceInterval)/2+(p*((z-1)*sliceInterval));
+firstSlice=p*(startPos-((nSlices-1)/2*sliceInterval));
+%firstSlice=startPos-((nSlices-1)*p*sliceInterval)/2+(p*((z-1)*sliceInterval));
 offset=abs(firstSlice);
-%make sure the PFS or other focus device is off
-locked=obj.Autofocus.isLocked;
-if locked
-    obj.Autofocus.switchOff;
-end
-              
+
+%% Loop through the sections, taking and saving images
 for z=1:nSlices%start of z sectioning loop
-    %Position of current slice
-    
+    %Position of current slice    
     slicePosition=startPos-((nSlices-1)*p*sliceInterval)/2+(p*((z-1)*sliceInterval));
     mmc.setPosition('PIFOC',slicePosition+offset);
     pause(.01);
@@ -54,8 +62,8 @@ for z=1:nSlices%start of z sectioning loop
     end
 end
 
-
-
 %Restore z position
 mmc.setPosition('PIFOC',startPos);
+obj.setZ(startZDrivePos);
+
             
