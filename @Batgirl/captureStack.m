@@ -40,8 +40,10 @@ function [stack,maxvalue]=captureStack(obj,filename,thisZ,zInfo,offset,EM,E,poin
                 case 2
                     keepPFSON=true;
             end
+            logstring=['captureStack (Batgirl). Z drive position before stack capture is: ' num2str(mmc.getPosition('TIZDrive')) '. ' datestr(clock)];A=writelog(obj.LogFile,1,logstring);
             sectDevice='ZStage';            
             startPos=mmc.getPosition(sectDevice);%starting position of the sectioning device (microns)
+            logstring=['captureStack (Batgirl). Starting Z stage position is: ' num2str(startPos) '. ' datestr(clock)];A=writelog(obj.LogFile,1,logstring);
             maxvalue=0;
             p=1;
             offset=0;

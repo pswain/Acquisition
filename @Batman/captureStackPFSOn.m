@@ -18,12 +18,17 @@ width=obj.ImageSize(2);
 stack=zeros(height,width,nSlices);
 maxvalue=0;
 
+logstring=['captureStackPFSOn (Batman). Z drive position before stack capture is: ' num2str(mmc.getPosition('TIZDrive')) '. ' datestr(clock)];A=writelog(obj.LogFile,1,logstring);
+
+
 %% Move the focus position to the bottom of the stack (using the microscope Z
 %drive
 startZDrivePos=obj.getZ;%Z drive position - centre of stack
 nSlices=zInfo(1);
 firstSlice=startZDrivePos-((nSlices-1)/2*sliceInterval);
 obj.setZ(firstSlice);
+
+
 
 %% Prepare PIFOC positioning 
 startPos=mmc.getPosition('PIFOC');%starting position of the sectioning device

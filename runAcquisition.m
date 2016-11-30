@@ -4,8 +4,7 @@ global mmc;
 %Run initialize files script - opens directories for saving data and log file
 %also saves acquisition settings
 [logfile,exptFolder,posDirectories]=initializeFiles(acqData);
-
-global mmc;
+acqData.microscope.LogFile=logfile;
 global gui;
 
 %clear all previous acquisitions

@@ -15,6 +15,9 @@ if locked
     obj.Autofocus.switchOff;
 end
 
+logstring=['captureStackPIFOC (Batman). Z drive position before stack capture is: ' num2str(mmc.getPosition('TIZDrive')) '. ' datestr(clock)];A=writelog(obj.LogFile,1,logstring);
+
+
 %% Move the focus position to the bottom of the stack (using the microscope Z
 %drive
 startZDrivePos=obj.getZ;%Z drive position - centre of stack
