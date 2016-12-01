@@ -19,7 +19,7 @@ switch chName
         colour=[1.0000    0.6000    0.6000];
     case 'tdTomato'
         colour=[1.0000    0.6000    0.7843];
-    case 'cy5'
+    case {'cy5','Cy5'}
         colour= [0.8471    0.1608         0];
     case 'GFPAutoFL'
         colour=[0.7490    0.7490         0];
@@ -31,6 +31,11 @@ switch chName
         colour=[0.3078    0.8863    0.3745];
     case {'mKo2', 'mKO2'}
         colour=[1 .5 .2];
+    case 'DAPI'
+        colour=[0 0 .2];
+    case 'Rhodamine'
+        colour=[0.9471    0.1608         0];
+    
         
         
 end

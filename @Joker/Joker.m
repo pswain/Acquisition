@@ -3,7 +3,9 @@ classdef Joker<Microscope
         function obj=Joker
             obj.Name='Joker';
             obj.nameImage=imread('joker.jpg');
-            obj.Config='MMJokerConfig.cfg';
+            path=mfilename('fullpath');
+            k=strfind(path,filesep);
+            obj.Config=[path(1:k(end-1)) 'MMJokerConfig.cfg'];
             obj.InitialChannel='DIC';
             obj.Autofocus=Autofocus('none');
             obj.pumpComs(1).com='dummy';%pump1
