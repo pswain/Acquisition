@@ -18,13 +18,14 @@ displayStackGUI.slider=uicontrol('Style','slider',...
                 'Units','normalized',...
                 'Value',1,...
                 'Position',[.05 .01 .9 .05],...
-                'SliderStep',sliderStep,...
-                'Callback',@(src,event)displayStackSlider_callback(displayStackGUI,src));
+                'SliderStep',sliderStep);
+set(displayStackGUI.slider,'Callback',@(src,event)displayStackSlider_callback(displayStackGUI,src));
+addlistener(displayStackGUI.slider,'Value','PostSet',@(src,event)displayStackSlider_callback(displayStackGUI,src));
 end
 
 
 function displayStackSlider_callback(displayStackGUI,src)
-z=get(src,'Value');
+z=round(displayStackGUI.slider.Value);
 image=double(displayStackGUI.stack(:,:,z));
 image=image/max(image(:))*.95;
 image=repmat(image,[1 1 3]);
