@@ -1,6 +1,6 @@
 classdef (Abstract) Microscope<handle
     %Superclass for microscope objects. Defines properties and methods
-    %requied by all microscopes and provides shared functions that can be
+    %required by all microscopes and provides shared functions that can be
     %overriden by subclasses for specific scopes.
     properties
         Name
@@ -20,6 +20,7 @@ classdef (Abstract) Microscope<handle
         ZStage;%string, micromanager config name of the Z focus device
         ImageSize;
         pinchComPort %com port for the pinch valve relays
+        LogFile %Handle to microscope acquisition log file
     end
   
     
@@ -46,7 +47,7 @@ classdef (Abstract) Microscope<handle
             switch obj.Name
                 case {'Batman','Batgirl'}
                     gain=str2double(mmc.getProperty('Evolve','MultiplierGain'));
-                case 'Robin'
+                case {'Robin','Joker'}
                     gain=0;
             end
         end
@@ -131,6 +132,8 @@ classdef (Abstract) Microscope<handle
                         case '4x4'
                             imageSize=[128 128];
                     end
+                otherwise
+                    imageSize=[512 512];
             end
             obj.ImageSize=imageSize;
             

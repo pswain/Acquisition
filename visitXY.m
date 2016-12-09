@@ -19,18 +19,9 @@ global mmc;
 %move to XY position defined in point input.
 x=cell2mat(point(2));
 y=cell2mat(point(3));
-mmc.setXYPosition('XYStage',x,y);
-mmc.waitForDevice('XYStage');
+mmc.setXYPosition(obj.XYStage,x,y);
+mmc.waitForDevice(obj.XYStage);
 logstring=strcat('Moved to X:',num2str(x),', Y:',num2str(y));writelog(logfile,texthandle,logstring);
 
 
-%this makes sure the Z drive is focused at the new point (through
-%adjustments by the PFS)
-if pfsOn==1
-    status=mmc.getProperty('TIPFSStatus','Status');
-    while strcmp(status,'Focusing')==1;
-        pause(.2);
-        status=mmc.getProperty('TIPFSStatus','Status');
-    end
-end
 

@@ -4,14 +4,15 @@ global mmc;
 %Run initialize files script - opens directories for saving data and log file
 %also saves acquisition settings
 [logfile,exptFolder,posDirectories]=initializeFiles(acqData);
-
-global mmc;
+acqData.microscope.LogFile=logfile;
 global gui;
 
 %clear all previous acquisitions
-gui.closeAllAcquisitions();
-gui.clearMessageWindow();
-mmc.stopSequenceAcquisition;%Will allow acquisition to run if someone has 
+if ~isempty(gui)
+    gui.closeAllAcquisitions();
+    gui.clearMessageWindow();
+end
+mmc.stopSequenceAcquisition;%Will allow acquisition to run if someone has
 %forgotten to stop the 'live' mode from the mm GUI
 pause on;
 

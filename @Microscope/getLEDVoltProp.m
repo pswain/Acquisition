@@ -16,7 +16,7 @@ switch obj.Name
                 device='DTOL-DAC-3';
         end
         
-    case 'Robin'
+    case {'Robin';'Joker'}
         %LED voltages cannot be set programatically on Robin.
         device='';
         voltProp='';

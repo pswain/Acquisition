@@ -1,6 +1,7 @@
 %Returns an object of the appropriate Microscope subclass for the computer
 %you are connected to (based on the hostname).
 function obj=chooseScope
+
 %Get computer name
 [idum,hostname]= system('hostname');
 if length(hostname)<14
@@ -19,8 +20,10 @@ else
         m=strfind(hostname,'SCE-BIO-C04078');
         if ~isempty(m)
             obj=Batgirl;
-            %Add an else here for a demo microscope - eg for working on the
-            %software on Macs
+        else
+            %Running on a computer that is not attached to a Swain lab
+            %microscope - create the demo microscope object
+            obj=Joker;
         end
     end
 end

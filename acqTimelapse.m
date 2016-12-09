@@ -143,7 +143,12 @@ for t=1:numTimepoints%start of timepoint loop.
     endOfTimepoint=(startOfTimepoint+interval);
     disp(strcat('Start of timepoint:',num2str(t)));
     %Log memory info
-    m=memory;
+    if ispc
+        m=memory;
+    else
+        m.MemAvailableAllArrays=0;
+        m.MemUsedMATLAB=0;
+    end
     logString=['Memory available for all arrays: ' num2str(m.MemAvailableAllArrays)];
     acqData.logtext=writelog(logfile,acqData.logtext,logString);
     logString=['Memory used by Matlab: ' num2str(m.MemUsedMATLAB)];

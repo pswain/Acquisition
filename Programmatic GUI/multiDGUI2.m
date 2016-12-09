@@ -30,7 +30,7 @@ function handles=multiDGUI2
 %Column 1 - use timelapse (1 for yes, 0 for no)
 %Column 2 - interval in s (300s (5min) default)
 %Column 3 - number of time points (180 default)
-%Column 4 - total time (54000s (15hr) default)
+%Column 4 - total time (54000s (15hr) defaulted)
 
 %Point visiting
 %points. cell array
@@ -233,7 +233,7 @@ handles.news=uicontrol('Style','text','Parent',handles.newsPanel,'Units','Normal
 columnEditable=logical([1 1 1 1 1 1 0]);
 columnName={'Name';'x (microns)';'y (microns), ';'z drive position (microns)';'PFS Offset';'Group';''};
 columnWidth={80,65,65,'auto','auto', 'auto', 'auto'};
-handles.pointsTable=uitable('Parent',handles.pointPanel,'ColumnName',columnName,'ColumnWidth',columnWidth,'Units','Normalized','Position',[.013 .236 .955 .713],'FontSize',10,'TooltipString','NB: If using the PFS make sure it is on and set the focus (z) position using the PFS offset wheel (not the microscope focus wheel) before marking the point. For a double exposure to monitor bleaching type "double" in the exposure field and add this point to the group to which it refers.','CellEditCallback',@pointsTable_CellEditCallback,'CellSelectionCallback',@pointsTable_CellSelectionCallback);
+handles.pointsTable=uitable('Parent',handles.pointPanel,'ColumnName',columnName,'ColumnEditable',true,'ColumnWidth',columnWidth,'Units','Normalized','Position',[.013 .236 .955 .713],'FontSize',10,'TooltipString','NB: If using the PFS make sure it is on and set the focus (z) position using the PFS offset wheel (not the microscope focus wheel) before marking the point. For a double exposure to monitor bleaching type "double" in the exposure field and add this point to the group to which it refers.','CellEditCallback',@pointsTable_CellEditCallback,'CellSelectionCallback',@pointsTable_CellSelectionCallback);
 handles.markPoint=uicontrol('Style','pushbutton','Parent',handles.pointPanel,'Units','Normalized','Position',[.011 .071 .138 .147],'String','Mark point','TooltipString','Click to add current position to the points list','Callback',@markPoint_Callback);
 handles.deletePoint=uicontrol('Style','pushbutton','Parent',handles.pointPanel,'Units','Normalized','Position',[.159 .071 .138 .147],'String','Delete point','TooltipString','Click to delete selected point','Callback',@deletePoint_Callback);
 handles.clearList=uicontrol('Style','pushbutton','Parent',handles.pointPanel,'Units','Normalized','Position',[.307 .071 .138 .147],'String','Clear list','TooltipString','Click to delete all marked points','Callback',@clearList_Callback);
